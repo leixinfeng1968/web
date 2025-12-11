@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角函数消消乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .game-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .author {
+            color: #666;
+            font-size: 16px;
+        }
+        .game-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        .name-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #studentName {
+            padding: 10px;
+            border: 2px solid #2ecc71;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 200px;
+            outline: none;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            color: white;
+        }
+        #startBtn {
+            background-color: #a0aec0; /* 默认灰色 */
+        }
+        #startBtn.active {
+            background-color: #2ecc71; /* 可点击绿色 */
+        }
+        #startBtn.active:hover {
+            background-color: #27ae60;
+        }
+        #resetBtn {
+            background-color: #f39c12;
+        }
+        #resetBtn:hover {
+            background-color: #e67e22;
+        }
+        .timer {
+            font-size: 16px;
+            color: #e74c3c;
+            font-weight: bold;
+            margin-left: auto;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            min-height: 450px;
+        }
+        .card {
+            background-color: #3498db;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            height: 110px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 5px;
+        }
+        .card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        }
+        .card.flipped {
+            background-color: #e74c3c;
+        }
+        .card.matched {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        /* 18种明亮背景色，确保与白色字体对比清晰 */
+        .card-1 { background: #3498db; }
+        .card-2 { background: #e74c3c; }
+        .card-3 { background: #2ecc71; }
+        .card-4 { background: #f39c12; }
+        .card-5 { background: #9b59b6; }
+        .card-6 { background: #1abc9c; }
+        .card-7 { background: #e67e22; }
+        .card-8 { background: #34495e; }
+        .card-9 { background: #16a085; }
+        .card-10 { background: #d35400; }
+        .card-11 { background: #2980b9; }
+        .card-12 { background: #c0392b; }
+        .card-13 { background: #f1c40f; }
+        .card-14 { background: #8e44ad; }
+        .card-15 { background: #17a2b8; }
+        .card-16 { background: #ffc107; }
+        .card-17 { background: #dc3545; }
+        .card-18 { background: #6f42c1; }
+        .leaderboard {
+            margin-top: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .leaderboard h2 {
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #2ecc71;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+        }
+        .modal h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .modal p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #666;
+        }
+        .game-placeholder {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 18px;
+        }
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .timer {
+                margin-left: 0;
+                width: 100%;
+                text-align: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .name-input {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            #studentName {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-title">
+            <h1>三角函数消消乐</h1>
+            <p class="author">作者：李娟茹</p>
+        </div>
+
+        <div class="game-info">
+            <div class="name-input">
+                <label for="studentName">学生姓名：</label>
+                <input type="text" id="studentName" placeholder="请输入姓名">
+                <button class="btn" id="startBtn" disabled>开始游戏</button>
+                <button class="btn" id="resetBtn">重置游戏</button>
+            </div>
+            <div class="timer" id="timer">计时：00:00</div>
+        </div>
+
+        <div class="game-board" id="gameBoard">
+            <div class="game-placeholder">输入姓名并点击「开始游戏」启动挑战</div>
+        </div>
+
+        <div class="leaderboard">
+            <h2>成绩排行榜</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>名次</th>
+                        <th>姓名</th>
+                        <th>完成时间</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr><td colspan="3">暂无成绩记录</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <h3>挑战成功！</h3>
+            <p id="successText">恭喜你完成所有匹配！</p>
+            <button class="btn" id="restartBtn" style="background-color: #2ecc71;">再来一局</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // 核心逻辑：放弃复杂语法，全部使用360兼容的原生JS
+        var studentNameInput = null;
+        var startBtn = null;
+        var resetBtn = null;
+        var restartBtn = null;
+        var timerDisplay = null;
+        var gameBoard = null;
+        var successModal = null;
+        var successText = null;
+        var leaderboardBody = null;
+
+        var gameActive = false;
+        var selectedCards = [];
+        var matchedCount = 0;
+        var timeElapsed = 0;
+        var timerInterval = null;
+        var playerName = "";
+        var leaderboard = [];
+
+        // 三角函数映射表
+        var trigMap = {
+            "sin30°": "1/2",
+            "cos60°": "1/2",
+            "sin45°": "√2/2",
+            "cos45°": "√2/2",
+            "sin60°": "√3/2",
+            "cos30°": "√3/2",
+            "tan30°": "√3/3",
+            "tan45°": "1",
+            "tan60°": "√3"
+        };
+
+        // 页面加载完成后初始化（360浏览器必须用这种方式）
+        window.onload = function() {
+            // 初始化DOM元素（直接获取，无复杂操作）
+            studentNameInput = document.getElementById("studentName");
+            startBtn = document.getElementById("startBtn");
+            resetBtn = document.getElementById("resetBtn");
+            restartBtn = document.getElementById("restartBtn");
+            timerDisplay = document.getElementById("timer");
+            gameBoard = document.getElementById("gameBoard");
+            successModal = document.getElementById("successModal");
+            successText = document.getElementById("successText");
+            leaderboardBody = document.getElementById("leaderboardBody");
+
+            // 加载本地存储的排行榜（容错处理）
+            try {
+                var storedLeaderboard = localStorage.getItem("trigLeaderboard");
+                if (storedLeaderboard) {
+                    leaderboard = JSON.parse(storedLeaderboard);
+                }
+            } catch (e) {
+                leaderboard = [];
+            }
+            updateLeaderboard();
+
+            // 姓名输入框事件（360浏览器最兼容的事件绑定）
+            studentNameInput.oninput = function() {
+                checkNameInput();
+            };
+            studentNameInput.onkeyup = function() {
+                checkNameInput();
+            };
+            studentNameInput.onblur = function() {
+                checkNameInput();
+            };
+
+            // 按钮点击事件
+            startBtn.onclick = function() {
+                if (this.disabled) return;
+                startGame();
+            };
+            resetBtn.onclick = function() {
+                resetGame();
+            };
+            restartBtn.onclick = function() {
+                successModal.style.display = "none";
+                startGame();
+            };
+        };
+
+        // 检查姓名输入，启用/禁用开始按钮（核心修复）
+        function checkNameInput() {
+            var name = studentNameInput.value;
+            // 去除空格，只要有非空字符就启用
+            if (name.replace(/\s+/g, "") !== "") {
+                playerName = name.trim();
+                startBtn.disabled = false;
+                startBtn.className = "btn active"; // 切换为绿色
+            } else {
+                playerName = "";
+                startBtn.disabled = true;
+                startBtn.className = "btn"; // 切换为灰色
+            }
+        }
+
+        // 生成游戏卡片（简单随机算法，360兼容）
+        function generateCards() {
+            var cards = [];
+            var colorIndex = 1;
+
+            // 添加函数卡片
+            for (var func in trigMap) {
+                if (trigMap.hasOwnProperty(func)) {
+                    cards.push({
+                        type: "func",
+                        content: func,
+                        value: trigMap[func],
+                        color: "card-" + colorIndex
+                    });
+                    colorIndex++;
+                }
+            }
+
+            // 添加数值卡片
+            for (var func in trigMap) {
+                if (trigMap.hasOwnProperty(func)) {
+                    cards.push({
+                        type: "value",
+                        content: trigMap[func],
+                        value: trigMap[func],
+                        color: "card-" + colorIndex
+                    });
+                    colorIndex++;
+                }
+            }
+
+            // 随机打乱（原生JS随机算法，无兼容问题）
+            for (var i = cards.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = cards[i];
+                cards[i] = cards[j];
+                cards[j] = temp;
+            }
+
+            return cards;
+        }
+
+        // 开始游戏
+        function startGame() {
+            gameActive = true;
+            matchedCount = 0;
+            timeElapsed = 0;
+            selectedCards = [];
+            gameBoard.innerHTML = "";
+
+            // 更新计时器
+            updateTimer();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+
+            // 生成并添加卡片
+            var cards = generateCards();
+            for (var i = 0; i < cards.length; i++) {
+                var card = document.createElement("div");
+                card.className = "card " + cards[i].color;
+                card.innerHTML = cards[i].content;
+                card.setAttribute("data-type", cards[i].type);
+                card.setAttribute("data-value", cards[i].value);
+
+                // 卡片点击事件
+                card.onclick = function() {
+                    if (!gameActive) return;
+                    if (this.classList.contains("matched") || this.classList.contains("flipped")) return;
+                    if (selectedCards.length >= 2) return;
+
+                    this.classList.add("flipped");
+                    selectedCards.push(this);
+
+                    if (selectedCards.length === 2) {
+                        setTimeout(checkMatch, 500);
+                    }
+                };
+
+                gameBoard.appendChild(card);
+            }
+        }
+
+        // 检查卡片匹配
+        function checkMatch() {
+            var card1 = selectedCards[0];
+            var card2 = selectedCards[1];
+            var type1 = card1.getAttribute("data-type");
+            var type2 = card2.getAttribute("data-type");
+            var value1 = card1.getAttribute("data-value");
+            var value2 = card2.getAttribute("data-value");
+
+            // 匹配条件：函数+数值，且值相同
+            if ((type1 === "func" && type2 === "value" && value1 === value2) || 
+                (type1 === "value" && type2 === "func" && value1 === value2)) {
+                card1.classList.add("matched");
+                card2.classList.add("matched");
+                matchedCount++;
+                selectedCards = [];
+
+                // 所有卡片匹配完成
+                if (matchedCount === 9) {
+                    endGame();
+                }
+            } else {
+                // 不匹配，翻回
+                setTimeout(function() {
+                    card1.classList.remove("flipped");
+                    card2.classList.remove("flipped");
+                    selectedCards = [];
+                }, 800);
+            }
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            var minutes = Math.floor(timeElapsed / 60);
+            var seconds = timeElapsed % 60;
+            var minuteStr = minutes < 10 ? "0" + minutes : minutes;
+            var secondStr = seconds < 10 ? "0" + seconds : seconds;
+            timerDisplay.innerHTML = "计时：" + minuteStr + ":" + secondStr;
+            timeElapsed++;
+        }
+
+        // 结束游戏
+        function endGame() {
+            clearInterval(timerInterval);
+            gameActive = false;
+
+            // 计算实际用时（减去最后一次多加的1秒）
+            var actualTime = timeElapsed - 1;
+            var minutes = Math.floor(actualTime / 60);
+            var seconds = actualTime % 60;
+            var timeStr = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+
+            // 保存成绩
+            leaderboard.push({
+                name: playerName,
+                time: timeStr,
+                score: actualTime
+            });
+
+            // 排序并保留前10名
+            leaderboard.sort(function(a, b) {
+                return a.score - b.score;
+            });
+            if (leaderboard.length > 10) {
+                leaderboard = leaderboard.slice(0, 10);
+            }
+
+            // 保存到本地存储
+            try {
+                localStorage.setItem("trigLeaderboard", JSON.stringify(leaderboard));
+            } catch (e) {}
+
+            // 显示结果
+            updateLeaderboard();
+            successText.innerHTML = "恭喜 " + playerName + "！<br>完成时间：" + timeStr;
+            successModal.style.display = "flex";
+        }
+
+        // 重置游戏
+        function resetGame() {
+            clearInterval(timerInterval);
+            gameActive = false;
+            selectedCards = [];
+            matchedCount = 0;
+            timeElapsed = 0;
+            playerName = "";
+
+            // 重置UI
+            studentNameInput.value = "";
+            startBtn.disabled = true;
+            startBtn.className = "btn";
+            timerDisplay.innerHTML = "计时：00:00";
+            gameBoard.innerHTML = '<div class="game-placeholder">输入姓名并点击「开始游戏」启动挑战</div>';
+        }
+
+        // 更新排行榜
+        function updateLeaderboard() {
+            leaderboardBody.innerHTML = "";
+            if (leaderboard.length === 0) {
+                leaderboardBody.innerHTML = '<tr><td colspan="3">暂无成绩记录</td></tr>';
+                return;
+            }
+
+            for (var i = 0; i < leaderboard.length; i++) {
+                var tr = document.createElement("tr");
+                tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + leaderboard[i].name + '</td><td>' + leaderboard[i].time + '</td>';
+                leaderboardBody.appendChild(tr);
+            }
+        }
+    </script>
+</body>
+</html>

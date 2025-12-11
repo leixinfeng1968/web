@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>篮球投篮动画</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        canvas {
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: #e6f7ff;
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        .slider-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .buttons {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #reset-btn {
+            background-color: #f44336;
+        }
+        
+        #reset-btn:hover {
+            background-color: #da190b;
+        }
+        
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            min-height: 80px;
+        }
+        
+        .success {
+            color: #4CAF50;
+        }
+        
+        .success-message {
+            margin-bottom: 10px;
+        }
+        
+        .thinking {
+            font-size: 18px;
+            color: #666;
+            font-weight: normal;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>篮球投篮动画</h1>
+        
+        <canvas id="canvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            <div class="slider-group">
+                <label for="angle">角度: <span id="angle-value">45</span>°</label>
+                <input type="range" id="angle" min="10" max="80" value="45">
+            </div>
+            
+            <div class="slider-group">
+                <label for="power">力度: <span id="power-value">50</span></label>
+                <input type="range" id="power" min="20" max="80" value="50">
+            </div>
+            
+            <div class="slider-group">
+                <label for="gravity">重力: <span id="gravity-value">0.5</span></label>
+                <input type="range" id="gravity" min="0.1" max="1.5" step="0.1" value="0.5">
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button id="shoot-btn">投篮</button>
+            <button id="reset-btn">初始化</button>
+        </div>
+        
+        <div class="result" id="result">
+            <!-- 投篮结果将在这里显示 -->
+        </div>
+    </div>
+    
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取DOM元素
+        const angleSlider = document.getElementById('angle');
+        const powerSlider = document.getElementById('power');
+        const gravitySlider = document.getElementById('gravity');
+        const angleValue = document.getElementById('angle-value');
+        const powerValue = document.getElementById('power-value');
+        const gravityValue = document.getElementById('gravity-value');
+        const shootBtn = document.getElementById('shoot-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const resultDiv = document.getElementById('result');
+        
+        // 游戏状态
+        let isShooting = false;
+        let shootSuccess = false;
+        
+        // 篮球属性
+        const ball = {
+            x: 100,
+            y: canvas.height - 50,
+            radius: 10, // 减小篮球尺寸
+            vx: 0,
+            vy: 0,
+            color: '#ff6b6b'
+        };
+        
+        // 篮环属性
+        const hoop = {
+            x: canvas.width - 150,
+            y: 200,
+            radius: 45, // 增大蓝环尺寸
+            color: '#333'
+        };
+        
+        // 游戏参数
+        let angle = parseInt(angleSlider.value);
+        let power = parseInt(powerSlider.value);
+        let gravity = parseFloat(gravitySlider.value);
+        
+        // 烟花效果参数
+        let fireworks = [];
+        
+        // 绘制篮球
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 篮球纹理
+            ctx.beginPath();
+            ctx.arc(ball.x - 5, ball.y - 5, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+        }
+        
+        // 绘制篮环
+        function drawHoop() {
+            // 绘制竖直栏杆（蓝环右侧）
+            const poleWidth = 10; // 栏杆宽度
+            const poleX = hoop.x + hoop.radius + 10; // 栏杆位置在蓝环右侧
+            const poleY = canvas.height - 30; // 栏杆底部在地面
+            const poleTop = hoop.y - 30; // 栏杆顶部稍高于栏环
+            
+            ctx.fillStyle = '#888'; // 灰色栏杆
+            ctx.fillRect(poleX - poleWidth/2, poleTop, poleWidth, poleY - poleTop);
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(poleX - poleWidth/2, poleTop, poleWidth, poleY - poleTop);
+            
+            // 篮筐（水平放置的椭圆形）
+            ctx.beginPath();
+            // 使用ellipse绘制水平椭圆形篮环
+            ctx.ellipse(hoop.x, hoop.y, hoop.radius, hoop.radius * 0.3, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ff6b6b'; // 橙色篮筐
+            ctx.lineWidth = 6;
+            ctx.stroke();
+        }
+        
+        // 绘制地面
+        function drawGround() {
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 30);
+            ctx.lineTo(canvas.width, canvas.height - 30);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+        
+        // 更新游戏状态
+        function update() {
+            if (isShooting) {
+                // 应用重力
+                ball.vy += gravity;
+                
+                // 更新位置
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                
+                // 检测是否穿过篮环
+                if (ball.x + ball.radius > hoop.x - hoop.radius && 
+                    ball.x - ball.radius < hoop.x + hoop.radius &&
+                    Math.abs(ball.y - hoop.y) < hoop.radius &&
+                    !shootSuccess) {
+                    shootSuccess = true;
+                    showSuccessMessage();
+                }
+                
+                // 检测是否落地
+                if (ball.y + ball.radius >= canvas.height - 30) {
+                    isShooting = false;
+                    ball.y = canvas.height - 30 - ball.radius;
+                    ball.vy = 0;
+                    ball.vx = 0;
+                }
+                
+                // 检测是否出界
+                if (ball.x + ball.radius < 0 || ball.x - ball.radius > canvas.width) {
+                    isShooting = false;
+                }
+            }
+        }
+        
+        // 绘制篮球运动轨迹（虚线）
+        function drawTrajectory() {
+            if (isShooting) return; // 投篮时不显示预测轨迹
+            
+            const angleRad = (angle * Math.PI) / 180;
+            const initialVx = Math.cos(angleRad) * power;
+            const initialVy = -Math.sin(angleRad) * power;
+            
+            ctx.beginPath();
+            ctx.moveTo(ball.x, ball.y);
+            
+            let x = ball.x;
+            let y = ball.y;
+            let vx = initialVx;
+            let vy = initialVy;
+            const timeStep = 0.1; // 减小步长使轨迹更平滑
+            
+            // 计算并绘制轨迹点
+            for (let i = 0; i < 500; i++) { // 增加迭代次数以补偿小步长
+                vy += gravity * timeStep; // 按时间步长应用重力
+                x += vx * timeStep;
+                y += vy * timeStep;
+                
+                ctx.lineTo(x, y);
+                
+                // 停止条件：落地或出界
+                if (y + ball.radius >= canvas.height - 30 || x < 0 || x > canvas.width) {
+                    break;
+                }
+            }
+            
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]); // 重置为实线
+        }
+        
+        // 绘制游戏画面
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制地面
+            drawGround();
+            
+            // 绘制篮环
+            drawHoop();
+            
+            // 绘制篮球运动轨迹
+            drawTrajectory();
+            
+            // 绘制篮球
+            drawBall();
+            
+            // 绘制成功消息（如果投篮成功）
+            if (shootSuccess) {
+                // 投篮成功消息
+                ctx.font = 'bold 24px Arial';
+                ctx.fillStyle = '#4CAF50';
+                ctx.textAlign = 'center';
+                ctx.fillText('投篮成功！', canvas.width / 2, hoop.y - 50);
+                
+                // 思考提示
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#333';
+                ctx.fillText('思考：在什么情况下会投篮成功？', canvas.width / 2, hoop.y - 10);
+            }
+            
+            // 绘制烟花
+            drawFireworks();
+        }
+        
+        // 游戏循环
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 投篮函数
+        function shoot() {
+            if (isShooting) return;
+            
+            // 重置状态
+            isShooting = true;
+            shootSuccess = false;
+            resultDiv.innerHTML = '';
+            
+            // 计算初始速度
+            const angleRad = (angle * Math.PI) / 180;
+            ball.vx = Math.cos(angleRad) * power;
+            ball.vy = -Math.sin(angleRad) * power;
+        }
+        
+        // 初始化函数
+        function reset() {
+            // 重置篮球位置
+            ball.x = 100;
+            ball.y = canvas.height - 50;
+            ball.vx = 0;
+            ball.vy = 0;
+            
+            // 重置状态
+            isShooting = false;
+            shootSuccess = false;
+            resultDiv.innerHTML = '';
+            
+            // 清空烟花
+            fireworks = [];
+            
+            // 将滑动条重置到最小值
+            // 角度滑动条
+            angleSlider.value = angleSlider.min;
+            angle = parseInt(angleSlider.min);
+            angleValue.textContent = angle;
+            
+            // 力度滑动条
+            powerSlider.value = powerSlider.min;
+            power = parseInt(powerSlider.min);
+            powerValue.textContent = power;
+            
+            // 重力滑动条
+            gravitySlider.value = gravitySlider.min;
+            gravity = parseFloat(gravitySlider.min);
+            gravityValue.textContent = gravity;
+        }
+        
+        // 显示成功消息
+        function showSuccessMessage() {
+            // 创建烟花效果
+            createFireworks();
+        }
+        
+        // 创建烟花效果
+        function createFireworks() {
+            // 在篮环位置创建10个烟花粒子
+            for (let i = 0; i < 10; i++) {
+                const firework = {
+                    x: hoop.x,
+                    y: hoop.y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    size: Math.random() * 4 + 2,
+                    life: 1,
+                    decay: Math.random() * 0.02 + 0.01
+                };
+                fireworks.push(firework);
+            }
+        }
+        
+        // 绘制烟花效果
+        function drawFireworks() {
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const firework = fireworks[i];
+                
+                // 更新位置
+                firework.x += firework.vx;
+                firework.y += firework.vy;
+                
+                // 应用重力
+                firework.vy += 0.1;
+                
+                // 更新生命周期
+                firework.life -= firework.decay;
+                
+                // 绘制烟花粒子
+                ctx.save();
+                ctx.globalAlpha = firework.life;
+                ctx.fillStyle = firework.color;
+                ctx.beginPath();
+                ctx.arc(firework.x, firework.y, firework.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // 移除生命周期结束的烟花
+                if (firework.life <= 0) {
+                    fireworks.splice(i, 1);
+                }
+            }
+        }
+        
+        // 滑动条事件监听
+        angleSlider.addEventListener('input', function() {
+            angle = parseInt(this.value);
+            angleValue.textContent = angle;
+        });
+        
+        powerSlider.addEventListener('input', function() {
+            power = parseInt(this.value);
+            powerValue.textContent = power;
+        });
+        
+        gravitySlider.addEventListener('input', function() {
+            gravity = parseFloat(this.value);
+            gravityValue.textContent = gravity;
+        });
+        
+        // 按钮事件监听
+        shootBtn.addEventListener('click', shoot);
+        resetBtn.addEventListener('click', reset);
+        
+        // 初始化游戏
+        reset();
+        gameLoop();
+    </script>
+</body>
+</html>

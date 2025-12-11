@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反比例函数 y = k/x 动态演示（增强版）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans max-w-6xl mx-auto p-4 md:p-5">
+    <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-4 md:mb-6">反比例函数 \( y = \frac{k}{x} \) 动态演示</h1>
+    
+    <!-- 演示区域 -->
+    <div class="bg-white rounded-lg shadow-md p-3 md:p-5 mb-4 md:mb-6">
+        <canvas id="hyperbolaCanvas" width="800" height="600" class="border border-gray-300 rounded mx-auto w-full max-w-4xl"></canvas>
+        
+        <!-- 参数控制面板 -->
+        <div class="flex flex-wrap justify-center gap-3 md:gap-4 mt-4 md:mt-5">
+            <div class="flex items-center w-full md:w-auto">
+                <label for="kParam" class="w-28 md:w-32 text-gray-700 text-sm md:text-base">比例系数 k：</label>
+                <input type="range" id="kParam" min="-50" max="50" step="1" value="10" class="w-48 md:w-64">
+                <span id="kValue" class="ml-2 text-gray-600">10</span>
+            </div>
+            <div class="flex items-center w-full md:w-auto">
+                <label for="speedParam" class="w-28 md:w-32 text-gray-700 text-sm md:text-base">动画速度：</label>
+                <input type="range" id="speedParam" min="0.5" max="3" step="0.1" value="1" class="w-48 md:w-64">
+                <span id="speedValue" class="ml-2 text-gray-600">1.0x</span>
+            </div>
+            <div class="flex gap-2 mt-2 md:mt-0">
+                <button id="resetBtn" class="bg-blue-500 text-white px-3 md:px-4 py-2 rounded hover:bg-blue-600 transition text-sm md:text-base">重置动点</button>
+                <button id="toggleAreaBtn" class="bg-green-500 text-white px-3 md:px-4 py-2 rounded hover:bg-green-600 transition text-sm md:text-base">显示面积</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 核心知识点 -->
+    <div class="bg-white rounded-lg shadow-md p-3 md:p-5">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4">反比例函数核心知识点</h2>
+        <div class="space-y-2 md:space-y-3 text-gray-700 text-sm md:text-base">
+            <p><strong>1. 定义</strong>：形如 \( y = \frac{k}{x} \)（\( k \) 为常数，\( k \neq 0 \)，\( x \neq 0 \)）的函数称为反比例函数，定义域为 \( x \in (-\infty, 0) \cup (0, +\infty) \)，值域为 \( y \in (-\infty, 0) \cup (0, +\infty) \)。</p>
+            <p><strong>2. 图像特征</strong>：
+                <ul class="list-disc pl-6 md:pl-8 mt-1">
+                    <li>图像为<strong>双曲线</strong>，由两支曲线组成，关于原点中心对称；</li>
+                    <li>当 \( k > 0 \) 时，双曲线位于第一、三象限，在每个象限内 \( y \) 随 \( x \) 的增大而减小；</li>
+                    <li>当 \( k < 0 \) 时，双曲线位于第二、四象限，在每个象限内 \( y \) 随 \( x \) 的增大而增大；</li>
+                    <li>图像与 x 轴、y 轴无交点（渐近线为 x 轴和 y 轴）。</li>
+                </ul>
+            </p>
+            <p><strong>3. 比例系数 k 的几何意义</strong>：双曲线上任意一点 \( P(x, y) \) 到两坐标轴的距离之积等于 \( |k| \)，即过点 \( P \) 作 x 轴、y 轴的垂线，垂足分别为 \( A、B \)，则矩形 \( OAPB \) 的面积 \( S = |xy| = |k| \)（演示中绿色矩形可直观查看）。</p>
+            <p><strong>4. 常见应用</strong>：用于描述路程与速度（\( s = vt \) 变形为 \( v = \frac{s}{t} \)）、压强与受力面积（\( p = \frac{F}{S} \)）等成反比例关系的实际问题。</p>
+            <p><strong>5. 交点标注</strong>：演示中自动标记双曲线与直线 \( y = x \) 或 \( y = -x \) 的交点（若存在），交点坐标满足 \( x = \frac{k}{x} \)，即 \( x = \pm \sqrt{k} \)（\( k > 0 \) 时与 \( y = x \) 相交，\( k < 0 \) 时与 \( y = -x \) 相交）。</p>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('hyperbolaCanvas');
+        const ctx = canvas.getContext('2d');
+        const kParam = document.getElementById('kParam');
+        const kValue = document.getElementById('kValue');
+        const speedParam = document.getElementById('speedParam');
+        const speedValue = document.getElementById('speedValue');
+        const resetBtn = document.getElementById('resetBtn');
+        const toggleAreaBtn = document.getElementById('toggleAreaBtn');
+
+        // 画布坐标系转换（适配不同屏幕）
+        const updateCanvasScale = () => {
+            const containerWidth = canvas.parentElement.clientWidth;
+            const scaleRatio = containerWidth < 600 ? 15 : containerWidth < 800 ? 18 : 20;
+            return {
+                centerX: canvas.width / 2,
+                centerY: canvas.height / 2,
+                scale: scaleRatio,
+                step: 0.1
+            };
+        };
+        let { centerX, centerY, scale, step } = updateCanvasScale();
+        window.addEventListener('resize', () => {
+            ({ centerX, centerY, scale, step } = updateCanvasScale());
+        });
+
+        // 演示参数
+        let k = parseInt(kParam.value);
+        let speed = parseFloat(speedParam.value);
+        let x = 0.5;
+        let direction = 1;
+        let showArea = false;
+
+        // 更新参数显示
+        kParam.addEventListener('input', () => {
+            k = parseInt(kParam.value);
+            kValue.textContent = k;
+        });
+        speedParam.addEventListener('input', () => {
+            speed = parseFloat(speedParam.value);
+            speedValue.textContent = speed.toFixed(1) + 'x';
+        });
+
+        // 重置动点
+        resetBtn.addEventListener('click', () => {
+            x = 0.5;
+            direction = 1;
+        });
+
+        // 切换面积显示
+        toggleAreaBtn.addEventListener('click', () => {
+            showArea = !showArea;
+            toggleAreaBtn.textContent = showArea ? '隐藏面积' : '显示面积';
+            toggleAreaBtn.classList.toggle('bg-green-500', !showArea);
+            toggleAreaBtn.classList.toggle('bg-red-500', showArea);
+        });
+
+        // 计算双曲线与特殊直线的交点
+        const getIntersectionPoints = () => {
+            const points = [];
+            if (k === 0) return points;
+            // 与y=x或y=-x的交点
+            if (k > 0) {
+                const x1 = Math.sqrt(k);
+                points.push({ x: x1, y: x1 });
+                const x2 = -Math.sqrt(k);
+                points.push({ x: x2, y: x2 });
+            } else {
+                const x1 = Math.sqrt(-k);
+                points.push({ x: x1, y: -x1 });
+                const x2 = -Math.sqrt(-k);
+                points.push({ x: x2, y: -x2 });
+            }
+            return points.filter(p => Math.abs(p.x) <= 15 && Math.abs(p.y) <= 15);
+        };
+
+        // 绘制坐标系
+        function drawCoordinateSystem() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+
+            // x轴（含箭头）
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 10, centerY - 5);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.lineTo(canvas.width - 10, centerY + 5);
+            ctx.stroke();
+
+            // y轴（含箭头）
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(centerX - 5, 10);
+            ctx.lineTo(centerX, 0);
+            ctx.lineTo(centerX + 5, 10);
+            ctx.stroke();
+
+            // 刻度（适配移动端，减少密集感）
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Arial';
+            const tickStep = window.innerWidth < 600 ? 2 : 1; // 移动端每2单位一个刻度
+            // x轴刻度
+            for (let i = -15; i <= 15; i += tickStep) {
+                if (i === 0) continue;
+                const x = centerX + i * scale;
+                ctx.beginPath();
+                ctx.moveTo(x, centerY - 3);
+                ctx.lineTo(x, centerY + 3);
+                ctx.stroke();
+                ctx.fillText(i, x - 4, centerY + 15);
+            }
+            // y轴刻度
+            for (let i = -15; i <= 15; i += tickStep) {
+                if (i === 0) continue;
+                const y = centerY - i * scale;
+                ctx.beginPath();
+                ctx.moveTo(centerX - 3, y);
+                ctx.lineTo(centerX + 3, y);
+                ctx.stroke();
+                ctx.fillText(i, centerX + 5, y + 4);
+            }
+
+            // 原点标签
+            ctx.fillText('O', centerX - 10, centerY + 15);
+        }
+
+        // 绘制双曲线及交点
+        function drawHyperbola() {
+            if (k === 0) return;
+
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 2;
+
+            // 右支曲线（x>0）
+            ctx.beginPath();
+            for (let x = step; x <= 15; x += step) {
+                const y = k / x;
+                if (Math.abs(y) > 15) continue;
+                const canvasX = centerX + x * scale;
+                const canvasY = centerY - y * scale;
+                x === step ? ctx.moveTo(canvasX, canvasY) : ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+
+            // 左支曲线（x<0）
+            ctx.beginPath();
+            for (let x = -step; x >= -15; x -= step) {
+                const y = k / x;
+                if (Math.abs(y) > 15) continue;
+                const canvasX = centerX + x * scale;
+                const canvasY = centerY - y * scale;
+                x === -step ? ctx.moveTo(canvasX, canvasY) : ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+
+            // 绘制交点
+            const intersections = getIntersectionPoints();
+            ctx.fillStyle = '#FF9800';
+            ctx.font = '12px Arial';
+            intersections.forEach(point => {
+                const canvasX = centerX + point.x * scale;
+                const canvasY = centerY - point.y * scale;
+                // 绘制交点圆点
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 5, 0, Math.PI * 2);
+                ctx.fill();
+                // 绘制交点坐标
+                ctx.fillText(`(${point.x.toFixed(1)}, ${point.y.toFixed(1)})`, canvasX + 8, canvasY - 8);
+            });
+        }
+
+        // 绘制动点、面积矩形
+        function drawMovingPoint() {
+            const y = k / x;
+            if (Math.abs(y) > 15) {
+                direction *= -1;
+                x = direction > 0 ? 0.5 : -0.5;
+                return;
+            }
+
+            const canvasX = centerX + x * scale;
+            const canvasY = centerY - y * scale;
+
+            // 绘制面积矩形（k≠0时）
+            if (showArea && k !== 0) {
+                ctx.strokeStyle = 'rgba(76, 175, 80, 0.6)';
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.2)';
+                ctx.lineWidth = 2;
+                // 矩形顶点：原点、x轴垂足、动点、y轴垂足
+                const xFootX = canvasX;
+                const xFootY = centerY;
+                const yFootX = centerX;
+                const yFootY = canvasY;
+                ctx.beginPath();
+                ctx.rect(centerX, centerY, x > 0 ? canvasX - centerX : centerX - canvasX, y > 0 ? centerY - canvasY : canvasY - centerY);
+                ctx.fill();
+                ctx.stroke();
+                // 面积标签
+                const area = Math.abs(k);
+                const labelX = centerX + (canvasX - centerX) / 2;
+                const labelY = centerY + (canvasY - centerY) / 2;
+                ctx.fillStyle = '#2E7D32';
+                ctx.font = '14px Arial';
+                ctx.fillText(`面积=${area}`, labelX - 20, labelY);
+            }
+
+            // 绘制动点
+            ctx.fillStyle = '#F44336';
+            ctx.beginPath();
+            ctx.arc(canvasX, canvasY, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 动点坐标标签
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            const label = `(${x.toFixed(1)}, ${y.toFixed(1)})`;
+            ctx.fillText(label, canvasX + 8, canvasY - 8);
+
+            // 更新动点位置
+            x += direction * 0.01 * speed;
+            if ((direction > 0 && x >= 15) || (direction < 0 && x <= -15)) {
+                direction *= -1;
+            }
+        }
+
+        // 动画主函数
+        function animate() {
+            drawCoordinateSystem();
+            drawHyperbola();
+            drawMovingPoint();
+            requestAnimationFrame(animate);
+        }
+
+        // 启动动画
+        animate();
+    </script>
+</body>
+</html>

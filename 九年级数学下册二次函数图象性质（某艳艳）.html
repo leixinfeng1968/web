@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>二次函数图像与性质动态课件</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #function-canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .letter-paper {
+            background-color: #fff;
+            border: 1px solid #dcdcdc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border-radius: 4px;
+            background-image: linear-gradient(90deg, rgba(220,220,220,0.1) 1px, transparent 1px),
+                              linear-gradient(rgba(220,220,220,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .vertex-display {
+            background-color: #fff8e1;
+            border: 1px solid #ffcc80;
+            border-radius: 4px;
+            padding: 1.25rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .formula-text {
+            font-family: 'Times New Roman', serif;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-5 flex flex-col items-center">
+    <!-- 标题区：标题 + 作者（作者在标题正下方） -->
+    <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">二次函数 y = ax² + bx + c 图像与性质分析</h1>
+        <p class="text-lg text-gray-600 mt-2">作者：牟艳艳</p>
+    </div>
+    
+    <div class="w-11/12 max-w-6xl flex flex-col gap-6">
+        <!-- 1. 上方：仅函数图像 -->
+        <div class="bg-white rounded-lg shadow-md p-2 overflow-hidden">
+            <canvas id="function-canvas" width="800" height="500"></canvas>
+        </div>
+
+        <!-- 2. 中间：参数滑动条 -->
+        <div class="w-full bg-white rounded-lg shadow-md p-5">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">调整参数 a、b、c</h2>
+            <div class="flex flex-col gap-4">
+                <div class="flex items-center gap-4">
+                    <label for="param-a" class="w-16 font-medium text-gray-700 text-lg">a = </label>
+                    <input type="range" id="param-a" min="-5" max="5" step="0.1" value="1"
+                           class="flex-1 h-2 bg-red-100 rounded-lg appearance-none cursor-pointer">
+                    <span id="a-value" class="w-16 text-center font-semibold text-red-600">1.0</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <label for="param-b" class="w-16 font-medium text-gray-700 text-lg">b = </label>
+                    <input type="range" id="param-b" min="-10" max="10" step="0.1" value="0"
+                           class="flex-1 h-2 bg-green-100 rounded-lg appearance-none cursor-pointer">
+                    <span id="b-value" class="w-16 text-center font-semibold text-green-600">0.0</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <label for="param-c" class="w-16 font-medium text-gray-700 text-lg">c = </label>
+                    <input type="range" id="param-c" min="-10" max="10" step="0.1" value="0"
+                           class="flex-1 h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                    <span id="c-value" class="w-16 text-center font-semibold text-blue-600">0.0</span>
+                </div>
+                <div class="text-xl font-bold text-blue-600 mt-2 w-full text-center" id="function-formula">y = 1.0x² + 0.0x + 0.0</div>
+            </div>
+        </div>
+
+        <!-- 3. 下方：函数性质分析 -->
+        <div class="w-full bg-white rounded-lg shadow-md p-5">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">函数性质分析</h2>
+            <ul class="space-y-2 text-gray-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <li><span class="font-semibold">开口方向：</span><span id="prop-direction">向上（a > 0）</span></li>
+                <li><span class="font-semibold">对称轴：</span><span id="prop-axis">x = 0.0</span></li>
+                <li><span class="font-semibold">顶点坐标：</span><span id="prop-vertex">(0.0, 0.0)</span></li>
+                <li><span class="font-semibold">最值：</span><span id="prop-extreme">最小值 0.0（开口向上）</span></li>
+                <li><span class="font-semibold">增减性：</span><span id="prop-monotonic">x < 0.0 时递减；x > 0.0 时递增</span></li>
+                <li><span class="font-semibold">与y轴交点：</span><span id="prop-y-intercept">(0, 0.0)</span></li>
+            </ul>
+        </div>
+
+        <!-- 4. 最下方：信纸信息 -->
+        <div class="w-full letter-paper">
+            <p class="text-gray-800 text-lg">二次函数图像动态演示课件 | 基于HTML5 Canvas实现</p>
+        </div>
+
+        <!-- 新增：页面底部公式与顶点坐标显示模块 -->
+        <div class="w-full vertex-display">
+            <h3 class="text-lg font-bold text-orange-600 mb-3">二次函数核心公式（一般式 y = ax² + bx + c）</h3>
+            <div class="flex flex-col gap-2 mb-4">
+                <p class="text-lg text-gray-800">对称轴公式：<span class="formula-text text-xl font-semibold">x = -b/(2a)</span></p>
+                <p class="text-lg text-gray-800">顶点坐标公式：<span class="formula-text text-xl font-semibold">(-b/(2a), (4ac - b²)/(4a))</span></p>
+            </div>
+            <h4 class="text-base font-bold text-orange-500 mb-1">当前函数计算结果</h4>
+            <p class="text-xl font-semibold text-gray-800" id="bottom-vertex">(0.0, 0.0)</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('function-canvas');
+            const ctx = canvas.getContext('2d');
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+
+            const xMin = -8;
+            const xMax = 8;
+            const yMin = -8;
+            const yMax = 8;
+            const scaleX = canvasWidth / (xMax - xMin);
+            const scaleY = canvasHeight / (yMax - yMin);
+
+            function toCanvasX(x) {
+                return (x - xMin) * scaleX;
+            }
+            function toCanvasY(y) {
+                return canvasHeight - (y - yMin) * scaleY;
+            }
+
+            function drawAxis() {
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                for (let x = xMin; x <= xMax; x++) {
+                    ctx.beginPath();
+                    const canvasX = toCanvasX(x);
+                    ctx.moveTo(canvasX, 0);
+                    ctx.lineTo(canvasX, canvasHeight);
+                    ctx.stroke();
+                }
+                for (let y = yMin; y <= yMax; y++) {
+                    ctx.beginPath();
+                    const canvasY = toCanvasY(y);
+                    ctx.moveTo(0, canvasY);
+                    ctx.lineTo(canvasWidth, canvasY);
+                    ctx.stroke();
+                }
+
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                const xAxisY = toCanvasY(0);
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(xMin), xAxisY);
+                ctx.lineTo(toCanvasX(xMax), xAxisY);
+                ctx.stroke();
+
+                const yAxisX = toCanvasX(0);
+                ctx.beginPath();
+                ctx.moveTo(yAxisX, toCanvasY(yMin));
+                ctx.lineTo(yAxisX, toCanvasY(yMax));
+                ctx.stroke();
+
+                ctx.fillStyle = '#666';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                for (let x = xMin; x <= xMax; x++) {
+                    if (x === 0) continue;
+                    const canvasX = toCanvasX(x);
+                    ctx.beginPath();
+                    ctx.moveTo(canvasX, xAxisY - 5);
+                    ctx.lineTo(canvasX, xAxisY + 5);
+                    ctx.stroke();
+                    ctx.fillText(x, canvasX, xAxisY + 20);
+                }
+
+                ctx.textAlign = 'left';
+                for (let y = yMin; y <= yMax; y++) {
+                    if (y === 0) continue;
+                    const canvasY = toCanvasY(y);
+                    ctx.beginPath();
+                    ctx.moveTo(yAxisX - 5, canvasY);
+                    ctx.lineTo(yAxisX + 5, canvasY);
+                    ctx.stroke();
+                    ctx.fillText(y, yAxisX + 8, canvasY + 5);
+                }
+
+                ctx.font = '16px Arial bold';
+                ctx.fillText('x', toCanvasX(xMax) - 15, toCanvasY(0) - 10);
+                ctx.fillText('y', toCanvasX(0) + 10, toCanvasY(yMax) - 15);
+            }
+
+            function getFunctionProps(a, b, c) {
+                const xVertex = -b / (2 * a);
+                const yVertex = (4 * a * c - b * b) / (4 * a); // 按顶点公式计算，确保与显示公式一致
+                return {
+                    direction: a > 0 ? '向上（a > 0）' : '向下（a < 0）',
+                    axis: `x = ${xVertex.toFixed(1)}`,
+                    vertex: `(${xVertex.toFixed(1)}, ${yVertex.toFixed(1)})`,
+                    extreme: a > 0 ? `最小值 ${yVertex.toFixed(1)}（开口向上）` : `最大值 ${yVertex.toFixed(1)}（开口向下）`,
+                    monotonic: a > 0 
+                        ? `x < ${xVertex.toFixed(1)} 时递减；x > ${xVertex.toFixed(1)} 时递增` 
+                        : `x < ${xVertex.toFixed(1)} 时递增；x > ${xVertex.toFixed(1)} 时递减`,
+                    yIntercept: `(0, ${c.toFixed(1)})`,
+                    vertexX: xVertex.toFixed(1),
+                    vertexY: yVertex.toFixed(1)
+                };
+            }
+
+            function updateProps(a, b, c) {
+                const props = getFunctionProps(a, b, c);
+                document.getElementById('prop-direction').textContent = props.direction;
+                document.getElementById('prop-axis').textContent = props.axis;
+                document.getElementById('prop-vertex').textContent = props.vertex;
+                document.getElementById('prop-extreme').textContent = props.extreme;
+                document.getElementById('prop-monotonic').textContent = props.monotonic;
+                document.getElementById('prop-y-intercept').textContent = props.yIntercept;
+                document.getElementById('bottom-vertex').textContent = `顶点坐标：${props.vertex}`; // 补充文字说明，更清晰
+            }
+
+            function drawFunction(a, b, c) {
+                drawAxis();
+                
+                ctx.strokeStyle = '#2196F3';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                let isFirstPoint = true;
+                for (let x = xMin; x <= xMax; x += 0.05) {
+                    const y = a * x * x + b * x + c;
+                    if (y >= yMin - 1 && y <= yMax + 1) {
+                        const canvasX = toCanvasX(x);
+                        const canvasY = toCanvasY(y);
+                        if (isFirstPoint) {
+                            ctx.moveTo(canvasX, canvasY);
+                            isFirstPoint = false;
+                        } else {
+                            ctx.lineTo(canvasX, canvasY);
+                        }
+                    }
+                }
+                ctx.stroke();
+
+                if (a !== 0) {
+                    const { vertex } = getFunctionProps(a, b, c);
+                    const [xVertex, yVertex] = vertex.replace(/[()]/g, '').split(',').map(Number);
+                    const canvasX = toCanvasX(xVertex);
+                    const canvasY = toCanvasY(yVertex);
+                    
+                    ctx.fillStyle = '#F44336';
+                    ctx.beginPath();
+                    ctx.arc(canvasX, canvasY, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#fff';
+                    ctx.strokeStyle = '#F44336';
+                    ctx.lineWidth = 1;
+                    const label = `顶点 ${vertex}`;
+                    const labelWidth = ctx.measureText(label).width + 8;
+                    ctx.fillRect(canvasX - labelWidth/2, canvasY - 25, labelWidth, 20);
+                    ctx.strokeRect(canvasX - labelWidth/2, canvasY - 25, labelWidth, 20);
+                    ctx.fillStyle = '#F44336';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, canvasX, canvasY - 10);
+                }
+
+                const xAxis = -b / (2 * a);
+                ctx.strokeStyle = 'rgba(255, 152, 0, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 3]);
+                ctx.beginPath();
+                const axisX = toCanvasX(xAxis);
+                ctx.moveTo(axisX, 0);
+                ctx.lineTo(axisX, canvasHeight);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            function updateDisplay(a, b, c) {
+                document.getElementById('a-value').textContent = a.toFixed(1);
+                document.getElementById('b-value').textContent = b.toFixed(1);
+                document.getElementById('c-value').textContent = c.toFixed(1);
+                const aStr = a === 1 ? '' : a === -1 ? '-' : a.toFixed(1);
+                const bStr = b === 0 ? '' : b > 0 ? `+${b.toFixed(1)}` : b.toFixed(1);
+                const cStr = c === 0 ? '' : c > 0 ? `+${c.toFixed(1)}` : c.toFixed(1);
+                document.getElementById('function-formula').textContent = `y = ${aStr}x² ${bStr}x ${cStr}`.replace(/\s+/g, ' ').trim();
+            }
+
+            const aInput = document.getElementById('param-a');
+            const bInput = document.getElementById('param-b');
+            const cInput = document.getElementById('param-c');
+
+            function handleParamChange() {
+                const a = parseFloat(aInput.value) || 0;
+                const b = parseFloat(bInput.value) || 0;
+                const c = parseFloat(cInput.value) || 0;
+                updateDisplay(a, b, c);
+                updateProps(a, b, c);
+                drawFunction(a, b, c);
+            }
+
+            aInput.addEventListener('input', handleParamChange);
+            bInput.addEventListener('input', handleParamChange);
+            cInput.addEventListener('input', handleParamChange);
+
+            handleParamChange();
+        });
+    </script>
+</body>
+</html>

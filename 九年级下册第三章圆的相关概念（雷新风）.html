@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圆的相关概念</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Microsoft YaHei', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            background-color: #f5f5f5; 
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container { 
+            text-align: center; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            width: 90%; 
+            max-width: 800px; 
+        }
+        h1 { 
+            color: #2c3e50; 
+            margin-bottom: 25px; 
+            font-size: 28px; 
+        }
+        .animation-box { 
+            margin: 30px 0; 
+            position: relative; 
+            width: 100%; 
+        }
+        svg { 
+            width: 100%; 
+            height: auto; 
+            max-width: 450px; 
+            max-height: 450px; 
+            border: 1px solid #eee; 
+            border-radius: 8px; 
+            background-color: #fafafa; 
+        }
+        .circle { fill: none; stroke: #3498db; stroke-width: 3; }
+        .center-point { fill: #2ecc71; }
+        .chord { stroke: #e74c3c; stroke-width: 3; }
+        .arc-major { stroke: #9b59b6; stroke-width: 3; fill: none; stroke-dasharray: 5,3; }
+        .arc-minor { stroke: #f39c12; stroke-width: 3; fill: none; }
+        .label { font-size: 14px; text-anchor: middle; font-family: 'Microsoft YaHei', sans-serif; }
+        .concept-panel { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            margin: 30px 0; 
+            width: 100%; 
+        }
+        .concept-card { 
+            background-color: #ecf0f1; 
+            padding: 15px; 
+            border-radius: 10px; 
+            text-align: left; 
+        }
+        .concept-card h3 { 
+            color: #2c3e50; 
+            margin-bottom: 10px; 
+            font-size: 18px; 
+            display: flex; 
+            align-items: center; 
+        }
+        .concept-card h3 i { 
+            margin-right: 8px; 
+            font-size: 20px; 
+        }
+        .concept-card p { 
+            color: #263238; 
+            font-size: 16px; 
+            line-height: 1.6; 
+        }
+        .btn-group { 
+            margin: 15px 0; 
+        }
+        button { 
+            background-color: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            margin: 0 5px 10px; 
+            transition: background-color 0.3s; 
+        }
+        button:hover { 
+            background-color: #2980b9; 
+        }
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .concept-panel { 
+                grid-template-columns: 1fr; 
+            }
+            button { 
+                width: 100%; 
+                max-width: 200px; 
+            }
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>圆的相关概念：弧与弦（最终稳定版）</h1>
+        作者   雷新风
+        <div class="btn-group">
+            <button id="showChord">显示弦</button>
+            <button id="showMinorArc">显示劣弧</button>
+            <button id="showMajorArc">显示优弧</button>
+            <button id="showAll">显示全部</button>
+            <button id="hideAll">隐藏全部</button>
+        </div>
+        
+        <div class="animation-box">
+            <svg id="circleSvg" viewBox="0 0 450 450">
+                <!-- 基础圆（圆心O：(225,225)，半径150） -->
+                <circle cx="225" cy="225" r="150" class="circle" />
+                <!-- 圆心O（所有圆/弧的公共圆心） -->
+                <circle cx="225" cy="225" r="6" class="center-point" />
+                <text x="225" y="205" class="label" fill="#27ae60">圆心 O</text>
+                
+                <!-- 圆上点A（左端点，精准坐标：225-150=75，y=225） -->
+                <circle cx="75" cy="225" r="6" fill="#34495e" />
+                <text x="65" y="210" class="label" fill="#34495e">点 A</text>
+                
+                <!-- 圆上点B（精准坐标：225+90=315，y=225-120=105） -->
+                <!-- 距离验证：√[(315-225)²+(105-225)²] = √[90²+(-120)²] = √(8100+14400) = √22500 = 150，精准落圆 -->
+                <circle cx="315" cy="105" r="6" fill="#34495e" />
+                <text x="320" y="95" class="label" fill="#34495e">点 B</text>
+                
+                <!-- 优弧辅助点C（下半圆中点，精准坐标：225，225+150=375） -->
+                <circle cx="225" cy="375" r="6" fill="#34495e" />
+                <text x="215" y="390" class="label" fill="#34495e">点 C</text>
+                
+                <!-- 弦AB（连接A、B，端点均在基础圆上） -->
+                <line id="chordAB" x1="75" y1="225" x2="315" y2="105" class="chord" />
+                <text id="chordLabel" x="200" y="160" class="label" fill="#e74c3c">弦 AB</text>
+                
+                <!-- 劣弧AB（上半圆短弧，圆心O，半径150，过A、B） -->
+                <path id="minorArcAB" d="M 75 225 A 150 150 0 0 1 315 105" class="arc-minor" />
+                <text id="minorArcLabel" x="180" y="120" class="label" fill="#f39c12">劣弧 ⌒AB</text>
+                
+                <!-- 优弧ACB（下半圆长弧，圆心O，半径150，依次过A、C、B） -->
+                <path id="majorArcAB" d="M 75 225 A 150 150 0 0 0 225 375 A 150 150 0 0 0 315 105" class="arc-major" />
+                <text id="majorArcLabel" x="225" y="320" class="label" fill="#9b59b6">优弧 ⌒ACB</text>
+            </svg>
+        </div>
+        
+        <div class="concept-panel">
+            <div class="concept-card">
+                <h3><<<i class="fa fa-link" style="color: #e74c3c;"></</</i>弦</h3>
+                <p>连接圆上任意两点的线段叫做弦。</p >
+                <p>★ 特别说明：<strong>直径是圆中最长的弦</strong>（通过圆心的弦）。</p >
+            </div>
+            <div class="concept-card">
+                <h3><<<i class="fa fa-arrows-h" style="color: #f39c12;"></</</i>劣弧</h3>
+                <p>圆上任意两点间的部分叫做弧，其中<strong>小于半圆的弧</strong>叫做劣弧。</p >
+                <p>★ 表示方法：用两个字母表示，如 ⌒AB。</p >
+            </div>
+            <div class="concept-card">
+                <h3><<<i class="fa fa-arrows-v" style="color: #9b59b6;"></</</i>优弧</h3>
+                <p>圆上任意两点间的部分叫做弧，其中<strong>大于半圆的弧</strong>叫做优弧。</p >
+                <p>★ 表示方法：用三个字母表示（中间为辅助点），如 ⌒ACB。</p >
+            </div>
+            <div class="concept-card">
+                <h3><<<i class="fa fa-info-circle" style="color: #2ecc71;"></</</i>半圆</h3>
+                <p>圆的直径将圆分成两个相等的部分，每一部分叫做半圆。</p >
+                <p>★ 注意：半圆既不是劣弧，也不是优弧，是独立的弧类型。</p >
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取所有控制元素
+        const chordAB = document.getElementById('chordAB');
+        const chordLabel = document.getElementById('chordLabel');
+        const minorArcAB = document.getElementById('minorArcAB');
+        const minorArcLabel = document.getElementById('minorArcLabel');
+        const majorArcAB = document.getElementById('majorArcAB');
+        const majorArcLabel = document.getElementById('majorArcLabel');
+        const pointC = document.querySelector('circle[cx="225"][cy="375"]');
+        const pointCLabel = document.querySelector('text[x="215"][y="390"]');
+        
+        // 验证点是否在圆上（控制台输出，可删除）
+        function verifyPoint(x, y, cx, cy, r) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            console.log(`点(${x},${y}) 到圆心(${cx},${cy})距离: ${dist.toFixed(1)}, 半径: ${r} → ${dist.toFixed(1) == r ? '✓ 在圆上' : '✗ 不在圆上'}`);
+        }
+        
+        // 显示所有元素
+        function showAll() {
+            chordAB.style.display = 'block';
+            chordLabel.style.display = 'block';
+            minorArcAB.style.display = 'block';
+            minorArcLabel.style.display = 'block';
+            majorArcAB.style.display = 'block';
+            majorArcLabel.style.display = 'block';
+            pointC.style.display = 'block';
+            pointCLabel.style.display = 'block';
+            // 验证所有点（确保稳定）
+            verifyPoint(75, 225, 225, 225, 150);
+            verifyPoint(315, 105, 225, 225, 150);
+            verifyPoint(225, 375, 225, 225, 150);
+        }
+        
+        // 隐藏所有元素
+        function hideAll() {
+            chordAB.style.display = 'none';
+            chordLabel.style.display = 'none';
+            minorArcAB.style.display = 'none';
+            minorArcLabel.style.display = 'none';
+            majorArcAB.style.display = 'none';
+            majorArcLabel.style.display = 'none';
+            pointC.style.display = 'none';
+            pointCLabel.style.display = 'none';
+        }
+        
+        // 按钮事件绑定
+        document.getElementById('showChord').addEventListener('click', () => {
+            hideAll();
+            chordAB.style.display = 'block';
+            chordLabel.style.display = 'block';
+        });
+        
+        document.getElementById('showMinorArc').addEventListener('click', () => {
+            hideAll();
+            minorArcAB.style.display = 'block';
+            minorArcLabel.style.display = 'block';
+        });
+        
+        document.getElementById('showMajorArc').addEventListener('click', () => {
+            hideAll();
+            majorArcAB.style.display = 'block';
+            majorArcLabel.style.display = 'block';
+            pointC.style.display = 'block';
+            pointCLabel.style.display = 'block';
+        });
+        
+        document.getElementById('showAll').addEventListener('click', showAll);
+        document.getElementById('hideAll').addEventListener('click', hideAll);
+        
+        // 页面加载默认显示所有元素
+        window.onload = showAll;
+    </script>
+</body>
+</html>

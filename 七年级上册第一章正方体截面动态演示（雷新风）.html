@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正方体截面动态演示 - 初中数学课件</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2d7dd2;
+        }
+        
+        h1 {
+            color: #2d3436;
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        
+        .subtitle {
+            color: #636e72;
+            font-size: 14px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .canvas-box {
+            width: 100%;
+            aspect-ratio: 1/1;
+            max-height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        
+        #demo-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .control-panel {
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #2d3436;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        h2 i {
+            margin-right: 8px;
+            color: #2d7dd2;
+        }
+        
+        .slider-wrap {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #4a4a4a;
+        }
+        
+        .slider-value {
+            color: #2d3436;
+            font-weight: bold;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e0e0e0;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2d7dd2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2d7dd2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .info-card {
+            background-color: #f5fafe;
+            border-left: 4px solid #2d7dd2;
+            padding: 12px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 15px;
+        }
+        
+        .info-card h3 {
+            font-size: 15px;
+            color: #2d3436;
+            margin-bottom: 6px;
+        }
+        
+        .info-card p {
+            font-size: 13px;
+            color: #4a4a4a;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #636e72;
+            font-size: 12px;
+        }
+        
+        /* 适配小屏幕手机 */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>正方体截面动态演示 - 初中数学课件</h1>
+        <!-- 关键修改1：去掉原副标题，替换为作者信息 -->
+        <p class="subtitle">作者：雷新风</p>
+    </div>
+    
+    <div class="container">
+        <!-- 上：画布区域 -->
+        <div class="canvas-box">
+            <canvas id="demo-canvas"></canvas>
+        </div>
+        
+        <!-- 下：控制区域 -->
+        <div class="control-panel">
+            <div class="control-group">
+                <h2><i>📏</i> 截面平面控制</h2>
+                
+                <div class="slider-wrap">
+                    <div class="slider-label">
+                        <span>平面深度 (Z轴)</span>
+                        <span class="slider-value" id="z-value">0.0</span>
+                    </div>
+                    <input type="range" min="-1" max="1" step="0.05" value="0" class="slider" id="z-slider">
+                </div>
+                
+                <div class="slider-wrap">
+                    <div class="slider-label">
+                        <span>平面绕X轴旋转</span>
+                        <span class="slider-value" id="plane-rotate-x-value">0°</span>
+                    </div>
+                    <input type="range" min="-90" max="90" step="5" value="0" class="slider" id="plane-rotate-x-slider">
+                </div>
+                
+                <div class="slider-wrap">
+                    <div class="slider-label">
+                        <span>平面绕Y轴旋转</span>
+                        <span class="slider-value" id="plane-rotate-y-value">0°</span>
+                    </div>
+                    <input type="range" min="-90" max="90" step="5" value="0" class="slider" id="plane-rotate-y-slider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h2><i>🔄</i> 观察角度控制</h2>
+                
+                <div class="slider-wrap">
+                    <div class="slider-label">
+                        <span>水平旋转</span>
+                        <span class="slider-value" id="view-rotate-x-value">30°</span>
+                    </div>
+                    <input type="range" min="0" max="360" step="1" value="30" class="slider" id="view-rotate-x-slider">
+                </div>
+                
+                <div class="slider-wrap">
+                    <div class="slider-label">
+                        <span>垂直旋转</span>
+                        <span class="slider-value" id="view-rotate-y-value">45°</span>
+                    </div>
+                    <input type="range" min="0" max="360" step="1" value="45" class="slider" id="view-rotate-y-slider">
+                </div>
+            </div>
+            
+            <!-- 关键修改2：删除预设截面按钮组 -->
+            
+            <div class="info-card">
+                <h3>截面知识要点</h3>
+                <p>1. 平面截正方体可得到三角形、四边形、五边形、六边形四种截面。</p>
+                <p>2. 截面边数最多为6条，最少为3条。</p>
+                <p>3. 当平面平行于正方体一个面时，截面为正方形。</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>初中数学立体几何教学课件 | 适用于7-9年级数学课堂演示</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const canvas = document.getElementById('demo-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+            }
+            
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            
+            let cubeHalfSize = 80;
+            function updateCubeSize() {
+                cubeHalfSize = Math.min(canvas.width, canvas.height) / 4;
+            }
+            
+            const params = {
+                z: 0,
+                planeRotateX: 0,
+                planeRotateY: 0,
+                viewRotateX: 30,
+                viewRotateY: 45
+            };
+            
+            const cubeVertices = [
+                { x: -1, y: -1, z: -1 }, { x: 1, y: -1, z: -1 },
+                { x: 1, y: 1, z: -1 }, { x: -1, y: 1, z: -1 },
+                { x: -1, y: -1, z: 1 }, { x: 1, y: -1, z: 1 },
+                { x: 1, y: 1, z: 1 }, { x: -1, y: 1, z: 1 }
+            ];
+            
+            const cubeEdges = [
+                [0,1], [1,2], [2,3], [3,0], [4,5], [5,6], [6,7], [7,4],
+                [0,4], [1,5], [2,6], [3,7]
+            ];
+            
+            const zSlider = document.getElementById('z-slider');
+            const planeRotateXSlider = document.getElementById('plane-rotate-x-slider');
+            const planeRotateYSlider = document.getElementById('plane-rotate-y-slider');
+            const viewRotateXSlider = document.getElementById('view-rotate-x-slider');
+            const viewRotateYSlider = document.getElementById('view-rotate-y-slider');
+            
+            const zValue = document.getElementById('z-value');
+            const planeRotateXValue = document.getElementById('plane-rotate-x-value');
+            const planeRotateYValue = document.getElementById('plane-rotate-y-value');
+            const viewRotateXValue = document.getElementById('view-rotate-x-value');
+            const viewRotateYValue = document.getElementById('view-rotate-y-value');
+            
+            if (!ctx || !zSlider || !planeRotateXSlider) {
+                console.error('DOM元素获取失败！');
+                alert('课件初始化失败，请刷新页面重试！');
+                return;
+            }
+            
+            function updateDisplay() {
+                zValue.textContent = params.z.toFixed(1);
+                planeRotateXValue.textContent = `${params.planeRotateX}°`;
+                planeRotateYValue.textContent = `${params.planeRotateY}°`;
+                viewRotateXValue.textContent = `${params.viewRotateX}°`;
+                viewRotateYValue.textContent = `${params.viewRotateY}°`;
+            }
+            
+            function getPlaneZ(x, y) {
+                const radX = params.planeRotateX * Math.PI / 180;
+                const radY = params.planeRotateY * Math.PI / 180;
+                return params.z + x * Math.tan(radY) + y * Math.tan(radX);
+            }
+            
+            function getEdgeIntersection(p1, p2) {
+                const z1 = getPlaneZ(p1.x, p1.y);
+                const z2 = getPlaneZ(p2.x, p2.y);
+                if (Math.sign(p1.z - z1) === Math.sign(p2.z - z2) && Math.abs(p1.z - z1) > 0.001) {
+                    return null;
+                }
+                const t = Math.abs(p1.z - z1) / (Math.abs(p1.z - z1) + Math.abs(p2.z - z2) + 0.001);
+                return {
+                    x: p1.x + t * (p2.x - p1.x),
+                    y: p1.y + t * (p2.y - p1.y),
+                    z: p1.z + t * (p2.z - p1.z)
+                };
+            }
+            
+            function getSectionVertices() {
+                const vertices = [];
+                for (const [a, b] of cubeEdges) {
+                    const intersect = getEdgeIntersection(cubeVertices[a], cubeVertices[b]);
+                    if (intersect) {
+                        let isDuplicate = false;
+                        for (const v of vertices) {
+                            if (Math.abs(v.x - intersect.x) < 0.01 &&
+                                Math.abs(v.y - intersect.y) < 0.01 &&
+                                Math.abs(v.z - intersect.z) < 0.01) {
+                                isDuplicate = true;
+                                break;
+                            }
+                        }
+                        if (!isDuplicate) vertices.push(intersect);
+                    }
+                }
+                if (vertices.length >= 3) {
+                    const center = vertices.reduce((acc, v) => ({
+                        x: acc.x + v.x, y: acc.y + v.y
+                    }), { x: 0, y: 0 });
+                    center.x /= vertices.length;
+                    center.y /= vertices.length;
+                    vertices.sort((a, b) => {
+                        const angleA = Math.atan2(a.y - center.y, a.x - center.x);
+                        const angleB = Math.atan2(b.y - center.y, b.x - center.x);
+                        return angleA - angleB;
+                    });
+                }
+                return vertices;
+            }
+            
+            function project3DTo2D(point3D) {
+                const cosX = Math.cos(params.viewRotateX * Math.PI / 180);
+                const sinX = Math.sin(params.viewRotateX * Math.PI / 180);
+                const cosY = Math.cos(params.viewRotateY * Math.PI / 180);
+                const sinY = Math.sin(params.viewRotateY * Math.PI / 180);
+                
+                let x = point3D.x * cosY - point3D.z * sinY;
+                let z = point3D.x * sinY + point3D.z * cosY;
+                let y = point3D.y;
+                
+                const yRot = y * cosX - z * sinX;
+                const zRot = y * sinX + z * cosY;
+                
+                return {
+                    x: centerX + x * cubeHalfSize,
+                    y: centerY + yRot * cubeHalfSize
+                };
+            }
+            
+            function drawCube() {
+                ctx.strokeStyle = '#2d3436';
+                ctx.lineWidth = 3;
+                for (const [a, b] of cubeEdges) {
+                    const p1 = project3DTo2D(cubeVertices[a]);
+                    const p2 = project3DTo2D(cubeVertices[b]);
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+                
+                ctx.fillStyle = '#2d7dd2';
+                for (const v of cubeVertices) {
+                    const p = project3DTo2D(v);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            function drawSection(vertices3D) {
+                if (vertices3D.length < 3) return;
+                const vertices2D = vertices3D.map(project3DTo2D);
+                
+                ctx.fillStyle = 'rgba(231, 76, 60, 0.6)';
+                ctx.beginPath();
+                vertices2D.forEach((p, i) => {
+                    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 2]);
+                ctx.beginPath();
+                vertices2D.forEach((p, i) => {
+                    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+                });
+                ctx.closePath();
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            function drawGrid() {
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.lineWidth = 1;
+                const gridSize = Math.min(canvas.width, canvas.height) / 15;
+                for (let y = 0; y < canvas.height; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                for (let x = 0; x < canvas.width; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX, 0);
+                ctx.lineTo(centerX, canvas.height);
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(canvas.width, centerY);
+                ctx.stroke();
+            }
+            
+            function drawScene() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawGrid();
+                drawCube();
+                const sectionVertices = getSectionVertices();
+                drawSection(sectionVertices);
+            }
+            
+            // 关键修改3：删除预设按钮事件监听代码
+            
+            zSlider.addEventListener('input', function() {
+                params.z = parseFloat(this.value);
+                updateDisplay();
+                drawScene();
+            });
+            
+            planeRotateXSlider.addEventListener('input', function() {
+                params.planeRotateX = parseFloat(this.value);
+                updateDisplay();
+                drawScene();
+            });
+            
+            planeRotateYSlider.addEventListener('input', function() {
+                params.planeRotateY = parseFloat(this.value);
+                updateDisplay();
+                drawScene();
+            });
+            
+            viewRotateXSlider.addEventListener('input', function() {
+                params.viewRotateX = parseFloat(this.value);
+                updateDisplay();
+                drawScene();
+            });
+            
+            viewRotateYSlider.addEventListener('input', function() {
+                params.viewRotateY = parseFloat(this.value);
+                updateDisplay();
+                drawScene();
+            });
+            
+            resizeCanvas();
+            updateCubeSize();
+            updateDisplay();
+            setTimeout(() => {
+                drawScene();
+            }, 100);
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                updateCubeSize();
+                drawScene();
+            });
+        };
+    </script>
+</body>
+</html>
+
