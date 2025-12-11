@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 初中数学动态交互课件 - 元宇宙版</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e, #0f3460);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 元宇宙渐变背景动画 */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 背景粒子效果 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(102, 126, 234, 0.8);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(100px); opacity: 0; }
+        }
+
+        /* 头部样式 */
+        header {
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            padding: 25px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.7);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0aec0;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(160, 174, 192, 0.5);
+        }
+
+        /* 搜索栏样式 */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        #search-input {
+            width: 550px;
+            padding: 18px 25px;
+            background: rgba(15, 15, 35, 0.7);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 30px 0 0 30px;
+            font-size: 16px;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        #search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            background: rgba(15, 15, 35, 0.9);
+        }
+
+        #search-input::placeholder {
+            color: #a0aec0;
+        }
+
+        #search-btn {
+            padding: 18px 35px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 0 30px 30px 0;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        #search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 分类标签样式 */
+        .categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 40px 0;
+        }
+
+        .category-btn {
+            padding: 12px 25px;
+            background: rgba(15, 15, 35, 0.7);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 课件卡片样式 */
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 35px;
+            margin: 50px 0;
+        }
+
+        .course-card {
+            background: rgba(15, 15, 35, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .course-card:hover {
+            transform: translateY(-8px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .card-header .author {
+            font-size: 1rem;
+            opacity: 0.95;
+            font-style: italic;
+            color: #e2e8f0;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .card-body p {
+            color: #a0aec0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .card-footer {
+            padding: 0 25px 25px;
+        }
+
+        .course-link {
+            display: inline-block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .course-link:hover {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.5);
+        }
+
+        /* 页脚样式 */
+        footer {
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 40px 0;
+            margin-top: 70px;
+            text-align: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            border-top: 2px solid rgba(102, 126, 234, 0.5);
+        }
+
+        .footer-content {
+            color: #a0aec0;
+            font-size: 1.1rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            #search-input {
+                width: 350px;
+            }
+
+            .courses-grid {
+                grid-template-columns: 1fr;
+                padding: 0 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            #search-input {
+                border-radius: 30px;
+                width: 90%;
+                padding: 15px 20px;
+            }
+
+            #search-btn {
+                border-radius: 30px;
+                width: 90%;
+                padding: 15px 20px;
+            }
+
+            .category-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <header>
+        <div class="container">
+            <h1>🚀 初中数学动态交互课件</h1>
+            <p class="subtitle">探索元宇宙中的数学奥秘，让学习更炫酷</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- 搜索栏 -->
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="搜索课件名称或作者...">
+                <button id="search-btn">搜索</button>
+            </div>
+
+            <!-- 分类标签 -->
+            <div class="categories">
+                <button class="category-btn active" data-category="all">全部课件</button>
+                <button class="category-btn" data-category="七年级上册">七年级上册</button>
+                <button class="category-btn" data-category="七年级下册">七年级下册</button>
+                <button class="category-btn" data-category="八年级上册">八年级上册</button>
+                <button class="category-btn" data-category="八年级下册">八年级下册</button>
+                <button class="category-btn" data-category="九年级上册">九年级上册</button>
+                <button class="category-btn" data-category="九年级下册">九年级下册</button>
+            </div>
+
+            <!-- 课件卡片网格 -->
+            <div class="courses-grid" id="courses-grid">
+                <!-- 这里将通过JavaScript动态生成课件卡片 -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>🌌 © 2024 初中数学元宇宙课件系统 | 让数学学习更具未来感</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 创建粒子背景
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                particle.style.background = `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, ${Math.random() * 155 + 200}, 0.8)`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // 课件数据
+        const courses = [
+            {
+                id: 1,
+                title: "正方体截面动态演示",
+                description: "七年级上册第一章",
+                category: "七年级上册",
+                author: "雷新风",
+                file: "七年级上册第一章正方体截面动态演示（雷新风）.html"
+            },
+            {
+                id: 2,
+                title: "线段运动演示",
+                description: "七年级数学",
+                category: "七年级下册",
+                author: "袁媛",
+                file: "七年级数学 - 线段运动演示（袁媛）.html"
+            },
+            {
+                id: 3,
+                title: "角的和差课本习题",
+                description: "七年级数学上册",
+                category: "七年级上册",
+                author: "黄权锋",
+                file: "七年级数学上册角的和差课本习题（黄权锋）.html"
+            },
+            {
+                id: 4,
+                title: "二元一次方程组与一次函数应用",
+                description: "八年级上册",
+                category: "八年级上册",
+                author: "林鹏程",
+                file: "八年级上册 二元一次方程组与一次函数应用（林鹏程）.html"
+            },
+            {
+                id: 5,
+                title: "k，b值对一次函数图象的影响",
+                description: "八年级上册",
+                category: "八年级上册",
+                author: "张梦婕",
+                file: "八年级上册一次函数中k，b值对一次函数图象的影响（张梦婕）.html"
+            },
+            {
+                id: 6,
+                title: "二元一次方程与一次函数",
+                description: "八年级上册",
+                category: "八年级上册",
+                author: "陈依群",
+                file: "八年级上册二元一次方程与一次函数（陈依群）.html"
+            },
+            {
+                id: 7,
+                title: "二元一次方程组与一次函数图象交点的关系",
+                description: "八年级上册",
+                category: "八年级上册",
+                author: "张梦婕",
+                file: "八年级上册二元一次方程组与一次函数图象交点的关系（张梦婕）.html"
+            },
+            {
+                id: 8,
+                title: "加权平均数",
+                description: "八年级上册",
+                category: "八年级上册",
+                author: "康娟呢",
+                file: "八年级上册加权平均数（康娟呢）.html"
+            },
+            {
+                id: 9,
+                title: "反比例函数",
+                description: "九年级上册",
+                category: "九年级上册",
+                author: "康娟妮",
+                file: "九年级上册反比例函数（康娟妮）.html"
+            },
+            {
+                id: 10,
+                title: "二次函数闯关对战",
+                description: "九年级下册2.1",
+                category: "九年级下册",
+                author: "李娟茹",
+                file: "九年级下册2.1二次函数闯关对战(李娟茹).html"
+            },
+            {
+                id: 11,
+                title: "二次函数篮球投篮动画",
+                description: "九年级下册",
+                category: "九年级下册",
+                author: "未知",
+                file: "九年级下册二次函数篮球投篮动画.html"
+            },
+            {
+                id: 12,
+                title: "二次函数",
+                description: "九年级下册",
+                category: "九年级下册",
+                author: "康娟妮",
+                file: "九年级下册二次函数（康娟妮）.html"
+            },
+            {
+                id: 13,
+                title: "定边定角隐形圆",
+                description: "九年级下册",
+                category: "九年级下册",
+                author: "曹甲",
+                file: "九年级下册定边定角隐形圆（曹甲）.html"
+            },
+            {
+                id: 14,
+                title: "三角函数特殊值消消乐",
+                description: "九年级下册第一章",
+                category: "九年级下册",
+                author: "李娟茹",
+                file: "九年级下册第一章三角函数特殊值消消乐（李娟茹）.html"
+            },
+            {
+                id: 15,
+                title: "特殊角三角函数闯关训练",
+                description: "九年级下册第一章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第一章特殊角三角函数闯关训练-（雷新风）.html"
+            },
+            {
+                id: 16,
+                title: "锐角三角函数速查",
+                description: "九年级下册第一章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第一章锐角三角函数速查（雷新风）.html"
+            },
+            {
+                id: 17,
+                title: "圆的生成过程",
+                description: "九年级下册第三章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第三章圆的生成过程（雷新风）.html"
+            },
+            {
+                id: 18,
+                title: "圆的相关概念",
+                description: "九年级下册第三章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第三章圆的相关概念（雷新风）.html"
+            },
+            {
+                id: 19,
+                title: "点和圆的位置关系",
+                description: "九年级下册第三章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第三章点和圆的位置关系（雷新风）.html"
+            },
+            {
+                id: 20,
+                title: "二次函数y=x^2的图像",
+                description: "九年级下册第二章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第二章二次函数y=x^2的图像（雷新风）.html"
+            },
+            {
+                id: 21,
+                title: "二次函数各项系数对抛物线的影响",
+                description: "九年级下册第二章",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "九年级下册第二章二次函数各项系数对抛物线的影响（雷新风）.html"
+            },
+            {
+                id: 22,
+                title: "二次函数图象性质",
+                description: "九年级数学下册",
+                category: "九年级下册",
+                author: "某艳艳",
+                file: "九年级数学下册二次函数图象性质（某艳艳）.html"
+            },
+            {
+                id: 23,
+                title: "2022陕西中考副题13题",
+                description: "中考复习",
+                category: "九年级下册",
+                author: "雷新风",
+                file: "2022陕西中考副题13题（雷新风).html"
+            }
+        ];
+
+        // DOM元素
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const coursesGrid = document.getElementById('courses-grid');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+        // 生成课件卡片
+        function renderCourses(coursesToRender) {
+            coursesGrid.innerHTML = '';
+            
+            if (coursesToRender.length === 0) {
+                coursesGrid.innerHTML = '<p style="text-align: center; color: #a0aec0; grid-column: 1 / -1; font-size: 1.2rem; padding: 50px;">未找到匹配的课件</p>';
+                return;
+            }
+
+            coursesToRender.forEach(course => {
+                const card = document.createElement('div');
+                card.className = 'course-card';
+                card.dataset.category = course.category;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${course.title}</h3>
+                        <div class="author">作者：${course.author}</div>
+                    </div>
+                    <div class="card-body">
+                        <p>${course.description}</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="${course.file}" class="course-link" target="_blank">打开课件</a>
+                    </div>
+                `;
+                
+                coursesGrid.appendChild(card);
+            });
+        }
+
+        // 搜索功能
+        function searchCourses() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredCourses = courses.filter(course => 
+                course.title.toLowerCase().includes(searchTerm) || 
+                course.description.toLowerCase().includes(searchTerm) ||
+                course.author.toLowerCase().includes(searchTerm)
+            );
+            renderCourses(filteredCourses);
+        }
+
+        // 分类过滤功能
+        function filterByCategory(category) {
+            let filteredCourses;
+            if (category === 'all') {
+                filteredCourses = courses;
+            } else {
+                filteredCourses = courses.filter(course => course.category === category);
+            }
+            renderCourses(filteredCourses);
+        }
+
+        // 事件监听器
+        searchBtn.addEventListener('click', searchCourses);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchCourses();
+            }
+        });
+
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 更新活跃状态
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // 过滤课件
+                const category = btn.dataset.category;
+                filterByCategory(category);
+            });
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            renderCourses(courses);
+        });
+    </script>
+</body>
+</html>
