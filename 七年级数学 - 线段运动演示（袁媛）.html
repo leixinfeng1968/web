@@ -89,18 +89,18 @@
         .line {
             position: absolute;
             height: 3px;
-            border-radius: 2px;
+            border-radius: 0;
             top: 50%;
             transform: translateY(-50%);
         }
         .line-ab {
-            width: 100%;
+            width: calc(90% - 2px);
+            left: calc(5% + 1px);
             background-color: #333;
             z-index: 1;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+            box-shadow: none;
         }
         .line-cd {
-            width: 160px;
             background-color: #e74c3c;
             z-index: 3;
             transition: left 0.02s linear;
@@ -193,13 +193,7 @@
         <div class="author">作者：袁媛</div>
         <!-- 原有内容不变 -->
         <div class="motion-note">
-            📌 观察重点：<span>CD 自动在 AB 上流畅运动</span>，CD=8cm（固定），AB=18cm（固定），AC+DB 始终为定值
-        </div>
-        
-        <div class="slider-container">
-            <span class="slider-label">手动控制 CD：</span>
-            <input type="range" min="0" max="100" value="50" class="slider" id="cdSlider">
-            <span class="slider-label">左 ↔ 右</span>
+            📌 观察重点：<span>拖动滑动条控制 CD 在线段 AB 上运动</span>，CD=8cm（固定），AB=18cm（固定），AC+DB 始终为定值
         </div>
         
         <div class="line-container">
@@ -214,6 +208,12 @@
             <div class="point point-b"></div>
             <div class="label label-a">A</div>
             <div class="label label-b">B</div>
+        </div>
+        
+        <div class="slider-container">
+            <span class="slider-label">手动控制 CD：</span>
+            <input type="range" min="0" max="100" value="50" class="slider" id="cdSlider">
+            <span class="slider-label">左 ↔ 右</span>
         </div>
         
         <div class="length-display">
@@ -240,7 +240,9 @@
         const CD_TOTAL = 8;
         const FIXED_SUM = AB_TOTAL - CD_TOTAL;
         const lineContainer = document.querySelector('.line-container');
-        let AB_PX = lineContainer.offsetWidth;
+        // 计算AB的实际像素长度（减去5%的左右padding）
+        let AB_PX = lineContainer.offsetWidth * 0.9;
+        // 基于AB的实际长度计算CD的像素长度
         let CD_PX = (CD_TOTAL / AB_TOTAL) * AB_PX;
         
         const cd = document.getElementById('cd');
@@ -256,13 +258,17 @@
         const cdSlider = document.getElementById('cdSlider');
         
         let cdLeft = (AB_PX - CD_PX) / 2;
-        let isAutoMoving = true;
+        let isAutoMoving = false;
         let isAcVisible = true;
         
         function updateLengths() {
             const sliderValue = parseInt(cdSlider.value);
+            // 计算CD的left位置，确保不超出AB的范围
             cdLeft = (sliderValue / 100) * (AB_PX - CD_PX);
-            cd.style.left = `${cdLeft}px`;
+            // 添加AB的左padding（5%的容器宽度）
+            const containerWidth = lineContainer.offsetWidth;
+            const abLeftPadding = containerWidth * 0.05;
+            cd.style.left = `${abLeftPadding + cdLeft}px`;
             
             const acCm = (cdLeft / AB_PX) * AB_TOTAL;
             const dbCm = FIXED_SUM - acCm;
@@ -320,13 +326,13 @@
             cdLeft = (AB_PX - CD_PX) / 2;
             updateLengths();
             if (!isAcVisible) toggleAcDisplay();
-            isAutoMoving = true;
-            autoMove.textContent = '停止自动运动';
-            startAutoMove();
+            autoMove.textContent = '重启自动运动';
         }
         
         window.addEventListener('resize', () => {
-            AB_PX = lineContainer.offsetWidth;
+            // 重新计算AB的实际像素长度（减去5%的左右padding）
+            AB_PX = lineContainer.offsetWidth * 0.9;
+            // 重新计算CD的像素长度
             CD_PX = (CD_TOTAL / AB_TOTAL) * AB_PX;
             cd.style.width = `${CD_PX}px`;
             updateLengths();
@@ -334,8 +340,11 @@
         
         window.addEventListener('load', () => {
             cd.style.width = `${CD_PX}px`;
-            startAutoMove();
-            updateLengths();
+            // 添加AB的左padding（5%的容器宽度）
+            const containerWidth = lineContainer.offsetWidth;
+            const abLeftPadding = containerWidth * 0.05;
+            cd.style.left = `${abLeftPadding + cdLeft}px`;
+            updateLengths(); // 只更新长度，不启动自动运动
         });
         
         toggleAcBtn.addEventListener('click', toggleAcDisplay);

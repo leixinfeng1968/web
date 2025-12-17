@@ -153,7 +153,7 @@
 <body>
     <div class="header">
         <h1>定边定角隐形圆动态演示（定角60°）</h1>
-        <div class="author">作者：曹佳</div> <!-- 新增作者姓名 -->
+        <div class="author">作者：曹甲</div> <!-- 新增作者姓名 -->
         <p>通过滑动条控制动点C在圆上运动，直观验证：定边AB固定时，∠ACB始终保持60°（圆周角定理应用）</p>
     </div>
 
@@ -346,7 +346,16 @@
             ctx.stroke();
         }
 
-        // 绘制定角标记（60°）
+        // 辅助函数：判断点C是否在劣弧AB上
+        function isPointCOnMinorArc() {
+            // 计算点C相对于直线AB的位置
+            const d = (pointC.x - pointA.x) * (pointB.y - pointA.y) - (pointC.y - pointA.y) * (pointB.x - pointA.x);
+            // 如果点C和圆心在直线AB的同一侧，则在劣弧上
+            const centerD = (circleCenter.x - pointA.x) * (pointB.y - pointA.y) - (circleCenter.y - pointA.y) * (pointB.x - pointA.x);
+            return d * centerD < 0;
+        }
+
+        // 绘制定角标记
         function drawAngleMarker() {
             const markerRadius = Math.max(25, canvasWidth * 0.04); // 角度标记半径自适应画布
             const vecA = { x: pointA.x - pointC.x, y: pointA.y - pointC.y };
@@ -363,6 +372,9 @@
             ctx.lineWidth = Math.max(3, canvasWidth * 0.005); // 弧线宽度自适应
             ctx.stroke();
 
+            // 根据点C位置确定显示的角度
+            const currentAngle = isPointCOnMinorArc() ? 120 : 60;
+
             // 绘制角度数值标签
             const midAngle = (angleA + angleB) / 2;
             const textX = pointC.x + (markerRadius + canvasWidth * 0.03) * Math.cos(midAngle);
@@ -372,7 +384,7 @@
             ctx.font = `${fontSize}px "Segoe UI", sans-serif`;
             ctx.fillStyle = '#f97316';
             ctx.fontWeight = '600';
-            ctx.fillText(`${FIXED_ANGLE}°`, textX, textY);
+            ctx.fillText(`${currentAngle}°`, textX, textY);
         }
 
         // 绘制教学辅助信息
@@ -386,8 +398,9 @@
             ctx.fillStyle = '#475569';
             
             const AB_LENGTH = canvasWidth * AB_LENGTH_RATIO;
+            const currentAngle = isPointCOnMinorArc() ? 120 : 60;
             ctx.fillText(`定边AB长度：${Math.round(AB_LENGTH)}px`, panelX, panelY);
-            ctx.fillText(`定角∠ACB：${FIXED_ANGLE}°（圆周角）`, panelX, panelY + lineHeight);
+            ctx.fillText(`定角∠ACB：${currentAngle}°（圆周角）`, panelX, panelY + lineHeight);
             ctx.fillText(`隐形圆半径：${Math.round(circleRadius)}px`, panelX, panelY + lineHeight * 2);
             ctx.fillText(`点C坐标：(${Math.round(pointC.x)}, ${Math.round(pointC.y)})`, panelX, panelY + lineHeight * 3);
         }

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定边定角60°隐形圆动态演示（优弧动点B→A）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 20px; display: flex; flex-direction: column; align-items: center; }
+        #canvas-container { position: relative; width: 90%; max-width: 600px; height: 400px; }
+        canvas { border: 1px solid #ccc; background-color: #f9f9f9; }
+        .slider-container { margin-top: 20px; width: 90%; max-width: 600px; }
+        input[type="range"] { width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>定边定角60°隐形圆动态演示（优弧动点B→A）</h1>
+    <div>作者：曹甲</div>
+    <div id="canvas-container">
+        <canvas id="demoCanvas"></canvas>
+    </div>
+    <div class="slider-container">
+        <label for="posSlider">动点C位置：<span id="posValue">50</span>%（B→A）</label>
+        <input type="range" id="posSlider" min="0" max="100" value="50" step="1">
+    </div>
+
+    <script>
+        const canvas = document.getElementById('demoCanvas');
+        const ctx = canvas.getContext('2d');
+        const posSlider = document.getElementById('posSlider');
+        const posValue = document.getElementById('posValue');
+
+        // 自适应画布
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            drawGraph(parseInt(posSlider.value));
+        }
+
+        // 数学参数
+        let AB_LEN, centerX, centerY;
+        let O, A, B, C;
+        const FIXED_ANGLE = 60 * Math.PI / 180;
+        let circumRadius, startAngle, endAngle;
+
+        // 初始化圆心、定边AB、优弧起止角度
+        function initParams() {
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+            AB_LEN = Math.min(canvas.width, canvas.height) * 0.4;
+            circumRadius = AB_LEN / (2 * Math.sin(FIXED_ANGLE));
+
+            // 定边AB水平放置
+            A = { x: centerX - AB_LEN/2, y: centerY };
+            B = { x: centerX + AB_LEN/2, y: centerY };
+
+            // 计算优弧对应的圆心O（在AB下方）
+            const dx = AB_LEN / 2;
+            const dy = Math.sqrt(circumRadius ** 2 - dx ** 2);
+            O = { x: centerX, y: centerY + dy };
+
+            // 计算优弧起止角度（点B→点A，反向遍历优弧）
+            startAngle = Math.atan2(B.y - O.y, B.x - O.x);
+            endAngle = Math.atan2(A.y - O.y, A.x - O.x);
+            // 修正角度范围，确保覆盖完整优弧
+            if (endAngle < startAngle) endAngle += 2 * Math.PI;
+        }
+
+        // 根据百分比计算优弧上C点坐标（0%=B，100%=A）
+        function calcPointC(percent) {
+            const angle = startAngle + (endAngle - startAngle) * (percent / 100);
+            return {
+                x: O.x + circumRadius * Math.cos(angle),
+                y: O.y + circumRadius * Math.sin(angle)
+            };
+        }
+
+        // 绘制图形
+        function drawGraph(percent) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            initParams();
+            C = calcPointC(percent);
+
+            // 1. 绘制隐形圆（虚线）
+            ctx.beginPath();
+            ctx.arc(O.x, O.y, circumRadius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#999';
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 2. 绘制优弧高亮（红色实线）
+            ctx.beginPath();
+            ctx.arc(O.x, O.y, circumRadius, startAngle, endAngle);
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 3. 绘制△ABC
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.closePath();
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 4. 绘制顶点和标签
+            const drawPoint = (p, name, color) => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.font = '14px Arial';
+                ctx.fillText(name, p.x + 10, p.y + 10);
+            };
+            drawPoint(A, 'A', '#e74c3c');
+            drawPoint(B, 'B', '#3498db');
+            drawPoint(C, 'C', '#f39c12');
+            drawPoint(O, 'O', '#27ae60');
+
+            // 5. 标注定角60°
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = '16px Arial';
+            ctx.fillText('60°', (A.x + B.x + C.x)/3 - 15, (A.y + B.y + C.y)/3 - 10);
+        }
+
+        // 事件监听
+        posSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            posValue.textContent = val;
+            drawGraph(val);
+        });
+        window.addEventListener('resize', resizeCanvas);
+
+        // 初始化
+        resizeCanvas();
+    </script>
+</body>
+</html>
