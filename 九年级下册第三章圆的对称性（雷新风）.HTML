@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>圆的对称性演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2vw 5vw;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+        }
+
+        h1 {
+            color: #00ffff;
+            margin-bottom: 2vw;
+            font-size: clamp(2rem, 6vw, 3rem);
+            text-align: center;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+            font-weight: bold;
+        }
+
+        .author {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            color: #00ffff;
+            margin-bottom: 3vw;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1/1;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            margin-bottom: 2vw;
+            border: 2px solid #00ffff;
+            overflow: hidden;
+        }
+
+        #circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 85%;
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            z-index: 1;
+        }
+        
+
+        
+        /* 折叠线样式 */
+        .fold-line {
+            position: absolute;
+            height: 3px;
+            background: repeating-linear-gradient(
+                to right,
+                #00ffff 0px,
+                #00ffff 8px,
+                transparent 8px,
+                transparent 16px
+            );
+            transform-origin: center;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .point {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            border-radius: 50%;
+            width: clamp(10px, 3vw, 16px);
+            height: clamp(10px, 3vw, 16px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #center {
+            background-color: #00ffff;
+            box-shadow: 0 0 10px #00ffff;
+        }
+        
+        /* 半圆样式 */
+        .semicircle {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            box-sizing: border-box;
+        }
+        
+        /* 可折叠的半圆（左边） */
+        .semicircle.folding {
+            border: 3px solid #00ffff;
+            border-right-color: transparent; /* 左边半圆，隐藏右边框 */
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8), inset 0 0 20px rgba(0, 255, 255, 0.2);
+            backface-visibility: hidden;
+        }
+        
+        /* 虚线半圆（右边，保持不动） */
+        .semicircle.dashed {
+            border: 3px dashed #00ffff;
+            border-left-color: transparent; /* 右边半圆，隐藏左边框 */
+            background: transparent;
+            z-index: 2;
+        }
+        
+
+
+        /* 控制面板样式 */
+        .control-panel {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2vw;
+            margin-bottom: 2vw;
+            justify-content: center;
+            padding: 2vw;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            border: 1px solid #00ffff;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1vw;
+            flex: 1 1 300px;
+        }
+
+        .control-label {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            color: #00ffff;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        button {
+            padding: 0.8vw 1.5vw;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        button.active {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            accent-color: #ffff00;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffff00;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ffff00;
+            border: 2px solid #fff;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffff00;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ffff00;
+            border: 2px solid #fff;
+        }
+
+        /* 信息展示区域 */
+        .info-section {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 2vw;
+            padding: 2vw;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            border: 1px solid #00ffff;
+        }
+
+        .info-title {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: #ff00ff;
+            margin-bottom: 1.5vw;
+            text-align: center;
+            text-shadow: 0 0 8px #ff00ff;
+            font-weight: bold;
+        }
+
+        .info-content {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            color: #ffffff;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .info-content p {
+            margin-bottom: 1vw;
+        }
+
+        .theorem {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            color: #ffff00;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2vw;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+            border: 2px solid #ffff00;
+            text-align: center;
+            max-width: 800px;
+            font-weight: bold;
+        }
+
+        .theorem-title {
+            color: #00ffff;
+            font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>圆的对称性演示</h1>
+    <div class="author">作者：雷新风</div>
+    
+    <!-- 图形容器 -->
+    <div class="container">
+        <div id="circle"></div>
+        <div class="point" id="center"></div>
+    </div>
+    
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="control-group">
+            <div class="control-label">轴对称演示 - 折叠效果</div>
+            <input type="range" id="foldSlider" min="0" max="1" value="0" step="0.01">
+            <div class="control-label">折叠程度：<span id="foldValue">0%</span></div>
+        </div>
+        <div class="control-group">
+            <div class="control-label">对称轴方向</div>
+            <input type="range" id="axisAngleSlider" min="0" max="360" value="90" step="1">
+            <div class="control-label">对称轴角度：<span id="axisAngleValue">90°</span></div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-label">中心对称演示 - 旋转180°</div>
+            <input type="range" id="rotate180Slider" min="0" max="180" value="0" step="1">
+            <div class="control-label">旋转角度：<span id="rotate180Value">0°</span></div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-label">旋转不变性演示</div>
+            <input type="range" id="rotateSlider" min="0" max="360" value="0" step="1">
+            <div class="control-label">旋转角度：<span id="rotateValue">0°</span></div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-label">辅助功能</div>
+            <button id="showElementsBtn">显示所有元素</button>
+            <button id="hideElementsBtn">隐藏所有元素</button>
+            <button id="randomPointBtn">随机生成点</button>
+        </div>
+    </div>
+    
+    <!-- 圆的对称性定理 -->
+    <div class="theorem">
+        <div class="theorem-title">圆的对称性定理</div>
+        <p>1. 圆是轴对称图形，任何一条直径所在的直线都是它的对称轴。</p>
+        <p>2. 圆是中心对称图形，圆心是它的对称中心。</p>
+        <p>3. 圆具有旋转不变性，绕圆心旋转任意角度都能与原来的图形重合。</p>
+    </div>
+    
+    <!-- 信息说明 -->
+    <div class="info-section">
+        <div class="info-title">互动说明</div>
+        <div class="info-content">
+            <p>• 拖动"折叠效果"滑动条，观察圆的轴对称折叠性质</p>
+            <p>• 拖动"旋转180°"滑动条，验证圆的中心对称性质</p>
+            <p>• 拖动"旋转不变性"滑动条，观察圆绕圆心旋转任意角度都能与原图形重合</p>
+            <p>• 点击圆上任意位置，生成点A及其对称点B</p>
+            <p>• 点击"随机生成点"按钮，生成新的点A和对称点B</p>
+            <p>• 使用"显示/隐藏所有元素"按钮控制辅助元素的显示</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素获取
+        const circle = document.getElementById('circle');
+        const center = document.getElementById('center');
+        
+        // 滑动条元素
+        const foldSlider = document.getElementById('foldSlider');
+        const foldValue = document.getElementById('foldValue');
+        const axisAngleSlider = document.getElementById('axisAngleSlider');
+        const axisAngleValue = document.getElementById('axisAngleValue');
+        const rotate180Slider = document.getElementById('rotate180Slider');
+        const rotate180Value = document.getElementById('rotate180Value');
+        const rotateSlider = document.getElementById('rotateSlider');
+        const rotateValue = document.getElementById('rotateValue');
+        
+        // 容器尺寸和圆半径
+        let containerWidth, containerHeight;
+        let circleRadius;
+        
+        // 对称轴角度（用于折叠效果）
+        let currentAxisAngle = 90;
+        
+        // 初始化
+        function init() {
+            updateDimensions();
+            positionCenter();
+            window.addEventListener('resize', updateDimensions);
+        }
+        
+        // 更新尺寸信息
+        function updateDimensions() {
+            containerWidth = document.querySelector('.container').offsetWidth;
+            containerHeight = document.querySelector('.container').offsetHeight;
+            circleRadius = circle.offsetWidth / 2;
+        }
+        
+        // 定位圆心
+        function positionCenter() {
+            const centerX = containerWidth / 2;
+            const centerY = containerHeight / 2;
+            center.style.left = `${centerX}px`;
+            center.style.top = `${centerY}px`;
+        }
+        
+        // 轴对称折叠效果
+        function updateFoldEffect(progress) {
+            const centerX = containerWidth / 2;
+            const centerY = containerHeight / 2;
+            
+            // 确保circleRadius已正确设置
+            if (!circleRadius) {
+                circleRadius = parseFloat(circle.style.width) / 2;
+            }
+            
+            // 获取当前对称轴角度
+            const axisAngle = currentAxisAngle;
+            
+            // 创建或获取折叠线（经过圆心的虚线）
+            let foldLine = document.getElementById('foldLine');
+            if (!foldLine) {
+                foldLine = document.createElement('div');
+                foldLine.id = 'foldLine';
+                foldLine.className = 'fold-line';
+                foldLine.style.width = `${Math.sqrt(Math.pow(containerWidth, 2) + Math.pow(containerHeight, 2))}px`;
+                foldLine.style.left = `${centerX}px`;
+                foldLine.style.top = `${centerY}px`;
+                document.querySelector('.container').appendChild(foldLine);
+            }
+            
+            // 设置折叠线的样式和角度
+            foldLine.style.display = 'block';
+            foldLine.style.transform = `translate(-50%, -50%) rotate(${axisAngle}deg)`;
+            
+            // 创建或获取用于折叠的半圆元素（左边）
+            let foldingSemicircle = document.getElementById('foldingSemicircle');
+            if (!foldingSemicircle) {
+                foldingSemicircle = document.createElement('div');
+                foldingSemicircle.id = 'foldingSemicircle';
+                foldingSemicircle.className = 'semicircle folding';
+                foldingSemicircle.style.width = `${circleRadius * 2}px`;
+                foldingSemicircle.style.height = `${circleRadius * 2}px`;
+                foldingSemicircle.style.left = `${centerX}px`;
+                foldingSemicircle.style.top = `${centerY}px`;
+                document.querySelector('.container').appendChild(foldingSemicircle);
+            }
+            
+            // 创建或获取虚线半圆元素（右边，保持不动）
+            let dashedSemicircle = document.getElementById('dashedSemicircle');
+            if (!dashedSemicircle) {
+                dashedSemicircle = document.createElement('div');
+                dashedSemicircle.id = 'dashedSemicircle';
+                dashedSemicircle.className = 'semicircle dashed';
+                dashedSemicircle.style.width = `${circleRadius * 2}px`;
+                dashedSemicircle.style.height = `${circleRadius * 2}px`;
+                dashedSemicircle.style.left = `${centerX}px`;
+                dashedSemicircle.style.top = `${centerY}px`;
+                document.querySelector('.container').appendChild(dashedSemicircle);
+            }
+            
+            // 显示元素
+            foldingSemicircle.style.display = 'block';
+            dashedSemicircle.style.display = 'block';
+            
+            // 计算旋转角度（0到180度）
+            const rotationAngle = progress * 180;
+            
+            // 调整变换方式：先将半圆定位到对称轴方向，然后绕对称轴进行折叠
+            // 使用rotateY结合rotate实现沿任意角度对称轴的折叠效果
+            foldingSemicircle.style.transform = `translate(-50%, -50%) rotate(${axisAngle}deg) rotateY(${rotationAngle}deg) rotate(${-axisAngle}deg)`;
+            foldingSemicircle.style.transformStyle = 'preserve-3d';
+            
+            // 虚线半圆保持在对称轴右侧
+            dashedSemicircle.style.transform = `translate(-50%, -50%) rotate(${axisAngle}deg)`;
+            
+            // 根据折叠程度调整透明度，增强立体感
+            foldingSemicircle.style.opacity = 1 - progress * 0.3;
+            dashedSemicircle.style.opacity = 0.7;
+        }
+        
+        // 清除折叠效果
+        function clearFoldEffect() {
+            const foldingSemicircle = document.getElementById('foldingSemicircle');
+            const dashedSemicircle = document.getElementById('dashedSemicircle');
+            const foldLine = document.getElementById('foldLine');
+            
+            if (foldingSemicircle) foldingSemicircle.remove();
+            if (dashedSemicircle) dashedSemicircle.remove();
+            if (foldLine) foldLine.remove();
+        }
+        
+        // 事件监听
+        // 轴对称折叠滑动条
+        foldSlider.addEventListener('input', (e) => {
+            const progress = parseFloat(e.target.value);
+            foldValue.textContent = `${Math.round(progress * 100)}%`;
+            
+            if (progress > 0) {
+                updateFoldEffect(progress);
+            } else {
+                clearFoldEffect();
+            }
+        });
+        
+        // 对称轴角度滑动条
+        axisAngleSlider.addEventListener('input', (e) => {
+            const angle = parseInt(e.target.value);
+            axisAngleValue.textContent = `${angle}°`;
+            currentAxisAngle = angle;
+            
+            // 如果折叠效果正在显示，更新折叠线角度
+            const progress = parseFloat(foldSlider.value);
+            if (progress > 0) {
+                updateFoldEffect(progress);
+            }
+        });
+        
+        // 中心对称旋转180度滑动条
+        rotate180Slider.addEventListener('input', (e) => {
+            const angle = e.target.value;
+            rotate180Value.textContent = `${angle}°`;
+            
+            // 旋转圆
+            circle.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        });
+        
+        // 旋转不变性滑动条
+        rotateSlider.addEventListener('input', (e) => {
+            const angle = e.target.value;
+            rotateValue.textContent = `${angle}°`;
+            
+            // 旋转圆
+            circle.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        });
+        
+
+        
+
+        
+        // 初始化
+        init();
+
+    </script>
+</body>
+</html>
