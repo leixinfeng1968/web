@@ -39,6 +39,10 @@
             border-radius: 5px;
             background-color: #e6f7ff;
             margin-bottom: 20px;
+            max-width: 90%;
+            max-height: 70vh;
+            width: 100%;
+            height: auto;
         }
         
         .controls {
@@ -192,8 +196,8 @@
         
         // 篮球属性
         const ball = {
-            x: 100,
-            y: canvas.height - 50,
+            x: 0, // 将在reset函数中根据画布大小初始化
+            y: 0,
             radius: 10, // 减小篮球尺寸
             vx: 0,
             vy: 0,
@@ -202,8 +206,8 @@
         
         // 篮环属性
         const hoop = {
-            x: canvas.width - 150,
-            y: 200,
+            x: 0, // 将在reset函数中根据画布大小初始化
+            y: 0,
             radius: 45, // 增大蓝环尺寸
             color: '#333'
         };
@@ -358,15 +362,15 @@
             // 绘制成功消息（如果投篮成功）
             if (shootSuccess) {
                 // 投篮成功消息
-                ctx.font = 'bold 24px Arial';
+                ctx.font = 'bold 32px Arial';
                 ctx.fillStyle = '#4CAF50';
                 ctx.textAlign = 'center';
-                ctx.fillText('投篮成功！', canvas.width / 2, hoop.y - 50);
+                ctx.fillText('投篮成功！', canvas.width / 2, hoop.y + 50); // 向下平移100个单位
                 
                 // 思考提示
-                ctx.font = '16px Arial';
+                ctx.font = '32px Arial';
                 ctx.fillStyle = '#333';
-                ctx.fillText('思考：在什么情况下会投篮成功？', canvas.width / 2, hoop.y - 10);
+                ctx.fillText('思考：在什么情况下会投篮成功？', canvas.width / 2, hoop.y + 90); // 向下平移100个单位
             }
             
             // 绘制烟花
@@ -397,11 +401,15 @@
         
         // 初始化函数
         function reset() {
-            // 重置篮球位置
-            ball.x = 100;
+            // 重置篮球位置（基于画布大小的相对位置）
+            ball.x = canvas.width * 0.125;
             ball.y = canvas.height - 50;
             ball.vx = 0;
             ball.vy = 0;
+            
+            // 重置篮环位置（基于画布大小的相对位置）
+            hoop.x = canvas.width * 0.8125;
+            hoop.y = canvas.height * 0.33;
             
             // 重置状态
             isShooting = false;
@@ -503,7 +511,54 @@
         shootBtn.addEventListener('click', shoot);
         resetBtn.addEventListener('click', reset);
         
+        // 处理窗口大小变化
+        window.addEventListener('resize', function() {
+            // 重新计算画布尺寸
+            const containerWidth = document.querySelector('.container').offsetWidth;
+            const containerHeight = window.innerHeight * 0.7;
+            
+            // 设置画布尺寸，保持原始比例
+            const ratio = 800 / 600; // 原始宽高比
+            let newWidth, newHeight;
+            
+            if (containerWidth / containerHeight > ratio) {
+                newHeight = containerHeight;
+                newWidth = newHeight * ratio;
+            } else {
+                newWidth = containerWidth * 0.9;
+                newHeight = newWidth / ratio;
+            }
+            
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            
+            // 重置游戏元素位置
+            reset();
+        });
+        
+        // 初始化画布尺寸
+        function initCanvasSize() {
+            const containerWidth = document.querySelector('.container').offsetWidth;
+            const containerHeight = window.innerHeight * 0.7;
+            
+            // 设置画布尺寸，保持原始比例
+            const ratio = 800 / 600; // 原始宽高比
+            let newWidth, newHeight;
+            
+            if (containerWidth / containerHeight > ratio) {
+                newHeight = containerHeight;
+                newWidth = newHeight * ratio;
+            } else {
+                newWidth = containerWidth * 0.9;
+                newHeight = newWidth / ratio;
+            }
+            
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+        }
+        
         // 初始化游戏
+        initCanvasSize();
         reset();
         gameLoop();
     </script>
