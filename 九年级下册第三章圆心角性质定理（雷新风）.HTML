@@ -65,6 +65,43 @@
             height: clamp(8px, 2vw, 14px);
         }
 
+        .point::after {
+            content: attr(data-label);
+            position: absolute;
+            font-size: clamp(18px, 2.5vw, 24px);
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 15;
+            transform: none;
+        }
+
+        /* A点标签放在右边 */
+        #pointA::after {
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff;
+            left: 120%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* B点标签放在正下方 */
+        #pointB::after {
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* C点和D点标签放在正下方 */
+        #pointC::after, #pointD::after {
+            color: #ffff00;
+            text-shadow: 0 0 5px #ffff00;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
         #center {
             background-color: #2c3e50;
         }
@@ -181,6 +218,33 @@
             box-shadow: 0 0 15px #ffff00;
             border: 2px solid #fff;
         }
+        
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ffff;
+            border-radius: 6px;
+            color: #00ffff;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: inner-spin-button;
+            opacity: 1;
+            background: rgba(0, 255, 255, 0.2);
+            width: 20px;
+            height: 30px;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            border-color: #ffff00;
+        }
 
         .info {
             margin-top: 0.5vw;
@@ -270,16 +334,19 @@
             <span class="slider-label">蓝色角大小：</span>
             <input type="range" id="angleSliderBlue" min="0" max="180" value="60" step="0.5">
             <span class="slider-label" id="angleValBlue">60°</span>
+            <input type="number" id="angleInputBlue" min="0" max="180" value="60" step="0.5">
         </div>
         <div class="slider-group">
             <span class="slider-label">绿色角大小：</span>
             <input type="range" id="angleSliderGreen" min="0" max="180" value="30" step="0.5">
             <span class="slider-label" id="angleValGreen">30°</span>
+            <input type="number" id="angleInputGreen" min="0" max="180" value="30" step="0.5">
         </div>
         <div class="slider-group">
             <span class="slider-label">绿色角位置：</span>
             <input type="range" id="posSliderGreen" min="0" max="360" value="90" step="0.5">
             <span class="slider-label" id="posValGreen">90°</span>
+            <input type="number" id="posInputGreen" min="0" max="360" value="90" step="0.5">
         </div>
     </div>
     <!-- 信息提示 -->
@@ -295,6 +362,13 @@
         <div class="theorem-title">圆心角性质定理</div>
         <p>在同圆或等圆中，相等的圆心角所对的弧相等，所对的弦相等。</p>
     </div>
+    
+    <!-- 推论展示 -->
+    <div class="theorem">
+        <div class="theorem-title">圆心角性质定理的推论</div>
+        <p>在同圆或等圆中。圆心角、弦、弧这三组量当中。如果有一组量相等，那么其余各组量都分别相等。</p>
+    </div>
+    
     <p class="tip">提示：1. 调整前两个滑动条使两角相等  2. 拖动第三个滑动条移动绿色角，观察是否重合</p>
 
     <script>
@@ -305,6 +379,11 @@
         const angleValBlue = document.getElementById('angleValBlue');
         const angleValGreen = document.getElementById('angleValGreen');
         const posValGreen = document.getElementById('posValGreen');
+        
+        // 输入框元素
+        const angleInputBlue = document.getElementById('angleInputBlue');
+        const angleInputGreen = document.getElementById('angleInputGreen');
+        const posInputGreen = document.getElementById('posInputGreen');
         
         const container = document.querySelector('.container');
         const circle = document.getElementById('circle');
@@ -399,15 +478,17 @@
             center.style.top = centerY + 'px';
 
             // 1. 渲染蓝色组∠AOB
-            const angleB = parseInt(angleSliderBlue.value);
+            const angleB = parseFloat(angleSliderBlue.value);
             const radianB = angleB * Math.PI / 180;
             const A = calcPoint(blueStartPos, radianB, false, circleRadius, centerX, centerY);
             const B = calcPoint(blueStartPos, radianB, true, circleRadius, centerX, centerY);
             
             pointA.style.left = A.x + 'px';
             pointA.style.top = A.y + 'px';
+            pointA.setAttribute('data-label', 'A');
             pointB.style.left = B.x + 'px';
             pointB.style.top = B.y + 'px';
+            pointB.setAttribute('data-label', 'B');
             updateLine(lineOA, centerX, centerY, A.x, A.y);
             updateLine(lineOB, centerX, centerY, B.x, B.y);
             const abLen = updateLine(chordAB, A.x, A.y, B.x, B.y);
@@ -417,8 +498,8 @@
             angleValBlue.textContent = `${angleB}°`;
 
             // 2. 渲染绿色组∠COD
-            const angleG = parseInt(angleSliderGreen.value);
-            const posG = parseInt(posSliderGreen.value);
+            const angleG = parseFloat(angleSliderGreen.value);
+            const posG = parseFloat(posSliderGreen.value);
             const radianG = angleG * Math.PI / 180;
             const greenStartPos = posG * Math.PI / 180;
             
@@ -427,8 +508,10 @@
             
             pointC.style.left = C.x + 'px';
             pointC.style.top = C.y + 'px';
+            pointC.setAttribute('data-label', 'C');
             pointD.style.left = D.x + 'px';
             pointD.style.top = D.y + 'px';
+            pointD.setAttribute('data-label', 'D');
             updateLine(lineOC, centerX, centerY, C.x, C.y);
             updateLine(lineOD, centerX, centerY, D.x, D.y);
             const cdLen = updateLine(chordCD, C.x, C.y, D.x, D.y);
@@ -461,9 +544,36 @@
         }
 
         // 滑动条事件监听
-        angleSliderBlue.addEventListener('input', renderAll);
-        angleSliderGreen.addEventListener('input', renderAll);
-        posSliderGreen.addEventListener('input', renderAll);
+        angleSliderBlue.addEventListener('input', () => {
+            angleInputBlue.value = angleSliderBlue.value;
+            renderAll();
+        });
+        
+        angleSliderGreen.addEventListener('input', () => {
+            angleInputGreen.value = angleSliderGreen.value;
+            renderAll();
+        });
+        
+        posSliderGreen.addEventListener('input', () => {
+            posInputGreen.value = posSliderGreen.value;
+            renderAll();
+        });
+        
+        // 输入框事件监听
+        angleInputBlue.addEventListener('input', () => {
+            angleSliderBlue.value = angleInputBlue.value;
+            renderAll();
+        });
+        
+        angleInputGreen.addEventListener('input', () => {
+            angleSliderGreen.value = angleInputGreen.value;
+            renderAll();
+        });
+        
+        posInputGreen.addEventListener('input', () => {
+            posSliderGreen.value = posInputGreen.value;
+            renderAll();
+        });
 
         // 窗口自适应
         window.addEventListener('resize', renderAll);
