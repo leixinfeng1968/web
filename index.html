@@ -78,31 +78,13 @@
         h1 {
             text-align: center;
             color: #667eea;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-bottom: 10px;
             text-shadow: 0 0 20px rgba(102, 126, 234, 0.7);
             letter-spacing: 2px;
         }
         
-        /* 滚动动画样式 */
-        .scroll-text {
-            display: inline-block;
-            white-space: nowrap;
-            overflow: hidden;
-            animation: scroll-left 40s linear infinite;
-            will-change: transform;
-            backface-visibility: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-        
-        @keyframes scroll-left {
-            0% {
-                transform: translate3d(100%, 0, 0);
-            }
-            100% {
-                transform: translate3d(-100%, 0, 0);
-            }
-        }
+
 
         .subtitle {
             text-align: center;
@@ -366,16 +348,15 @@
         <div class="container">
             <h1>🚀 初中数学动态交互课件</h1>
             <div style="text-align: center; margin-top: 20px;">
-                <span class="scroll-text">
-                    用交互式动态课件探究数学知识，让学习更炫酷 &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="用HTML制作动态交互初中数学课件指南.docx" class="download-btn" download="初中数学课件制作指南.docx">
-                        📥 下载课件制作指南
-                    </a>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="课件统计表格.xlsx" class="download-btn" download="初中数学课件统计表格.xlsx">
-                        📥 下载课件统计表
-                    </a>
-                </span>
+                <a href="用HTML制作动态交互初中数学课件指南.docx" class="download-btn" download="初中数学课件制作指南.docx">
+                    📥 下载课件制作指南
+                </a>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                用交互式动态课件探究数学知识，让学习更炫酷
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="课件统计表格.xlsx" class="download-btn" download="初中数学课件统计表格.xlsx">
+                    📥 下载课件统计表
+                </a>
             </div>
         </div>
     </header>
