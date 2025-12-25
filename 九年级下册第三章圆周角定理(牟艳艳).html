@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弧BC所对的圆周角和圆心角</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 1/1; /* 保持画布正方形 */
+            margin: 0 auto;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .slider-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        input[type="range"] {
+            width: 80%;
+            max-width: 600px;
+            margin: 15px 0;
+        }
+        .formula {
+            text-align: center;
+            font-size: clamp(16px, 2vw, 22px);
+            margin: 20px 0;
+            width: 100%;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="text-2xl md:text-3xl font-bold">弧BC所对的圆周角和圆心角</h1>
+        <p class="text-lg text-gray-600 mt-2">作者：牟艳艳</p>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="circleCanvas"></canvas>
+    </div>
+
+    <div class="slider-container">
+        <p class="text-base md:text-lg">圆心角∠BOC：<span id="centralValue">60</span>°</p>
+        <input type="range" id="centralSlider" min="0" max="180" value="60" step="1">
+        <p class="text-base md:text-lg">圆周角∠BAC：<span id="inscribedValue">30</span>°</p>
+        <input type="range" id="inscribedSlider" min="0" max="90" value="30" step="1">
+    </div>
+
+    <div class="formula">
+        核心规律：<strong>\(\angle BAC = \frac{1}{2}\angle BOC\)</strong>
+        <br>
+        同弧所对的圆周角等于它所对的圆心角的一半
+    </div>
+
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('circleCanvas');
+        const ctx = canvas.getContext('2d');
+        const centralValue = document.getElementById('centralValue');
+        const centralSlider = document.getElementById('centralSlider');
+        const inscribedValue = document.getElementById('inscribedValue');
+        const inscribedSlider = document.getElementById('inscribedSlider');
+        const canvasContainer = document.getElementById('canvas-container');
+
+        // 圆的参数
+        let centerX, centerY, radius;
+        let centralAngle = 60; // 圆心角初始值（度）
+        let inscribedAngle = 30; // 圆周角初始值（度）
+
+        // 角度转弧度
+        function toRadians(degrees) {
+            return degrees * Math.PI / 180;
+        }
+
+        // 调整画布大小和圆参数（自适应屏幕）
+        function resizeCanvas() {
+            // 设置画布实际尺寸为容器尺寸
+            const containerWidth = canvasContainer.clientWidth;
+            const containerHeight = canvasContainer.clientHeight;
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+
+            // 计算圆的参数（自适应画布）
+            centerX = containerWidth / 2;
+            centerY = containerHeight / 2;
+            radius = Math.min(centerX, centerY) * 0.8; // 圆半径为画布最小边的80%，留边距
+        }
+
+        // 绘制圆和相关元素
+        function draw() {
+            resizeCanvas(); // 每次绘制前检查尺寸
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 计算点的坐标
+            const O = { x: centerX, y: centerY }; // 圆心
+            const B = { 
+                x: centerX + radius * Math.cos(toRadians(90)), 
+                y: centerY - radius * Math.sin(toRadians(90)) 
+            }; // 点B（正上方）
+            const C = { 
+                x: centerX + radius * Math.cos(toRadians(90 - centralAngle)), 
+                y: centerY - radius * Math.sin(toRadians(90 - centralAngle)) 
+            }; // 点C（根据圆心角计算）
+            const A = { 
+                x: centerX - radius * Math.cos(toRadians(90 - centralAngle/2)), 
+                y: centerY + radius * Math.sin(toRadians(90 - centralAngle/2)) 
+            }; // 点A（圆周上，与BC构成圆周角）
+
+            // 绘制圆
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#0066cc';
+            ctx.lineWidth = getScaledLineWidth(2);
+            ctx.stroke();
+
+            // 绘制弧BC（橙色加粗）
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, toRadians(90 - centralAngle), toRadians(90), true);
+            ctx.strokeStyle = '#ff6600';
+            ctx.lineWidth = getScaledLineWidth(3);
+            ctx.stroke();
+
+            // 绘制半径OB、OC（黑色细线条）
+            ctx.beginPath();
+            ctx.moveTo(O.x, O.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.moveTo(O.x, O.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = getScaledLineWidth(1);
+            ctx.stroke();
+
+            // 绘制弦AB、AC（绿色粗线条）
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.strokeStyle = '#009933';
+            ctx.lineWidth = getScaledLineWidth(2);
+            ctx.stroke();
+
+            // 标注点（O、A、B、C）
+            const drawPoint = (point, label) => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, getScaledSize(5), 0, 2 * Math.PI);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+                ctx.font = `${getScaledSize(16)}px Arial`;
+                ctx.fillText(label, point.x + getScaledSize(10), point.y + getScaledSize(10));
+            };
+            drawPoint(O, 'O');
+            drawPoint(A, 'A');
+            drawPoint(B, 'B');
+            drawPoint(C, 'C');
+
+            // 绘制圆心角∠BOC（红色，标注度数）
+            drawAngle(O, B, C, '#ff0000', centralAngle + '°');
+            // 绘制圆周角∠BAC（绿色，标注度数）
+            drawAngle(A, B, C, '#009933', inscribedAngle + '°');
+        }
+
+        // 绘制角度标注（带度数，自适应大小）
+        function drawAngle(vertex, p1, p2, color, label) {
+            const dx1 = p1.x - vertex.x;
+            const dy1 = p1.y - vertex.y;
+            const dx2 = p2.x - vertex.x;
+            const dy2 = p2.y - vertex.y;
+            const angle1 = Math.atan2(dy1, dx1);
+            const angle2 = Math.atan2(dy2, dx2);
+            const angleRadius = getScaledSize(25); // 角度标注圆弧半径（自适应）
+
+            ctx.beginPath();
+            ctx.arc(vertex.x, vertex.y, angleRadius, angle1, angle2, false);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = getScaledLineWidth(2);
+            ctx.stroke();
+
+            // 标注角度标签（居中显示，自适应大小）
+            const midAngle = (angle1 + angle2) / 2;
+            const labelX = vertex.x + (angleRadius + getScaledSize(15)) * Math.cos(midAngle);
+            const labelY = vertex.y + (angleRadius + getScaledSize(15)) * Math.sin(midAngle);
+            ctx.font = `${getScaledSize(16)}px Arial`;
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.fillText(label, labelX, labelY);
+            ctx.textAlign = 'start'; // 恢复默认对齐方式
+        }
+
+        // 缩放线条宽度（根据画布尺寸自适应）
+        function getScaledLineWidth(baseWidth) {
+            const scaleFactor = canvas.width / 500; // 以500px为基准缩放
+            return baseWidth * scaleFactor;
+        }
+
+        // 缩放元素大小（点、字体、偏移量等，自适应）
+        function getScaledSize(baseSize) {
+            const scaleFactor = canvas.width / 500; // 以500px为基准缩放
+            return baseSize * scaleFactor;
+        }
+
+        // 圆心角滑动条事件（同步圆周角）
+        centralSlider.addEventListener('input', () => {
+            centralAngle = parseInt(centralSlider.value);
+            inscribedAngle = centralAngle / 2;
+            centralValue.textContent = centralAngle;
+            inscribedValue.textContent = inscribedAngle;
+            inscribedSlider.value = inscribedAngle;
+            draw();
+        });
+
+        // 圆周角滑动条事件（同步圆心角）
+        inscribedSlider.addEventListener('input', () => {
+            inscribedAngle = parseInt(inscribedSlider.value);
+            centralAngle = inscribedAngle * 2;
+            inscribedValue.textContent = inscribedAngle;
+            centralValue.textContent = centralAngle;
+            centralSlider.value = centralAngle;
+            draw();
+        });
+
+        // 窗口大小变化时重新绘制
+        window.addEventListener('resize', draw);
+
+        // 初始绘制
+        draw();
+    </script>
+</body>
+</html>
+

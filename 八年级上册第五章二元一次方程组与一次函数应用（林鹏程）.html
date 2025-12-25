@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二元一次方程组与一次函数的应用</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 更换为稳定兼容的Chart.js版本 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; margin: 0; padding: 20px; }
+        .module { border: 2px solid #3b82f6; border-radius: 10px; padding: 20px; margin: 15px 0; background: #f8fafc; }
+        .btn { background: #3b82f6; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #2563eb; }
+        input { padding: 6px; margin: 5px; border: 1px solid #94a3b8; border-radius: 4px; width: 80px; }
+        /* 修复图表容器样式，确保高度固定且不溢出 */
+        .chart-container { 
+            height: 400px; 
+            width: 100%; 
+            margin: 10px 0; 
+            position: relative; 
+        }
+        .scene { padding: 15px; border: 1px dashed #64748b; border-radius: 8px; margin: 10px 0; }
+        h1, h2 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+    <h1 class="text-2xl font-bold text-gray-800 my-5">二元一次方程组与一次函数的应用</h1>
+
+    <!-- 模块1：函数与方程组的关系 -->
+    <div class="module">
+        <h2 class="text-xl font-semibold text-blue-700">一、一次函数与二元一次方程组的关系</h2>
+        <p class="my-3">二元一次方程组的解 ⇔ 两个一次函数图像的<span class="font-bold text-red-600">交点坐标</span></p>
+        
+        <div class="flex flex-wrap items-center my-4">
+            <p class="mr-3">请输入两个一次函数（y = kx + b）：</p>
+            <div class="mr-5">
+                <p>函数1：y = <input type="number" id="k1" value="1" step="0.5">x + <input type="number" id="b1" value="2" step="0.5"></p>
+            </div>
+            <div>
+                <p>函数2：y = <input type="number" id="k2" value="-2" step="0.5">x + <input type="number" id="b2" value="8" step="0.5"></p>
+            </div>
+            <button class="btn" onclick="drawGraph()">绘制图像</button>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="functionChart"></canvas>
+        </div>
+
+        <div id="solutionResult" class="my-3 text-center font-bold text-green-700 text-lg"></div>
+    </div>
+
+    <!-- 模块2：实际应用场景 - 购物方案选择 -->
+    <div class="module">
+        <h2 class="text-xl font-semibold text-blue-700">二、实际应用：购物方案选择</h2>
+        <div class="scene">
+            <p class="font-semibold">问题：农村合作社购买化肥，有两种方案可选：</p>
+            <p>方案A：每吨化肥800元，另加运输费500元（无论购买多少吨）</p>
+            <p>方案B：每吨化肥900元，免运输费</p>
+            <p>购买多少吨时，两种方案费用相同？哪种方案更划算？</p>
+        </div>
+
+        <div class="flex flex-wrap items-center my-4">
+            <p class="mr-3">预计购买吨数：</p>
+            <input type="number" id="tonnage" value="5" min="1" step="1">
+            <button class="btn" onclick="calculateCost()">计算费用</button>
+        </div>
+
+        <div id="costResult" class="my-3 p-3 bg-white rounded-lg border border-gray-200">
+            <p>方案A费用（元）：<span id="costA">-</span></p>
+            <p>方案B费用（元）：<span id="costB">-</span></p>
+            <p class="font-bold text-red-600" id="bestPlan">-</p>
+        </div>
+
+        <div class="chart-container mt-5">
+            <canvas id="costChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 模块3：实际应用场景 - 行程问题 -->
+    <div class="module">
+        <h2 class="text-xl font-semibold text-blue-700">三、实际应用：行程问题</h2>
+        <div class="scene">
+            <p class="font-semibold">问题：甲、乙两人从村头出发去县城，甲骑自行车，乙骑电动车：</p>
+            <p>甲的速度：15 km/h，先出发2小时</p>
+            <p>乙的速度：30 km/h，后出发</p>
+            <p>乙出发后几小时能追上甲？此时两人走了多少路程？</p>
+        </div>
+
+        <div class="flex justify-center my-4">
+            <button class="btn" onclick="simulateJourney()">模拟行程</button>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="journeyChart"></canvas>
+        </div>
+
+        <div id="journeyResult" class="my-3 text-center font-bold text-green-700 text-lg"></div>
+    </div>
+
+    <script>
+        // 全局变量存储图表实例
+        let functionChart, costChart, journeyChart;
+
+        // 确保DOM加载完成后初始化（修复核心：等待canvas元素渲染）
+        document.addEventListener('DOMContentLoaded', function() {
+            drawGraph();
+            calculateCost();
+            simulateJourney();
+        });
+
+        // 模块1：绘制函数图像并求解方程组
+        function drawGraph() {
+            const k1 = parseFloat(document.getElementById('k1').value);
+            const b1 = parseFloat(document.getElementById('b1').value);
+            const k2 = parseFloat(document.getElementById('k2').value);
+            const b2 = parseFloat(document.getElementById('b2').value);
+
+            // 计算交点（方程组的解）
+            let x, y, solutionText;
+            if (k1 === k2) {
+                solutionText = b1 === b2 ? '两直线重合，有无数组解' : '两直线平行，无解';
+                x = null;
+                y = null;
+            } else {
+                x = (b2 - b1) / (k1 - k2);
+                y = k1 * x + b1;
+                solutionText = `方程组的解：x =方程组的解：x = ${x.toFixed(1)}, y = ${y.toFixed(1)}（交点坐标）`;
+            }
+            document.getElementById('solutionResult').textContent = solutionText;
+
+            // 生成x轴数据（-5到10，间隔0.5）
+            const xData = Array.from({length: 31}, (_, i) => i - 5);
+            const y1Data = xData.map(x => k1 * x + b1);
+            const y2Data = xData.map(x => k2 * x + b2);
+
+            // 绘制图表（修复：销毁旧图表时判断是否存在）
+            const ctx = document.getElementById('functionChart').getContext('2d');
+            if (functionChart) functionChart.destroy();
+            functionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xData,
+                    datasets: [
+                        {
+                            label: `y = ${k1}x + ${b1}`,
+                            data: y1Data,
+                            borderColor: '#ef4444',
+                            borderWidth: 3,
+                            tension: 0,
+                            pointRadius: 0
+                        },
+                        {
+                            label: `y = ${k2}x + ${b2}`,
+                            data: y2Data,
+                            borderColor: '#10b981',
+                            borderWidth: 3,
+                            tension: 0,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '交点',
+                            data: x !== null ? [{x: x, y: y}] : [],
+                            backgroundColor: '#f59e0b',
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            showLine: false // 不显示交点的连线
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'x' },
+                            grid: { color: '#e2e8f0' },
+                            ticks: { stepSize: 1 }
+                        },
+                        y: {
+                            title: { display: true, text: 'y' },
+                            grid: { color: '#e2e8f0' },
+                            ticks: { stepSize: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === '交点') {
+                                        return `交点：(${x.toFixed(1)}, ${y.toFixed(1)})`;
+                                    }
+                                    return context.dataset.label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 模块2：购物方案费用计算与图表
+        function calculateCost() {
+            const tonnage = parseInt(document.getElementById('tonnage').value);
+            const costA = 800 * tonnage + 500;
+            const costB = 900 * tonnage;
+            let bestPlan;
+
+            if (costA < costB) {
+                bestPlan = `购买${tonnage}吨，方案A更划算，节省${costB - costA}元`;
+            } else if (costA > costB) {
+                bestPlan = `购买${tonnage}吨，方案B更划算，节省${costA - costB}元`;
+            } else {
+                bestPlan = `购买${tonnage}吨，两种方案费用相同！`;
+            }
+
+            // 更新结果显示
+            document.getElementById('costA').textContent = costA;
+            document.getElementById('costB').textContent = costB;
+            document.getElementById('bestPlan').textContent = bestPlan;
+
+            // 生成图表数据（1到10吨）
+            const xData = Array.from({length: 10}, (_, i) => i + 1);
+            const yAData = xData.map(x => 800 * x + 500);
+            const yBData = xData.map(x => 900 * x);
+
+            // 绘制图表
+            const ctx = document.getElementById('costChart').getContext('2d');
+            if (costChart) costChart.destroy();
+            costChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xData,
+                    datasets: [
+                        {
+                            label: '方案A（800x + 500）',
+                            data: yAData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: true,
+                            borderWidth: 2
+                        },
+                        {
+                            label: '方案B（900x）',
+                            data: yBData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: '购买吨数' },
+                            grid: { color: '#e2e8f0' },
+                            ticks: { stepSize: 1 }
+                        },
+                        y: {
+                            title: { display: true, text: '总费用（元）' },
+                            grid: { color: '#e2e8f0' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
+        }
+
+        // 模块3：行程问题模拟
+        function simulateJourney() {
+            const meetTime = 2;
+            const meetDistance = 60;
+            document.getElementById('journeyResult').textContent = 
+                `乙出发后${meetTime}小时追上甲，此时两人走了${meetDistance}千米`;
+
+            // 生成数据（乙出发后0到4小时）
+            const xData = Array.from({length: 9}, (_, i) => i * 0.5);
+            const yAData = xData.map(x => 15 * (x + 2)); // 甲的路程
+            const yBData = xData.map(x => 30 * x); // 乙的路程
+
+            // 绘制图表
+            const ctx = document.getElementById('journeyChart').getContext('2d');
+            if (journeyChart) journeyChart.destroy();
+            journeyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xData,
+                    datasets: [
+                        {
+                            label: '甲（先出发2小时，速度15km/h）',
+                            data: yAData,
+                            borderColor: '#ef4444',
+                            borderWidth: 3,
+                            tension: 0,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '乙（后出发，速度30km/h）',
+                            data: yBData,
+                            borderColor: '#10b981',
+                            borderWidth: 3,
+                            tension: 0,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '相遇点',
+                            data: [{x: meetTime, y: meetDistance}],
+                            backgroundColor: '#f59e0b',
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: '乙出发后的时间（小时）' },
+                            grid: { color: '#e2e8f0' },
+                            ticks: { stepSize: 0.5 }
+                        },
+                        y: {
+                            title: { display: true, text: '行驶路程（千米）' },
+                            grid: { color: '#e2e8f0' },
+                            ticks: { stepSize: 10 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === '相遇点') {
+                                        return `相遇：${meetTime}小时，${meetDistance}千米`;
+                                    }
+                                    return context.dataset.label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

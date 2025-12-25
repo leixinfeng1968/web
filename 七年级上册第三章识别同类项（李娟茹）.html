@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同类项连连看</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f9f9f9;
+            font-family: "Microsoft YaHei", sans-serif;
+            padding: 20px 0;
+        }
+        .container {
+            width: 90vw;
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 25px;
+        }
+        h1 {
+            text-align: center;
+            color: #7b68ee;
+            margin-bottom: 5px;
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+        }
+        .author {
+            text-align: center;
+            color: #696969;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        /* 顶部功能区 */
+        .top-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        /* 姓名输入区 */
+        .name-area {
+            text-align: center;
+        }
+        .name-input {
+            padding: 9px 15px;
+            border: 2px solid #7b68ee;
+            border-radius: 8px;
+            width: 65%;
+            max-width: 220px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .name-input:focus {
+            border-color: #9370db;
+        }
+        /* 按钮组 - 明亮马卡龙色 */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #startBtn {
+            background-color: #98fb98;
+            color: #2e8b57;
+            font-weight: bold;
+        }
+        #startBtn:hover {
+            background-color: #7cfc7c;
+            box-shadow: 0 3px 8px rgba(152, 251, 152, 0.4);
+        }
+        #resetBtn {
+            background-color: #ffb6c1;
+            color: #c71585;
+        }
+        #resetBtn:hover {
+            background-color: #ffc0cb;
+            box-shadow: 0 3px 8px rgba(255, 182, 193, 0.4);
+        }
+        #clearRecordBtn {
+            background-color: #87ceeb;
+            color: #4682b4;
+        }
+        #clearRecordBtn:hover {
+            background-color: #87cefa;
+            box-shadow: 0 3px 8px rgba(135, 206, 235, 0.4);
+        }
+        .control-btn:disabled {
+            background-color: #e0e0e0;
+            color: #9e9e9e;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        /* 用时表格 */
+        .time-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px auto;
+            text-align: center;
+        }
+        .time-table th, .time-table td {
+            border: 2px solid #7b68ee;
+            padding: 8px;
+            font-size: 0.95rem;
+        }
+        .time-table th {
+            background-color: #f0e6fa;
+            color: #7b68ee;
+        }
+        /* 游戏说明 */
+        .game-intro {
+            text-align: center;
+            color: #696969;
+            margin-bottom: 18px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        /* 一行三列卡片网格 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            justify-items: center;
+            margin-bottom: 22px;
+        }
+        /* 明亮马卡龙色卡片 + 点击震动 */
+        .algebra-card {
+            width: 100%;
+            max-width: 110px;
+            height: 55px;
+            background-color: #f0e68c;
+            border: 2px solid #bdb76b;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #808000;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .algebra-card:hover {
+            transform: scale(1.06);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        }
+        .algebra-card.active {
+            background-color: #ffdab9;
+            border-color: #cd853f;
+            color: #8b4513;
+        }
+        .algebra-card.matched {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0);
+            transition: all 0.3s ease-out;
+            pointer-events: none;
+        }
+        /* 震动动画 */
+        @keyframes vibrate {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            50% { transform: translateX(0); }
+            75% { transform: translateX(2px); }
+            100% { transform: translateX(0); }
+        }
+        .vibrate {
+            animation: vibrate 0.2s ease;
+        }
+        /* 结果提示 */
+        .result-tip {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #7b68ee;
+            min-height: 26px;
+        }
+        /* 通关弹窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .modal h2 {
+            color: #7b68ee;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .modal p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal-btn {
+            padding: 10px 25px;
+            background-color: #98fb98;
+            color: #2e8b57;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .modal-btn:hover {
+            background-color: #7cfc7c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>同类项连连看</h1>
+        <div class="author">作者：李娟茹</div>
+        <div class="top-area">
+            <!-- 姓名输入 -->
+            <div class="name-area">
+                <input type="text" class="name-input" id="nameInput" placeholder="请输入姓名">
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="btn-group">
+                <button class="control-btn" id="startBtn">开始游戏</button>
+                <button class="control-btn" id="resetBtn" disabled>重新开始</button>
+                <button class="control-btn" id="clearRecordBtn">清空纪录</button>
+            </div>
+
+            <!-- 用时统计表格 -->
+            <table class="time-table">
+                <thead>
+                    <tr>
+                        <th>玩家姓名</th>
+                        <th>本次用时</th>
+                        <th>最快用时</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="playerNameTd">未开始</td>
+                        <td id="currentTimeTd">--:--</td>
+                        <td id="bestTimeTd">--:--</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 游戏说明 -->
+        <div class="game-intro">
+            规则：输入姓名点击开始 → 配对同类项卡片消除 → 全部消除即为通关！<br>
+            同类项定义：所含字母相同，并且相同字母的指数也相同的项
+        </div>
+
+        <!-- 卡片网格 -->
+        <div class="card-grid" id="cardGrid"></div>
+
+        <!-- 结果提示 -->
+        <div class="result-tip" id="resultTip"></div>
+    </div>
+
+    <!-- 通关弹窗 -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <h2>🎉 通关成功！ 🎉</h2>
+            <p id="modalText">恭喜你完成挑战！</p>
+            <button class="modal-btn" id="modalCloseBtn">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 同类项题库（10对备选，每次随机选6对）
+        const algebraPool = [
+            { text: "3x", type: "x" }, { text: "-5x", type: "x" },
+            { text: "2x²", type: "x2" }, { text: "x²", type: "x2" },
+            { text: "4xy", type: "xy" }, { text: "-xy", type: "xy" },
+            { text: "6", type: "constant" }, { text: "-2", type: "constant" },
+            { text: "0.5x³", type: "x3" }, { text: "3x³", type: "x3" },
+            { text: "7y", type: "y" }, { text: "-4y", type: "y" },
+            { text: "8x²y", type: "x2y" }, { text: "-2x²y", type: "x2y" },
+            { text: "5y²", type: "y2" }, { text: "y²", type: "y2" },
+            { text: "9xyz", type: "xyz" }, { text: "-3xyz", type: "xyz" },
+            { text: "4a", type: "a" }, { text: "-a", type: "a" }
+        ];
+        const totalPairs = 6; // 改为6对
+        let timerInterval = null;
+        let startTime = 0;
+        let selectedCards = [];
+        let matchedPairs = 0;
+        let isProcessing = false;
+        let bestRecord = {name: "", time: "--:--"};
+        let lastCardTypeStr = ""; // 记录上一次选中的同类项类型
+
+        // DOM元素
+        const cardGrid = document.getElementById("cardGrid");
+        const startBtn = document.getElementById("startBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const clearRecordBtn = document.getElementById("clearRecordBtn");
+        const nameInput = document.getElementById("nameInput");
+        const resultTip = document.getElementById("resultTip");
+        const playerNameTd = document.getElementById("playerNameTd");
+        const currentTimeTd = document.getElementById("currentTimeTd");
+        const bestTimeTd = document.getElementById("bestTimeTd");
+        const successModal = document.getElementById("successModal");
+        const modalText = document.getElementById("modalText");
+        const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+        // 随机选取6对不重复的同类项，且与上一次组合不同
+        function getRandom6Pairs() {
+            // 打乱题库顺序
+            const shuffledPool = [...algebraPool].sort(() => Math.random() - 0.5);
+            // 提取所有同类项类型
+            const allTypes = [...new Set(shuffledPool.map(item => item.type))];
+            // 随机选6个类型
+            const selectedTypes = [];
+            while (selectedTypes.length < totalPairs) {
+                const randomType = allTypes[Math.floor(Math.random() * allTypes.length)];
+                if (!selectedTypes.includes(randomType)) {
+                    selectedTypes.push(randomType);
+                }
+            }
+            // 生成本次的类型字符串（用于对比）
+            const currentTypeStr = selectedTypes.sort().join(",");
+            // 如果和上一次类型组合相同，重新生成
+            if (currentTypeStr === lastCardTypeStr && lastCardTypeStr !== "") {
+                return getRandom6Pairs();
+            }
+            lastCardTypeStr = currentTypeStr;
+            // 提取对应类型的卡片并打乱顺序
+            let selectedCards = [];
+            selectedTypes.forEach(type => {
+                const pair = shuffledPool.filter(item => item.type === type);
+                selectedCards.push(...pair);
+            });
+            return selectedCards.sort(() => Math.random() - 0.5);
+        }
+
+        // 初始化 - 卡片网格默认清空
+        function initGame() {
+            cardGrid.innerHTML = "";
+            resultTip.textContent = "";
+            currentTimeTd.textContent = "--:--";
+            selectedCards = [];
+            matchedPairs = 0;
+            isProcessing = false;
+            clearInterval(timerInterval);
+            playerNameTd.textContent = nameInput.value.trim() || "匿名玩家";
+
+            // 生成6对随机不重复卡片
+            const shuffledCards = getRandom6Pairs();
+            shuffledCards.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "algebra-card";
+                card.textContent = item.text;
+                card.dataset.type = item.type;
+                card.onclick = function() { 
+                    this.classList.add("vibrate");
+                    setTimeout(() => this.classList.remove("vibrate"), 200);
+                    selectCard(this); 
+                };
+                cardGrid.appendChild(card);
+            });
+        }
+
+        // 卡片选择逻辑
+        function selectCard(card) {
+            if (isProcessing || card.classList.contains("matched") || card.classList.contains("active")) return;
+            if (selectedCards.length >= 2) return;
+
+            card.classList.add("active");
+            selectedCards.push(card);
+
+            if (selectedCards.length === 2) {
+                isProcessing = true;
+                const card1 = selectedCards[0];
+                const card2 = selectedCards[1];
+
+                if (card1.dataset.type === card2.dataset.type) {
+                    setTimeout(() => {
+                        card1.classList.add("matched");
+                        card2.classList.add("matched");
+                        matchedPairs++;
+                        selectedCards = [];
+                        isProcessing = false;
+
+                        if (matchedPairs === totalPairs) {
+                            clearInterval(timerInterval);
+                            const currentTime = currentTimeTd.textContent;
+                            const userName = playerNameTd.textContent;
+                            modalText.textContent = `${userName}，本次用时 ${currentTime}！`;
+                            successModal.style.display = "flex";
+                            resetBtn.disabled = false;
+                            updateBestRecord(userName, currentTime);
+                        }
+                    }, 300);
+                } else {
+                    setTimeout(() => {
+                        card1.classList.remove("active");
+                        card2.classList.remove("active");
+                        selectedCards = [];
+                        isProcessing = false;
+                    }, 500);
+                }
+            }
+        }
+
+        // 计时函数
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                currentTimeTd.textContent = timeStr;
+            }, 1000);
+        }
+
+        // 更新最快纪录
+        function updateBestRecord(name, time) {
+            if (bestRecord.time === "--:--") {
+                bestRecord = {name, time};
+                bestTimeTd.textContent = time;
+                return;
+            }
+            const currentSec = timeToSeconds(time);
+            const bestSec = timeToSeconds(bestRecord.time);
+            if (currentSec < bestSec) {
+                bestRecord = {name, time};
+                bestTimeTd.textContent = time;
+            }
+        }
+
+        // 清空纪录
+        function clearBestRecord() {
+            bestRecord = {name: "", time: "--:--"};
+            bestTimeTd.textContent = "--:--";
+            resultTip.textContent = "纪录已清空！";
+            setTimeout(() => resultTip.textContent = "", 2000);
+        }
+
+        // 时间转秒数
+        function timeToSeconds(timeStr) {
+            const [min, sec] = timeStr.split(":").map(Number);
+            return min * 60 + sec;
+        }
+
+        // 弹窗关闭事件
+        modalCloseBtn.onclick = function() {
+            successModal.style.display = "none";
+        }
+
+        // 按钮事件绑定 - 修复点击无反应问题
+        startBtn.addEventListener('click', function() {
+            const userName = nameInput.value.trim();
+            if (!userName) {
+                resultTip.textContent = "请先输入姓名！";
+                return;
+            }
+            resultTip.textContent = "";
+            initGame();
+            startTimer();
+            startBtn.disabled = true;
+            resetBtn.disabled = true;
+        });
+
+        resetBtn.addEventListener('click', function() {
+            initGame();
+            startTimer();
+            startBtn.disabled = true;
+            resetBtn.disabled = true;
+        });
+
+        clearRecordBtn.addEventListener('click', clearBestRecord);
+
+        // 页面加载初始化
+        window.onload = function() {
+            cardGrid.innerHTML = "";
+            bestTimeTd.textContent = "--:--";
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>将军饮马原理讲解 - 动画演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            padding: 20px;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        /* 标题样式 */
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .canvas-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 50vh;
+            min-height: 300px;
+            border: 3px solid #333;
+            background-color: white;
+            position: relative;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .control-wrap {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .slider-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .slider-group {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-group label {
+            min-width: 80px;
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+        .slider-group input {
+            flex: 1;
+            height: 8px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+        .slider-group span {
+            min-width: 60px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        /* 按钮容器，让两个按钮并排 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        .btn-group button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #createCSymBtn {
+            background-color: #2563eb;
+            color: white;
+        }
+        #createCSymBtn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        #resetBtn {
+            background-color: #6b7280;
+            color: white;
+        }
+        #resetBtn:hover {
+            background-color: #4b5563;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">将军饮马原理讲解</h1>
+
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="control-wrap">
+        <div class="slider-wrap">
+            <div class="slider-group">
+                <label>P点位置：</label>
+                <input type="range" id="pSlider" min="0" max="100" value="50">
+                <span id="pValue">50%</span>
+            </div>
+
+            <div class="slider-group">
+                <label>C点X轴：</label>
+                <input type="range" id="cXSlider" min="5" max="95" value="30">
+                <span id="cXValue">30%</span>
+            </div>
+            <div class="slider-group">
+                <label>C点Y轴：</label>
+                <input type="range" id="cYSlider" min="5" max="50" value="20">
+                <span id="cYValue">20%</span>
+            </div>
+
+            <div class="slider-group">
+                <label>D点X轴：</label>
+                <input type="range" id="dXSlider" min="5" max="95" value="70">
+                <span id="dXValue">70%</span>
+            </div>
+            <div class="slider-group">
+                <label>D点Y轴：</label>
+                <input type="range" id="dYSlider" min="5" max="50" value="20">
+                <span id="dYValue">20%</span>
+            </div>
+        </div>
+
+        <!-- 按钮容器，包含辅助线和初始化按钮 -->
+        <div class="btn-group">
+            <button id="createCSymBtn">辅助线</button>
+            <button id="resetBtn">初始化</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.querySelector('.canvas-container');
+        const createCSymBtn = document.getElementById('createCSymBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const pSlider = document.getElementById('pSlider');
+        const pValue = document.getElementById('pValue');
+        const cXSlider = document.getElementById('cXSlider');
+        const cXValue = document.getElementById('cXValue');
+        const cYSlider = document.getElementById('cYSlider');
+        const cYValue = document.getElementById('cYValue');
+        const dXSlider = document.getElementById('dXSlider');
+        const dXValue = document.getElementById('dXValue');
+        const dYSlider = document.getElementById('dYSlider');
+        const dYValue = document.getElementById('dYValue');
+
+        let canvasW, canvasH;
+        let hasCSym = false;
+        let animatePhase = 0;
+        let animateProgress = 0;
+        let animationId = null;
+        let isAnimationComplete = false;
+        const geo = {
+            A: { x: 0.05, y: 0.6 },
+            B: { x: 0.95, y: 0.6 },
+            P: { x: 0.5, y: 0.6, r: 4, color: '#e74c3c' },
+            C: { x: 0.3, y: 0.2, r: 5, color: '#2ecc71' },
+            D: { x: 0.7, y: 0.2, r: 5, color: '#3498db' },
+            Csym: { x: 0, y: 0, r: 5, color: '#9b59b6' }
+        };
+        const animateStep = 0.008;
+        const lineDash = [6, 4];
+
+        // 初始化画布尺寸 - 确保页面加载时就有正确尺寸
+        function initCanvas() {
+            canvasW = canvasContainer.clientWidth;
+            canvasH = canvasContainer.clientHeight;
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+            drawAll();
+        }
+
+        // 相对坐标转绝对坐标
+        function rel2abs(pos) {
+            return {
+                x: pos.x * canvasW,
+                y: pos.y * canvasH,
+                r: pos.r,
+                color: pos.color
+            };
+        }
+
+        // 绝对坐标转相对坐标
+        function abs2rel(x, y) {
+            return { x: x / canvasW, y: y / canvasH };
+        }
+
+        // 计算点关于直线AB的对称点
+        function calcSymPointAboutAB(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const px1 = px - x1;
+            const py1 = py - y1;
+            const t = (px1 * dx + py1 * dy) / (dx * dx + dy * dy);
+            const footX = x1 + t * dx;
+            const footY = y1 + t * dy;
+            const symX = 2 * footX - px;
+            const symY = 2 * footY - py;
+            return { symX, symY, footX, footY };
+        }
+
+        // 动画绘制函数
+        function animateDraw() {
+            if (animatePhase === 1) {
+                if (animateProgress >= 1) {
+                    animatePhase = 2;
+                    animateProgress = 0;
+                } else {
+                    animateProgress += animateStep;
+                }
+            } else if (animatePhase === 2) {
+                if (animateProgress >= 1) {
+                    animatePhase = 3;
+                    animateProgress = 0;
+                } else {
+                    animateProgress += animateStep;
+                }
+            } else if (animatePhase === 3) {
+                if (animateProgress >= 1) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                    animatePhase = 0;
+                    isAnimationComplete = true;
+                    return;
+                } else {
+                    animateProgress += animateStep;
+                }
+            }
+            drawAll();
+            animationId = requestAnimationFrame(animateDraw);
+        }
+
+        // 创建对称点并启动动画
+        function createCSymPoint() {
+            const A_abs = rel2abs(geo.A);
+            const B_abs = rel2abs(geo.B);
+            const C_abs = rel2abs(geo.C);
+            const { symX, symY } = calcSymPointAboutAB(
+                C_abs.x, C_abs.y,
+                A_abs.x, A_abs.y,
+                B_abs.x, B_abs.y
+            );
+            const symRel = abs2rel(symX, symY);
+            geo.Csym.x = symRel.x;
+            geo.Csym.y = symRel.y;
+            hasCSym = true;
+            animatePhase = 1;
+            animateProgress = 0;
+            isAnimationComplete = false;
+            if (animationId) cancelAnimationFrame(animationId);
+            animateDraw();
+        }
+
+        // 初始化函数：隐藏C'和虚线，重置状态
+        function resetCanvas() {
+            hasCSym = false;
+            animatePhase = 0;
+            animateProgress = 0;
+            isAnimationComplete = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            drawAll();
+        }
+
+        // 更新P点位置
+        function updateP(ratio) {
+            const scale = ratio / 100;
+            geo.P.x = geo.A.x + scale * (geo.B.x - geo.A.x);
+            geo.P.y = geo.A.y;
+            pValue.textContent = `${ratio}%`;
+            drawAll();
+        }
+
+        // 更新C点位置
+        function updateC(xRatio, yRatio) {
+            geo.C.x = xRatio / 100;
+            geo.C.y = yRatio / 100;
+            cXValue.textContent = `${xRatio}%`;
+            cYValue.textContent = `${yRatio}%`;
+            if(hasCSym) {
+                createCSymPoint();
+            }
+            drawAll();
+        }
+
+        // 更新D点位置
+        function updateD(xRatio, yRatio) {
+            geo.D.x = xRatio / 100;
+            geo.D.y = yRatio / 100;
+            dXValue.textContent = `${xRatio}%`;
+            dYValue.textContent = `${yRatio}%`;
+            drawAll();
+        }
+
+        // 绘制单个点
+        function drawSinglePoint(point, label) {
+            const absPoint = rel2abs(point);
+            ctx.beginPath();
+            ctx.arc(absPoint.x, absPoint.y, absPoint.r, 0, Math.PI * 2);
+            ctx.fillStyle = absPoint.color;
+            ctx.fill();
+            ctx.font = `bold 14px Arial`;
+            ctx.fillStyle = '#000';
+            ctx.fillText(label, absPoint.x + absPoint.r + 4, absPoint.y + 4);
+        }
+
+        // 绘制所有图形
+        function drawAll() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            const A = rel2abs(geo.A);
+            const B = rel2abs(geo.B);
+            const P = rel2abs(geo.P);
+            const C = rel2abs(geo.C);
+            const D = rel2abs(geo.D);
+            const lineW = Math.max(2, canvasH / 200);
+
+            // 绘制直线AB
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = lineW + 1;
+            ctx.stroke();
+
+            // 绘制PC、PD线段
+            ctx.beginPath();
+            ctx.moveTo(P.x, P.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.moveTo(P.x, P.y);
+            ctx.lineTo(D.x, D.y);
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = lineW;
+            ctx.stroke();
+
+            // 绘制端点A、B
+            const drawEnd = (point, label) => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#2563eb';
+                ctx.fill();
+                ctx.font = `bold 14px Arial`;
+                ctx.fillStyle = '#000';
+                ctx.fillText(label, point.x - 12, point.y - 10);
+            };
+            drawEnd(A, 'A');
+            drawEnd(B, 'B');
+            
+            // 绘制P、C、D点
+            drawSinglePoint(geo.P, 'P');
+            drawSinglePoint(geo.C, 'C');
+            drawSinglePoint(geo.D, 'D');
+
+            // 绘制对称点及辅助线（仅当hasCSym为true时）
+            if(hasCSym) {
+                const Csym = rel2abs(geo.Csym);
+                drawSinglePoint(geo.Csym, "C'");
+
+                // 1. CC' 虚线
+                let ccProgress = 0;
+                if (animatePhase === 1 && !isAnimationComplete) {
+                    ccProgress = animateProgress;
+                } else if (isAnimationComplete || animatePhase >= 2) {
+                    ccProgress = 1;
+                }
+                ctx.beginPath();
+                ctx.moveTo(C.x, C.y);
+                const ccEndX = C.x + (Csym.x - C.x) * ccProgress;
+                const ccEndY = C.y + (Csym.y - C.y) * ccProgress;
+                ctx.lineTo(ccEndX, ccEndY);
+                ctx.strokeStyle = '#9b59b6';
+                ctx.lineWidth = lineW;
+                ctx.setLineDash(lineDash);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 2. C'P 虚线
+                let cpProgress = 0;
+                if (animatePhase === 2 && !isAnimationComplete) {
+                    cpProgress = animateProgress;
+                } else if (isAnimationComplete || animatePhase >= 3) {
+                    cpProgress = 1;
+                }
+                ctx.beginPath();
+                ctx.moveTo(Csym.x, Csym.y);
+                const cpEndX = Csym.x + (P.x - Csym.x) * cpProgress;
+                const cpEndY = Csym.y + (P.y - Csym.y) * cpProgress;
+                ctx.lineTo(cpEndX, cpEndY);
+                ctx.strokeStyle = '#e67e22';
+                ctx.lineWidth = lineW;
+                ctx.setLineDash(lineDash);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 3. C'D 虚线
+                let cdProgress = 0;
+                if (animatePhase === 3 && !isAnimationComplete) {
+                    cdProgress = animateProgress;
+                } else if (isAnimationComplete) {
+                    cdProgress = 1;
+                }
+                ctx.beginPath();
+                ctx.moveTo(Csym.x, Csym.y);
+                const cdEndX = Csym.x + (D.x - Csym.x) * cdProgress;
+                const cdEndY = Csym.y + (D.y - Csym.y) * cdProgress;
+                ctx.lineTo(cdEndX, cdEndY);
+                ctx.strokeStyle = '#1abc9c';
+                ctx.lineWidth = lineW;
+                ctx.setLineDash(lineDash);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            createCSymBtn.addEventListener('click', createCSymPoint);
+            resetBtn.addEventListener('click', resetCanvas);
+            pSlider.addEventListener('input', (e) => updateP(e.target.value));
+            cXSlider.addEventListener('input', (e) => updateC(e.target.value, cYSlider.value));
+            cYSlider.addEventListener('input', (e) => updateC(cXSlider.value, e.target.value));
+            dXSlider.addEventListener('input', (e) => updateD(e.target.value, dYSlider.value));
+            dYSlider.addEventListener('input', (e) => updateD(dXSlider.value, e.target.value));
+            window.addEventListener('resize', initCanvas);
+        }
+
+        // 页面加载完成后启动
+        window.addEventListener('load', () => {
+            initCanvas();
+            bindEvents();
+        });
+    </script>
+</body>
+</html>

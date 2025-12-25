@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圆周角定理及其推论 动态课件</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        angle1: '#E53935',
+                        angle2: '#43A047',
+                        arc: '#FFB300'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans p-4 md:p-6">
+    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-primary mb-6">圆周角定理及其推论 动态演示</h1>
+        
+        <!-- 控制面板 -->
+        <div class="flex flex-wrap gap-3 mb-5">
+            <button id="btn-theorem" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition">圆周角定理验证</button>
+            <button id="btn-cor1" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">推论1：同弧所对圆周角相等</button>
+            <button id="btn-cor2" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">推论2：直径所对圆周角是直角</button>
+            <button id="btn-cor3" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">推论3：圆内接四边形对角互补</button>
+            
+            <!-- 圆半径调节 -->
+            <div class="flex items-center gap-2 ml-auto">
+                <span>圆半径：</span>
+                <input type="range" id="radius-slider" min="100" max="200" value="150" class="w-32">
+                <span id="radius-value">150</span>px
+            </div>
+        </div>
+
+        <!-- 弧参数调节面板 -->
+        <div class="flex flex-wrap gap-3 mb-5 bg-gray-100 p-3 rounded">
+            <div class="flex items-center gap-2">
+                <span>弧颜色：</span>
+                <input type="color" id="arc-color-picker" value="#FFB300" class="w-8 h-8 border-none rounded">
+            </div>
+            <div class="flex items-center gap-2">
+                <span>弧粗细：</span>
+                <input type="range" id="arc-width-slider" min="1" max="8" value="3" class="w-32">
+                <span id="arc-width-value">3</span>px
+            </div>
+            <div class="flex items-center gap-2">
+                <span>弧样式：</span>
+                <select id="arc-style-select" class="px-2 py-1 rounded">
+                    <option value="solid">实线</option>
+                    <option value="dashed">虚线</option>
+                    <option value="dotted">点线</option>
+                </select>
+            </div>
+            <!-- 弧长调节 -->
+            <div class="flex items-center gap-2">
+                <span>弧长角度：</span>
+                <input type="range" id="arc-length-slider" min="30" max="270" value="120" class="w-32">
+                <span id="arc-length-value">120</span>°
+            </div>
+        </div>
+
+        <!-- 角度精度调节面板 -->
+        <div class="flex flex-wrap gap-3 mb-5 bg-gray-100 p-3 rounded">
+            <div class="flex items-center gap-2">
+                <span>角度精度：</span>
+                <select id="angle-precision-select" class="px-2 py-1 rounded">
+                    <option value="0">0位小数（整数）</option>
+                    <option value="1">1位小数</option>
+                    <option value="2">2位小数</option>
+                    <option value="3">3位小数</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 自定义点标签面板 -->
+        <div class="flex flex-wrap gap-3 mb-5 bg-gray-100 p-3 rounded">
+            <div class="flex items-center gap-2">
+                <span>点A标签：</span>
+                <input type="text" id="label-A" value="A" class="w-16 px-2 py-1 border rounded" maxlength="3">
+            </div>
+            <div class="flex items-center gap-2">
+                <span>点A₁标签：</span>
+                <input type="text" id="label-A1" value="A₁" class="w-16 px-2 py-1 border rounded" maxlength="3">
+            </div>
+            <div class="flex items-center gap-2">
+                <span>点B标签：</span>
+                <input type="text" id="label-B" value="B" class="w-16 px-2 py-1 border rounded" maxlength="3">
+            </div>
+            <div class="flex items-center gap-2">
+                <span>点C标签：</span>
+                <input type="text" id="label-C" value="C" class="w-16 px-2 py-1 border rounded" maxlength="3">
+            </div>
+            <div class="flex items-center gap-2">
+                <span>点D标签：</span>
+                <input type="text" id="label-D" value="D" class="w-16 px-2 py-1 border rounded" maxlength="3">
+            </div>
+            <button id="btn-update-labels" class="px-3 py-1 bg-primary text-white rounded hover:bg-primary/90 transition">更新标签</button>
+        </div>
+
+        <!-- 画布容器 -->
+        <div class="flex justify-center">
+            <canvas id="canvas" width="600" height="400" class="border border-gray-200"></canvas>
+        </div>
+
+        <!-- 结论展示区 -->
+        <div id="conclusion" class="mt-5 p-4 bg-blue-50 rounded-lg border-l-4 border-primary">
+            <h3 class="font-bold text-lg mb-2">圆周角定理</h3>
+            <p>圆周角的度数等于它所对弧上的圆心角度数的<span class="text-angle1 font-bold">一半</span>，同一圆内同弧或等弧所对的圆周角相等。</p>
+            <p class="mt-2 font-mono">∠BAC = ½∠BOC</p>
+        </div>
+    </div>
+
+    <script>
+        // 画布初始化
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const radiusSlider = document.getElementById('radius-slider');
+        const radiusValue = document.getElementById('radius-value');
+        const conclusion = document.getElementById('conclusion');
+
+        // 全局变量
+        let radius = 150;
+        let arcColor = '#FFB300';
+        let arcWidth = 3;
+        let arcStyle = 'solid';
+        let anglePrecision = 0;
+        let arcLengthAngle = 120;
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        let currentMode = 'theorem';
+        // 点标签对象
+        let pointLabels = {
+            A: 'A',
+            A1: 'A₁',
+            B: 'B',
+            C: 'C',
+            D: 'D'
+        };
+
+        // 点坐标 - 可拖动
+        let points = {
+            O: { x: centerX, y: centerY, fixed: true },
+            B: { x: centerX + radius, y: centerY, fixed: false },
+            C: { x: 0, y: 0, fixed: false },
+            A: { x: centerX - radius * 0.5, y: centerY - radius * Math.sqrt(3)/2, fixed: false },
+            A1: { x: centerX + radius * 0.5, y: centerY - radius * Math.sqrt(3)/2, fixed: false },
+            D: { x: centerX - radius, y: centerY, fixed: false },
+        };
+
+        let draggingPoint = null;
+
+        // 计算点C的位置（根据弧长角度）
+        function updatePointC() {
+            const radian = arcLengthAngle * Math.PI / 180;
+            points.C.x = centerX + radius * Math.cos(radian);
+            points.C.y = centerY + radius * Math.sin(radian);
+        }
+
+        // 计算角度（弧度转角度）并按精度格式化
+        function calcAngle(P1, center, P2) {
+            const v1 = { x: P1.x - center.x, y: P1.y - center.y };
+            const v2 = { x: P2.x - center.x, y: P2.y - center.y };
+            const dot = v1.x * v2.x + v1.y * v2.y;
+            const det = v1.x * v2.y - v1.y * v2.x;
+            let angle = Math.atan2(det, dot) * 180 / Math.PI;
+            angle = angle < 0 ? angle + 360 : angle;
+            return parseFloat(angle.toFixed(anglePrecision));
+        }
+
+        // 绘制圆
+        function drawCircle() {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            ctx.fillText('O', centerX + 8, centerY + 4);
+        }
+
+        // 绘制线段
+        function drawLine(P1, P2, color = '#333', width = 2) {
+            ctx.beginPath();
+            ctx.moveTo(P1.x, P1.y);
+            ctx.lineTo(P2.x, P2.y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        // 绘制点（使用自定义标签）
+        function drawPoint(point, labelKey, color = '#333') {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.fillStyle = '#333';
+            const label = pointLabels[labelKey] || labelKey;
+            ctx.fillText(label, point.x + 8, point.y + 4);
+        }
+
+        // 绘制角（带精度格式化 + 自定义标签）
+        function drawAngle(P, center, Q, angleLabelPrefix, color, isCircle = false) {
+            const angle = calcAngle(P, center, Q);
+            const r = 25;
+            const startAngle1 = Math.atan2(P.y - center.y, P.x - center.x);
+            const startAngle2 = Math.atan2(Q.y - center.y, Q.x - center.x);
+            
+            ctx.beginPath();
+            if (isCircle) {
+                ctx.arc(center.x, center.y, r, startAngle1, startAngle2, startAngle1 > startAngle2);
+            } else {
+                ctx.arc(center.x, center.y, r, startAngle1, startAngle2, startAngle1 > startAngle2);
+            }
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            const midAngle = (startAngle1 + startAngle2) / 2;
+            const textX = center.x + (r + 15) * Math.cos(midAngle);
+            const textY = center.y + (r + 15) * Math.sin(midAngle);
+            ctx.fillStyle = color;
+            ctx.fillText(`${angleLabelPrefix} ${angle}°`, textX, textY);
+            return angle;
+        }
+
+        // 绘制弧
+        function drawArc(P, Q) {
+            const startAngle = Math.atan2(P.y - centerY, P.x - centerX);
+            const endAngle = Math.atan2(Q.y - centerY, Q.x - centerX);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle, startAngle > endAngle);
+            ctx.strokeStyle = arcColor;
+            ctx.lineWidth = arcWidth;
+            if (arcStyle === 'dashed') {
+                ctx.setLineDash([5, 5]);
+            } else if (arcStyle === 'dotted') {
+                ctx.setLineDash([1, 4]);
+            } else {
+                ctx.setLineDash([]);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // 清空画布
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 更新点标签
+        function updatePointLabels() {
+            pointLabels.A = document.getElementById('label-A').value.trim() || 'A';
+            pointLabels.A1 = document.getElementById('label-A1').value.trim() || 'A₁';
+            pointLabels.B = document.getElementById('label-B').value.trim() || 'B';
+            pointLabels.C = document.getElementById('label-C').value.trim() || 'C';
+            pointLabels.D = document.getElementById('label-D').value.trim() || 'D';
+            render();
+        }
+
+        // 模式1：圆周角定理验证
+        function drawTheorem() {
+            updatePointC();
+            clearCanvas();
+            drawCircle();
+            drawLine(points.O, points.B);
+            drawLine(points.O, points.C);
+            drawLine(points.A, points.B, '#666');
+            drawLine(points.A, points.C, '#666');
+            drawPoint(points.O, 'O');
+            drawPoint(points.B, 'B');
+            drawPoint(points.C, 'C');
+            drawPoint(points.A, 'A', 'angle1');
+            drawArc(points.B, points.C);
+            const angleBOC = drawAngle(points.B, points.O, points.C, '∠BOC=', 'angle2', true);
+            const angleBAC = drawAngle(points.B, points.A, points.C, `∠${pointLabels.B}${pointLabels.A}${pointLabels.C}=`, 'angle1');
+            conclusion.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">圆周角定理</h3>
+                <p>圆周角的度数等于它所对弧上的圆心角度数的<span class="text-angle1 font-bold">一半</span></p>
+                <p class="mt-2 font-mono">∠${pointLabels.B}${pointLabels.A}${pointLabels.C} = ½∠BOC → <span class="text-angle1 font-bold">${angleBAC}° = ½ × ${angleBOC}°</span></p>
+            `;
+        }
+
+        // 模式2：推论1 - 同弧所对圆周角相等
+        function drawCor1() {
+            updatePointC();
+            clearCanvas();
+            drawCircle();
+            drawLine(points.A, points.B);
+            drawLine(points.A, points.C);
+            drawLine(points.A1, points.B);
+            drawLine(points.A1, points.C);
+            drawPoint(points.O, 'O');
+            drawPoint(points.B, 'B');
+            drawPoint(points.C, 'C');
+            drawPoint(points.A, 'A', 'angle1');
+            drawPoint(points.A1, 'A1', 'angle1');
+            drawArc(points.B, points.C);
+            const angleBAC = drawAngle(points.B, points.A, points.C, `∠${pointLabels.B}${pointLabels.A}${pointLabels.C}=`, 'angle1');
+            const angleBA1C = drawAngle(points.B, points.A1, points.C, `∠${pointLabels.B}${pointLabels.A1}${pointLabels.C}=`, 'angle1');
+            conclusion.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">推论1：同弧或等弧所对的圆周角相等</h3>
+                <p>弧${pointLabels.B}${pointLabels.C}所对的圆周角 ∠${pointLabels.B}${pointLabels.A}${pointLabels.C} 和 ∠${pointLabels.B}${pointLabels.A1}${pointLabels.C} 度数相等</p>
+                <p class="mt-2 font-mono">∠${pointLabels.B}${pointLabels.A}${pointLabels.C} = ∠${pointLabels.B}${pointLabels.A1}${pointLabels.C} → <span class="text-angle1 font-bold">${angleBAC}° = ${angleBA1C}°</span></p>
+            `;
+        }
+
+        // 模式3：推论2 - 直径所对圆周角是直角
+        function drawCor2() {
+            arcLengthAngle = 180;
+            document.getElementById('arc-length-slider').value = 180;
+            document.getElementById('arc-length-value').textContent = 180;
+            updatePointC();
+            clearCanvas();
+            drawCircle();
+            points.B.x = centerX + radius;
+            points.B.y = centerY;
+            points.C.x = centerX - radius;
+            points.C.y = centerY;
+            drawLine(points.B, points.C, 'primary', 2);
+            drawLine(points.A, points.B);
+            drawLine(points.A, points.C);
+            drawPoint(points.O, 'O');
+            drawPoint(points.B, 'B');
+            drawPoint(points.C, 'C');
+            drawPoint(points.A, 'A', 'angle1');
+            drawArc(points.B, points.C);
+            const angleBAC = drawAngle(points.B, points.A, points.C, `∠${pointLabels.B}${pointLabels.A}${pointLabels.C}=`, 'angle1');
+            conclusion.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">推论2：直径所对的圆周角是直角</h3>
+                <p>直径${pointLabels.B}${pointLabels.C}所对的圆周角 ∠${pointLabels.B}${pointLabels.A}${pointLabels.C} 为 90°</p>
+                <p class="mt-2 font-mono">∠${pointLabels.B}${pointLabels.A}${pointLabels.C} = <span class="text-angle1 font-bold">${angleBAC}°</span></p>
+            `;
+        }
+
+        // 模式4：推论3 - 圆内接四边形对角互补
+        function drawCor3() {
+            updatePointC();
+            clearCanvas();
+            drawCircle();
+            drawLine(points.A, points.B);
+            drawLine(points.B, points.C);
+            drawLine(points.C, points.D);
+            drawLine(points.D, points.A);
+            drawPoint(points.A, 'A');
+            drawPoint(points.B, 'B');
+            drawPoint(points.C, 'C');
+            drawPoint(points.D, 'D');
+            drawArc(points.A, points.C);
+            const angleA = drawAngle(points.D, points.A, points.B, `∠${pointLabels.D}${pointLabels.A}${pointLabels.B}=`, 'angle1');
+            const angleC = drawAngle(points.B, points.C, points.D, `∠${pointLabels.B}${pointLabels.C}${pointLabels.D}=`, 'angle2');
+            const sum = parseFloat((angleA + angleC).toFixed(anglePrecision));
+            conclusion.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">推论3：圆内接四边形的对角互补</h3>
+                <p>四边形${pointLabels.A}${pointLabels.B}${pointLabels.C}${pointLabels.D}是圆内接四边形，对角之和为 180°</p>
+                <p class="mt-2 font-mono">∠${pointLabels.D}${pointLabels.A}${pointLabels.B} + ∠${pointLabels.B}${pointLabels.C}${pointLabels.D} = ${angleA}° + ${angleC}° = <span class="font-bold">${sum}°</span></p>
+            `;
+        }
+
+        // 渲染函数
+        function render() {
+            switch(currentMode) {
+                case 'theorem': drawTheorem(); break;
+                case 'cor1': drawCor1(); break;
+                case 'cor2': drawCor2(); break;
+                case 'cor3': drawCor3(); break;
+            }
+        }
+
+        // 事件监听 - 模式切换
+        document.getElementById('btn-theorem').addEventListener('click', function() {
+            currentMode = 'theorem';
+            resetButtons();
+            this.classList.add('bg-primary', 'text-white');
+            this.classList.remove('bg-gray-200');
+            render();
+        });
+        document.getElementById('btn-cor1').addEventListener('click', function() {
+            currentMode = 'cor1';
+            resetButtons();
+            this.classList.add('bg-primary', 'text-white');
+            this.classList.remove('bg-gray-200');
+            render();
+        });
+        document.getElementById('btn-cor2').addEventListener('click', function() {
+            currentMode = 'cor2';
+            resetButtons();
+            this.classList.add('bg-primary', 'text-white');
+            this.classList.remove('bg-gray-200');
+            render();
+        });
+        document.getElementById('btn-cor3').addEventListener('click', function() {
+            currentMode = 'cor3';
+            resetButtons();
+            this.classList.add('bg-primary', 'text-white');
+            this.classList.remove('bg-gray-200');
+            render();
+        });
+
+        // 重置按钮样式
+        function resetButtons() {
+            document.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('bg-gray-200');
+            });
+        }
+
+        // 半径调节
+        radiusSlider.addEventListener('input', () => {
+            radius = parseInt(radiusSlider.value);
+            radiusValue.textContent = radius;
+            updatePointC();
+            render();
+        });
+
+        // 弧参数调节事件
+        document.getElementById('arc-color-picker').addEventListener('input', (e) => {
+            arcColor = e.target.value;
+            render();
+        });
+        document.getElementById('arc-width-slider').addEventListener('input', (e) => {
+            arcWidth = parseInt(e.target.value);
+            document.getElementById('arc-width-value').textContent = arcWidth;
+            render();
+        });
+        document.getElementById('arc-style-select').addEventListener('change', (e) => {
+            arcStyle = e.target.value;
+            render();
+        });
+        // 弧长调节事件
+        document.getElementById('arc-length-slider').addEventListener('input', (e) => {
+            arcLengthAngle = parseInt(e.target.value);
+            document.getElementById('arc-length-value').textContent = arcLengthAngle;
+            if(currentMode !== 'cor2'){
+                render();
+            }
+        });
+
+        // 角度精度调节事件
+        document.getElementById('angle-precision-select').addEventListener('change', (e) => {
+            anglePrecision = parseInt(e.target.value);
+            render();
+        });
+
+        // 点标签更新事件
+        document.getElementById('btn-update-labels').addEventListener('click', updatePointLabels);
+        // 支持回车更新标签
+        document.querySelectorAll('[id^="label-"]').forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') updatePointLabels();
+            });
+        });
+
+        // 拖动点功能
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            for (let name in points) {
+                const p = points[name];
+                if (!p.fixed && Math.hypot(x - p.x, y - p.y) < 10) {
+                    draggingPoint = name;
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!draggingPoint) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const dist = Math.hypot(dx, dy);
+            points[draggingPoint].x = centerX + dx / dist * radius;
+            points[draggingPoint].y = centerY + dy / dist * radius;
+            if(draggingPoint === 'B' || draggingPoint === 'C'){
+                const newAngle = calcAngle(points.B, points.O, points.C);
+                arcLengthAngle = parseInt(newAngle);
+                document.getElementById('arc-length-slider').value = arcLengthAngle;
+                document.getElementById('arc-length-value').textContent = arcLengthAngle;
+            }
+            render();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            draggingPoint = null;
+        });
+
+        // 初始化点C位置和渲染
+        updatePointC();
+        render();
+    </script>
+</body>
+</html>

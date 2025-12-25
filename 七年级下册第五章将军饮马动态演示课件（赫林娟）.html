@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>将军饮马模型 - 同侧点最短路径演示</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .title {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        #demo-svg {
+            border: 2px solid #333;
+            width: 600px;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+        .method-box {
+            width: 600px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .method-box h4 {
+            margin-top: 0;
+            color: #e74c3c;
+        }
+        .axis-line {
+            stroke: #000;
+            stroke-width: 3;
+        }
+        .point {
+            fill: #ff4444;
+            stroke: #000;
+            stroke-width: 1;
+        }
+        .line-ac, .line-bc {
+            stroke: #2196f3;
+            stroke-width: 2;
+        }
+        .line-a-prime-c {
+            stroke: #ff9800;
+            stroke-width: 2;
+            stroke-dasharray: 4,4;
+        }
+        .line-aa, .line-oa {
+            stroke: #666;
+            stroke-width: 1;
+            stroke-dasharray: 5,5;
+        }
+        .line-a-prime-b {
+            stroke: #9c27b0;
+            stroke-width: 1.5;
+            stroke-dasharray: 3,3;
+        }
+        .control-group {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 16px;
+        }
+        #c-slider {
+            width: 400px;
+        }
+        #length-display {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #text-c {
+            font-weight: bold;
+            fill: #d32f2f;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h2 class="title">将军饮马模型：直线同侧两点到直线上一点的最短路径</h2>
+    <!-- 演示图形放在顶部 -->
+    <svg id="demo-svg" viewBox="0 0 600 400">
+        <!-- 直线l -->
+        <line id="line-l" class="axis-line" x1="50" y1="200" x2="550" y2="200"/>
+        <text x="555" y="205" font-size="14">直线l</text>
+        
+        <!-- 点A -->
+        <circle id="point-a" class="point" cx="150" cy="100" r="6"/>
+        <text x="155" y="95" font-size="14">A</text>
+        
+        <!-- 点B -->
+        <circle id="point-b" class="point" cx="450" cy="100" r="6"/>
+        <text x="455" y="95" font-size="14">B</text>
+        
+        <!-- 动点C -->
+        <circle id="point-c" class="point" cx="300" cy="200" r="6"/>
+        <text id="text-c" x="305" y="195">C</text>
+        
+        <!-- 线段AC、BC -->
+        <line id="line-ac" class="line-ac" x1="150" y1="100" x2="300" y2="200"/>
+        <line id="line-bc" class="line-bc" x1="450" y1="100" x2="300" y2="200"/>
+        
+        <!-- 对称点A'、垂足O及辅助线 -->
+        <circle id="point-a-prime" class="point" cx="150" cy="300" r="6"/>
+        <text x="155" y="305" font-size="14">A'</text>
+        <circle id="point-o" class="point" cx="150" cy="200" r="4"/>
+        <text x="140" y="205" font-size="12">O（垂足）</text>
+        <line id="line-aa" class="line-aa" x1="150" y1="100" x2="150" y2="300"/>
+        <line id="line-oa" class="line-oa" x1="150" y1="200" x2="150" y2="300"/>
+        <line id="line-a-prime-b" class="line-a-prime-b" x1="150" y1="300" x2="450" y2="100"/>
+        
+        <!-- 线段A'C -->
+        <line id="line-a-prime-c" class="line-a-prime-c" x1="150" y1="300" x2="300" y2="200"/>
+    </svg>
+
+    <div class="control-group">
+        <label for="c-slider">拖动调整C点位置：</label>
+        <input type="range" id="c-slider" min="50" max="550" value="300" step="1"/>
+        <span id="length-display">AC + BC = 565.69</span>
+    </div>
+
+    <!-- 做法思路放在下方 -->
+    <div class="method-box">
+        <h4>一、 核心思路</h4>
+        <p>利用<strong>轴对称的性质</strong>，将直线同侧的两点转化为直线异侧的两点，再根据<strong>两点之间线段最短</strong>确定最短路径的位置。</p>
+        <h4>二、 作图做法</h4>
+        <p>1. 作点A关于直线l的<strong>对称点A'</strong>；</p>
+        <p>2. 连接A'B，交直线l于点<strong>C</strong>；</p>
+        <p>3. 连接AC、BC，此时AC+BC的长度即为最短路径。</p>
+        <h4>三、 原理推导</h4>
+        <p>由轴对称性质得：<strong>AC = A'C</strong>，因此AC+BC = A'C+BC；</p>
+        <p>根据两点之间线段最短，当A'、C、B三点共线时，A'C+BC取得最小值，最小值为线段A'B的长度。</p>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const slider = document.getElementById('c-slider');
+        const pointC = document.getElementById('point-c');
+        const textC = document.getElementById('text-c');
+        const lineAC = document.getElementById('line-ac');
+        const lineBC = document.getElementById('line-bc');
+        const lineAPrimeC = document.getElementById('line-a-prime-c');
+        const lengthDisplay = document.getElementById('length-display');
+        
+        // 固定点坐标
+        const ax = 150, ay = 100;
+        const aPrimeX = 150, aPrimeY = 300;
+        const bx = 450, by = 100;
+        const ly = 200;
+
+        // 更新演示函数
+        function updateDemo(cx) {
+            // 更新C点及标注位置
+            pointC.setAttribute('cx', cx);
+            textC.setAttribute('cx', cx + 5);
+            // 更新线段端点
+            lineAC.setAttribute('x2', cx);
+            lineAC.setAttribute('y2', ly);
+            lineBC.setAttribute('x2', cx);
+            lineBC.setAttribute('y2', ly);
+            lineAPrimeC.setAttribute('x2', cx);
+            lineAPrimeC.setAttribute('y2', ly);
+            // 计算并显示长度
+            const acLen = Math.sqrt(Math.pow(cx - ax, 2) + Math.pow(ly - ay, 2));
+            const bcLen = Math.sqrt(Math.pow(cx - bx, 2) + Math.pow(ly - by, 2));
+            lengthDisplay.textContent = `AC + BC = ${(acLen + bcLen).toFixed(2)}`;
+        }
+
+        // 滑动条事件监听
+        slider.addEventListener('input', () => updateDemo(parseFloat(slider.value)));
+        // 页面初始化
+        window.onload = () => updateDemo(parseFloat(slider.value));
+    </script>
+</body>
+</html>

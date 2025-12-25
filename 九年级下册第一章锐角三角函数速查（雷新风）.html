@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh - CN">
+
+<head>
+    <meta charset="UTF - 8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角函数速查表</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+
+        input[type="range"] {
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>三角函数速查表</h1>
+    <label for="angleRange">角度（0 - 89度）：</label>
+    <input type="range" id="angleRange" min="0" max="89" value="30">
+    <span id="angleValue">30</span>°
+    <br>
+    <label for="inputAngle">直接输入角度：</label>
+    <input type="number" id="inputAngle" value="30" min="0" max="89">
+    <button onclick="calculateTrig()">计算</button>
+    <canvas id="triangleCanvas" width="400" height="400"></canvas>
+    <script>
+        const angleRange = document.getElementById('angleRange');
+        const angleValue = document.getElementById('angleValue');
+        const canvas = document.getElementById('triangleCanvas');
+        const ctx = canvas.getContext('2d');
+        const inputAngle = document.getElementById('inputAngle');
+
+        function drawTriangle(angle) {
+            angleValue.textContent = angle;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const radians = (angle * Math.PI) / 180;
+            const hypotenuse = 200;
+            const opposite = Math.sin(radians) * hypotenuse;
+            const adjacent = Math.cos(radians) * hypotenuse;
+
+            // 将直角放在左下角
+            ctx.beginPath();
+            ctx.moveTo(100, 300);
+            ctx.lineTo(100, 300 - opposite);
+            ctx.lineTo(100 + adjacent, 300 - opposite);
+            ctx.lineTo(100, 300);
+            ctx.stroke();
+
+            ctx.font = '14px Arial';
+            ctx.fillText(`角度: ${angle}°`, 10, 20);
+            ctx.fillText(`正弦值: ${Math.sin(radians).toFixed(2)}`, 10, 40);
+            ctx.fillText(`余弦值: ${Math.cos(radians).toFixed(2)}`, 10, 60);
+            ctx.fillText(`正切值: ${Math.tan(radians).toFixed(2)}`, 10, 80);
+        }
+
+        function calculateTrig() {
+            const angle = parseInt(inputAngle.value);
+            if (!isNaN(angle) && angle >= 0 && angle <= 89) {
+                angleRange.value = angle;
+                drawTriangle(angle);
+            } else {
+                alert('请输入0到89之间的有效数字');
+            }
+        }
+
+        angleRange.addEventListener('input', function () {
+            const angle = parseInt(angleRange.value);
+            inputAngle.value = angle;
+            drawTriangle(angle);
+        });
+
+        drawTriangle(30);
+    </script>
+</body>
+
+</html>
