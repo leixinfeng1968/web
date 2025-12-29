@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全等三角形旋转演示+DE连线切换</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            gap: 15px;
+        }
+        #canvas {
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        .slider-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        label {
+            font-size: 14px;
+            color: #333;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        #coordDisplay {
+            font-size: 14px;
+            color: #333;
+            padding: 8px 16px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .control-btn {
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #0066ff;
+            color: #fff;
+            transition: background-color 0.2s;
+            margin: 0 5px;
+        }
+        .control-btn:hover {
+            background-color: #0052cc;
+        }
+        /* 新增按钮容器，实现横向排列 */
+        .btn-group {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 10px;
+        }
+        /* 缩放滑动条样式 */
+        #scaleSlider {
+            background: linear-gradient(to right, #0066ff, #00ccff);
+        }
+        #scaleSlider::-webkit-slider-thumb {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        #scaleSlider::-moz-range-thumb {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="coordDisplay">交点D坐标：无交点</div>
+    <div class="slider-group">
+        <label>平移: <span id="yValue">100</span></label>
+        <input type="range" id="ySlider" min="-100" max="100" value="100" step="1">
+    </div>
+    <div class="slider-group">
+            <label>旋转角度: <span id="rotateValue">0°</span></label>
+            <input type="range" id="rotateSlider" min="0" max="60" value="0" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>图形缩放: <span id="scaleValue">2.5</span>x</label>
+            <input type="range" id="scaleSlider" min="0.5" max="3" value="2.5" step="0.1">
+        </div>
+    <!-- 按钮容器 -->
+    <div class="btn-group">
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const ySlider = document.getElementById('ySlider');
+        const yValue = document.getElementById('yValue');
+        const rotateSlider = document.getElementById('rotateSlider');
+        const rotateValue = document.getElementById('rotateValue');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const scaleValue = document.getElementById('scaleValue');
+        const coordDisplay = document.getElementById('coordDisplay');
+
+        // 直线参数
+        const k1 = Math.sqrt(3);
+        const k2 = -Math.sqrt(3);
+        let offsetY = 100;
+        let rotateAngle = 0;
+        // 点坐标
+        let pointA = { x: 0, y: 0 };
+        let pointB = { x: 0, y: 0 };
+        let pointC = { x: 0, y: 0 };
+        let pointD = null;
+        let pointE = { x: 0, y: 0 };
+        let pointF = { x: 0, y: 0 };
+        // 圆半径
+        const rB = 3 * Math.sqrt(7) * 10;
+        const rC = 6 * 10;
+        // DE连线控制
+        let showDE = false;
+        let deDrawProgress = 0; 
+        let deAnimationId = null;
+        // 缩放倍数（动态）
+        let SCALE = 2.5;
+        // 画布中心
+        const CANVAS_CENTER = { x: canvas.width / 2, y: canvas.height / 2 };
+        // 平移参数
+        const GRID_SIZE = 30;
+        const TRANS_Y = 1 * GRID_SIZE;
+
+        // 坐标系转换
+        function toMathY(canvasY) {
+            return canvas.height / 2 - canvasY;
+        }
+        function toCanvasY(mathY) {
+            return canvas.height / 2 - mathY;
+        }
+
+        // 坐标缩放+平移函数
+        function scaleAndTranslatePoint(point) {
+            const dx = point.x - CANVAS_CENTER.x;
+            const dy = point.y - CANVAS_CENTER.y;
+            const scaledDx = dx * SCALE;
+            const scaledDy = dy * SCALE;
+            return {
+                x: CANVAS_CENTER.x + scaledDx,
+                y: CANVAS_CENTER.y + scaledDy + TRANS_Y
+            };
+        }
+
+        // 计算两圆交点
+        function calcCircleIntersection(x1, y1, r1, x2, y2, r2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            if (d > r1 + r2 || d < Math.abs(r1 - r2) || (d === 0 && r1 === r2)) {
+                return null;
+            }
+            const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+            const h = Math.sqrt(r1 * r1 - a * a);
+            const x2e = x1 + (dx * a) / d;
+            const y2e = y1 + (dy * a) / d;
+            return { x: x2e + (dy * h) / d, y: y2e - (dx * h) / d };
+        }
+
+        // 点绕原点旋转公式
+        function rotatePoint(point, center, angleDeg) {
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const dx = point.x - center.x;
+            const dy = point.y - center.y;
+            const newX = dx * Math.cos(angleRad) - dy * Math.sin(angleRad);
+            const newY = dx * Math.sin(angleRad) + dy * Math.cos(angleRad);
+            return { x: newX + center.x, y: newY + center.y };
+        }
+
+        // 缓慢绘制DE线段动画
+        function animateDEDraw() {
+            if (deDrawProgress < 1) {
+                deDrawProgress += 0.01;
+                draw();
+                deAnimationId = requestAnimationFrame(animateDEDraw);
+            }
+        }
+
+        function stopDEAnimation() {
+            cancelAnimationFrame(deAnimationId);
+            deDrawProgress = 0;
+        }
+
+        // 完整的图形绘制函数
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制网格
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // 绘制坐标轴（Y轴和水平线）
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            const axisX = canvas.width / 2;
+            const axisY = canvas.height / 2;
+            const topMargin = 2 * GRID_SIZE;
+            const bottomMargin = 2 * GRID_SIZE;
+            const leftMargin = 2 * GRID_SIZE;
+            const rightMargin = 2 * GRID_SIZE;
+            
+            // Y轴向上下各延长两个格子
+            ctx.beginPath();
+            ctx.moveTo(axisX, topMargin);
+            ctx.lineTo(axisX, canvas.height - bottomMargin);
+            ctx.stroke();
+            
+            // 绘制Y轴上端箭头
+            ctx.beginPath();
+            ctx.moveTo(axisX - 8, topMargin + 15);
+            ctx.lineTo(axisX, topMargin);
+            ctx.lineTo(axisX + 8, topMargin + 15);
+            ctx.stroke();
+            
+            // 隐藏上面的水平线（与Y轴等长，左右各延长两个格子）
+            // ctx.beginPath();
+            // ctx.moveTo(leftMargin, axisY);
+            // ctx.lineTo(canvas.width - rightMargin, axisY);
+            // ctx.stroke();
+            
+            // // 隐藏水平线右端箭头
+            // ctx.beginPath();
+            // ctx.moveTo(canvas.width - rightMargin - 15, axisY - 8);
+            // ctx.lineTo(canvas.width - rightMargin, axisY);
+            // ctx.lineTo(canvas.width - rightMargin - 15, axisY + 8);
+            // ctx.stroke();
+
+            // 计算基础点坐标
+            const mathYA = offsetY;
+            pointA.x = axisX;
+            pointA.y = toCanvasY(mathYA);
+            const mathXB = -mathYA / k1;
+            pointB.x = axisX + mathXB;
+            pointB.y = axisY;
+            const mathXC = -mathYA / k2;
+            pointC.x = axisX + mathXC;
+            pointC.y = axisY;
+            pointD = calcCircleIntersection(pointB.x, pointB.y, rB, pointC.x, pointC.y, rC);
+            coordDisplay.textContent = pointD 
+                ? `D坐标：( ${pointD.x.toFixed(2)}, ${pointD.y.toFixed(2)} )` 
+                : '交点D坐标：无交点';
+
+            // 对所有基础点执行缩放+平移
+            const scaledA = scaleAndTranslatePoint(pointA);
+            const scaledB = scaleAndTranslatePoint(pointB);
+            const scaledC = scaleAndTranslatePoint(pointC);
+            let scaledD = null;
+            let scaledE = null;
+            let scaledF = null;
+            if (pointD) {
+                scaledD = scaleAndTranslatePoint(pointD);
+                // 计算E/F并缩放平移
+                pointE = rotatePoint(pointD, pointA, rotateAngle);
+                pointF = rotatePoint(pointC, pointA, rotateAngle);
+                scaledE = scaleAndTranslatePoint(pointE);
+                scaledF = scaleAndTranslatePoint(pointF);
+            }
+
+            // 绘制原直线
+            const x1 = 0;
+            const mathY1_1 = k1 * (x1 - axisX) + mathYA;
+            const canvasY1_1 = toCanvasY(mathY1_1);
+            const x2 = canvas.width;
+            const mathY1_2 = k1 * (x2 - axisX) + mathYA;
+            const canvasY1_2 = toCanvasY(mathY1_2);
+            // 直线端点缩放平移
+            const scaledLine1Start = scaleAndTranslatePoint({x: x1, y: canvasY1_1});
+            const scaledLine1End = scaleAndTranslatePoint({x: x2, y: canvasY1_2});
+            const scaledLine2Start = scaleAndTranslatePoint({x: x1, y: toCanvasY(k2 * (x1 - axisX) + mathYA)});
+            const scaledLine2End = scaleAndTranslatePoint({x: x2, y: toCanvasY(k2 * (x2 - axisX) + mathYA)});
+
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(scaledLine1Start.x, scaledLine1Start.y);
+            ctx.lineTo(scaledLine1End.x, scaledLine1End.y);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#00cc00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(scaledLine2Start.x, scaledLine2Start.y);
+            ctx.lineTo(scaledLine2End.x, scaledLine2End.y);
+            ctx.stroke();
+
+            // 绘制点
+            const drawPoint = (point, label, color) => {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                // 设置粗体+斜体字体
+                ctx.font = 'bold italic 24px Times New Roman';
+                
+                // 根据不同标签设置不同的位置偏移
+                let textX = point.x + 10;
+                let textY = point.y - 10;
+                
+                if (label === 'B') {
+                    // B标签放在点的左上方
+                    textX = point.x - 35;
+                    textY = point.y - 20;
+                } else if (label === 'A') {
+                    // A标签放在点的右方
+                    textX = point.x + 20;
+                    textY = point.y;
+                } else if (label === 'C') {
+                    // C标签保持原有位置
+                    textX = point.x + 10;
+                    textY = point.y - 10;
+                }
+                
+                ctx.fillText(label, textX, textY);
+            };
+            drawPoint(scaledA, 'A', '#0066ff');
+            drawPoint(scaledB, 'B', '#ff0000');
+            drawPoint(scaledC, 'C', '#00cc00');
+
+            // 绘制水平黑色线段（与坐标轴相同样式）
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // 绘制水平线段（通过点B的y坐标，左右各延长两个格子）
+            const horizontalY = scaledB.y; // 使用点B的y坐标
+            const horizontalStartX = leftMargin;
+            const horizontalEndX = canvas.width - rightMargin;
+            
+            // 绘制水平线段
+            ctx.beginPath();
+            ctx.moveTo(horizontalStartX, horizontalY);
+            ctx.lineTo(horizontalEndX, horizontalY);
+            ctx.stroke();
+            
+            // 在右端绘制箭头
+            ctx.beginPath();
+            ctx.moveTo(horizontalEndX - 15, horizontalY - 8);
+            ctx.lineTo(horizontalEndX, horizontalY);
+            ctx.lineTo(horizontalEndX - 15, horizontalY + 8);
+            ctx.stroke();
+
+            // 绘制△ADC及全等△AEF
+            if (scaledD) {
+                drawPoint(scaledD, 'D', '#ff33cc');
+                
+                // 绘制点E和F（当旋转角度不为0度时显示）
+                if (rotateAngle !== 0) {
+                    drawPoint(scaledE, 'E', '#ffa500');
+                    drawPoint(scaledF, 'F', '#800080');
+                }
+
+                // 绘制△ADC
+                ctx.strokeStyle = '#0066ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(scaledA.x, scaledA.y);
+                ctx.lineTo(scaledD.x, scaledD.y);
+                ctx.lineTo(scaledC.x, scaledC.y);
+                ctx.closePath();
+                ctx.stroke();
+
+                // 绘制△AEF（当旋转角度不为0度时显示）
+                if (rotateAngle !== 0) {
+                    ctx.strokeStyle = '#ffa500';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(scaledA.x, scaledA.y);
+                    ctx.lineTo(scaledE.x, scaledE.y);
+                    ctx.lineTo(scaledF.x, scaledF.y);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                // 绘制AD/BD/CD线段
+                ctx.strokeStyle = '#0066ff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(scaledA.x, scaledA.y);
+                ctx.lineTo(scaledD.x, scaledD.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(scaledB.x, scaledB.y);
+                ctx.lineTo(scaledD.x, scaledD.y);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#00cc00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(scaledC.x, scaledC.y);
+                ctx.lineTo(scaledD.x, scaledD.y);
+                ctx.stroke();
+
+                // 绘制DE连线（当旋转角度不为0度时显示）
+                if (showDE && deDrawProgress > 0 && rotateAngle !== 0) {
+                    ctx.strokeStyle = '#ff6600';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(scaledD.x, scaledD.y);
+                    const dx = scaledE.x - scaledD.x;
+                    const dy = scaledE.y - scaledD.y;
+                    ctx.lineTo(scaledD.x + dx * deDrawProgress, scaledD.y + dy * deDrawProgress);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // 滑动条事件
+        ySlider.addEventListener('input', () => {
+            offsetY = parseInt(ySlider.value);
+            yValue.textContent = offsetY;
+            draw();
+        });
+
+        rotateSlider.addEventListener('input', () => {
+            rotateAngle = parseInt(rotateSlider.value);
+            rotateValue.textContent = `${rotateAngle}°`;
+            draw();
+        });
+
+        scaleSlider.addEventListener('input', () => {
+            SCALE = parseFloat(scaleSlider.value);
+            scaleValue.textContent = SCALE.toFixed(1);
+            draw();
+        });
+
+        // DE连线切换按钮事件
+        // toggleDEBtn.addEventListener('click', () => {
+        //     showDE = !showDE;
+        //     if (showDE) {
+        //         toggleDEBtn.textContent = '隐藏DE';
+        //         animateDEDraw();
+        //     } else {
+        //         toggleDEBtn.textContent = '显示DE';
+        //         stopDEAnimation();
+        //         draw();
+        //     }
+        // });
+
+        // 初始化绘制
+        draw();
+    </script>
+</body>
+</html>

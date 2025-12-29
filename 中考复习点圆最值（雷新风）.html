@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点圆最值 - 点M到圆上点P距离</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #canvas {
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 120px;
+            cursor: pointer;
+        }
+        span {
+            color: #666;
+            font-size: 13px;
+            min-width: 35px;
+            text-align: center;
+        }
+        button {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        #toggleBtn {
+            background-color: #3177b4;
+            color: white;
+        }
+        #toggleBtn:hover {
+            background-color: #255a8c;
+        }
+        #maxBtn {
+            background-color: #ff9f43;
+            color: white;
+        }
+        #maxBtn:hover {
+            background-color: #e68a00;
+        }
+        #minBtn {
+            background-color: #198754;
+            color: white;
+        }
+        #minBtn:hover {
+            background-color: #146c43;
+        }
+        .info {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #e8f4f8;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #2d3748;
+            text-align: center;
+        }
+        .highlight {
+            color: #e53e3e;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="400"></canvas>
+    <div class="controls">
+        <div class="control-group">
+            <label>圆半径 r：</label>
+            <input type="range" id="radiusSlider" min="20" max="100" value="50">
+            <span id="radiusValue">50</span>
+        </div>
+        <div class="control-group">
+            <label>点M X轴：</label>
+            <input type="range" id="mxSlider" min="100" max="700" value="600">
+            <span id="mxValue">600</span>
+        </div>
+        <div class="control-group">
+            <label>点M Y轴：</label>
+            <input type="range" id="mySlider" min="100" max="300" value="200">
+            <span id="myValue">200</span>
+        </div>
+        <div class="control-group">
+            <button id="toggleBtn">开始运动</button>
+            <button id="maxBtn">移动到最大值</button>
+            <button id="minBtn">移动到最小值</button>
+        </div>
+    </div>
+    <div class="info">
+        点M(圆外定点) 到 圆上动点P 距离：<br>
+        最大值 = |MO| + r ，最小值 = |MO| - r ｜ 当前距离 = <span class="highlight" id="currentDist">0</span>
+    </div>
+
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        // 配置参数
+        let radius = 50;
+        let mx = 600, my = 200;
+        const ox = 400, oy = 200; // 圆心固定
+        let angle = 0;
+        let isMoving = false;
+        let animationId;
+        // 平滑移动相关参数
+        let targetAngle = null;
+        const moveSpeed = 0.03; // 移动速度，值越小越慢
+
+        // 初始化滑块事件
+        document.getElementById('radiusSlider').addEventListener('input', function() {
+            radius = parseInt(this.value);
+            document.getElementById('radiusValue').textContent = radius;
+            draw();
+        });
+        document.getElementById('mxSlider').addEventListener('input', function() {
+            mx = parseInt(this.value);
+            document.getElementById('mxValue').textContent = mx;
+            draw();
+        });
+        document.getElementById('mySlider').addEventListener('input', function() {
+            my = parseInt(this.value);
+            document.getElementById('myValue').textContent = my;
+            draw();
+        });
+
+        // 运动启停按钮
+        document.getElementById('toggleBtn').addEventListener('click', function() {
+            if (targetAngle !== null) return; // 平滑移动中禁止启停
+            isMoving = !isMoving;
+            this.textContent = isMoving ? '停止运动' : '开始运动';
+            isMoving ? animate() : cancelAnimationFrame(animationId);
+        });
+
+        // 移动到最大值按钮
+        document.getElementById('maxBtn').addEventListener('click', function() {
+            if (isMoving) {
+                cancelAnimationFrame(animationId);
+                isMoving = false;
+                document.getElementById('toggleBtn').textContent = '开始运动';
+            }
+            // 计算最大值目标角度
+            targetAngle = Math.atan2(oy - my, ox - mx);
+            animateMove();
+        });
+
+        // 移动到最小值按钮
+        document.getElementById('minBtn').addEventListener('click', function() {
+            if (isMoving) {
+                cancelAnimationFrame(animationId);
+                isMoving = false;
+                document.getElementById('toggleBtn').textContent = '开始运动';
+            }
+            // 计算最小值目标角度
+            targetAngle = Math.atan2(my - oy, mx - ox);
+            animateMove();
+        });
+
+        // 计算两点距离
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+
+        // 角度差值计算（处理圆周角度循环）
+        function angleDiff(current, target) {
+            let diff = target - current;
+            diff = diff > Math.PI ? diff - 2 * Math.PI : diff < -Math.PI ? diff + 2 * Math.PI : diff;
+            return diff;
+        }
+
+        // 绘制函数
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 计算点P坐标
+            const px = ox + radius * Math.cos(angle);
+            const py = oy + radius * Math.sin(angle);
+            // 计算距离
+            const moDist = distance(mx, my, ox, oy);
+            const mpDist = distance(mx, my, px, py);
+            const maxDist = (moDist + radius).toFixed(1);
+            const minDist = (moDist - radius).toFixed(1);
+            document.getElementById('currentDist').textContent = mpDist.toFixed(1);
+
+            // 计算最值点
+            const maxDirX = (ox - mx) / moDist;
+            const maxDirY = (oy - my) / moDist;
+            const maxPx = ox + maxDirX * radius;
+            const maxPy = oy + maxDirY * radius;
+
+            const minDirX = (mx - ox) / moDist;
+            const minDirY = (my - oy) / moDist;
+            const minPx = ox + minDirX * radius;
+            const minPy = oy + minDirY * radius;
+
+            // 1. 绘制圆
+            ctx.beginPath();
+            ctx.arc(ox, oy, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#1f77b4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // 绘制圆心O
+            ctx.beginPath();
+            ctx.arc(ox, oy, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#1f77b4';
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.font = '14px Arial';
+            ctx.fillText('O', ox + 8, oy);
+
+            // 2. 绘制定点M
+            ctx.beginPath();
+            ctx.arc(mx, my, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#e53e3e';
+            ctx.fill();
+            ctx.fillText('M', mx + 8, my);
+
+            // 3. 绘制动点P
+            ctx.beginPath();
+            ctx.arc(px, py, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#198754';
+            ctx.fill();
+            ctx.fillText('P', px + 8, py);
+
+            // 4. 绘制辅助线MO
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(ox, oy);
+            ctx.strokeStyle = '#969696';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // 5. 绘制当前MP线段
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(px, py);
+            ctx.strokeStyle = '#e53e3e';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 6. 绘制最值线段
+            // 最大值
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(maxPx, maxPy);
+            ctx.strokeStyle = '#ff9f43';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(maxPx, maxPy, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff9f43';
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillText('Max', maxPx + 8, maxPy);
+            // 最小值
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(minPx, minPy);
+            ctx.strokeStyle = '#198754';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(minPx, minPy, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#198754';
+            ctx.fill();
+            ctx.fillText('Min', minPx + 8, minPy);
+
+            // 7. 绘制数值信息
+            ctx.fillStyle = '#000';
+            ctx.fillText(`|MO| = ${moDist.toFixed(1)}`, 20, 20);
+            ctx.fillText(`最大值 = ${maxDist}`, 20, 45);
+            ctx.fillText(`最小值 = ${minDist}`, 20, 70);
+        }
+
+        // 常规动画（圆周运动）
+        function animate() {
+            angle += 0.02;
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 平滑移动到目标角度的动画
+        function animateMove() {
+            if (targetAngle === null) return;
+            // 计算当前角度与目标角度的差值
+            const diff = angleDiff(angle, targetAngle);
+            // 判断是否到达目标角度
+            if (Math.abs(diff) < moveSpeed) {
+                angle = targetAngle;
+                targetAngle = null; // 重置目标角度
+                draw();
+                return;
+            }
+            // 逐步逼近目标角度
+            angle += diff > 0 ? moveSpeed : -moveSpeed;
+            draw();
+            requestAnimationFrame(animateMove);
+        }
+
+        // 初始绘制
+        draw();
+    </script>
+</body>
+</html>
