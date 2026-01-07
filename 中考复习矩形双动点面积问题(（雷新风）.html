@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>矩形双动点+面积函数图像演示（初中数学）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
+        }
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        /* 题目板块样式 */
+        .question-box {
+            background-color: #f5fafe;
+            border: 1px solid #d1e7fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        .demo-wrap {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+        }
+        .canvas-group {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 30px;
+            width: 100%;
+        }
+        .canvas-box {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1/1;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            display: block;
+            background-color: #fdfefe;
+        }
+        #funcCanvas {
+            background-color: #fafafa;
+        }
+        .slider-wrap {
+            width: 100%;
+            max-width: 830px;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+        .control-box {
+            width: 100%;
+            max-width: 300px;
+            padding: 25px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .control-title {
+            font-size: 18px;
+            color: #2980b9;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .input-item {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type="number"]:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+        }
+        .move-slider {
+            margin: 0;
+            padding: 0;
+        }
+        .slider-title {
+            font-size: 16px;
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #d1d5db;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #c0392b;
+        }
+        .draw-btn {
+            width: 100%;
+            padding: 10px 0;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        .draw-btn:hover {
+            background-color: #2980b9;
+        }
+        .formula-box {
+            margin-top: 20px;
+            padding: 18px;
+            background: #fffbeb;
+            border-left: 4px solid #f39c12;
+            border-radius: 5px;
+        }
+        .formula-title {
+            font-size: 17px;
+            color: #d35400;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .formula-text {
+            font-size: 15px;
+            color: #2c3e50;
+            line-height: 2;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .result-text {
+            font-size: 16px;
+            color: #2980b9;
+            line-height: 1.8;
+        }
+        .path-tip {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fef5e7;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #e67e22;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>矩形双动点+面积函数图像演示（图形根据刘晓东老师网络画板题目重新用HTML绘制）</h1>
+        
+        <!-- 题目单独板块 -->
+        <div class="question-box">
+            如图，矩形ABCD中，AB=120，BC=180，点E是AD上一点，BE=BC，点P在BC上运动，同时，点Q在折线B→E→D→C上运动，P，Q同时开始沿着各自路线运动，以相同的速度运动，探究三角形BPQ的面积与运动时间的函数关系，请你给坐标轴画上合适的刻度值。
+        </div>
+
+        <div class="demo-wrap">
+            <div class="canvas-group">
+                <div class="canvas-box">
+                    <canvas id="rectCanvas"></canvas>
+                </div>
+                <div class="canvas-box">
+                    <canvas id="funcCanvas"></canvas>
+                </div>
+            </div>
+            <div class="slider-wrap">
+                <div class="move-slider">
+                    <div class="slider-title">双动点运动进度（0%~100%）</div>
+                    <input type="range" id="moveRange" min="0" max="100" value="0">
+                </div>
+            </div>
+            <div class="control-box">
+                <div class="control-title">矩形参数设置</div>
+                <div class="input-item">
+                    <label>矩形长度（50~300）</label>
+                    <input type="number" id="rectLength" min="50" max="300" value="180" placeholder="50-300">
+                </div>
+                <div class="input-item">
+                    <label>矩形宽度（30~200）</label>
+                    <input type="number" id="rectWidth" min="30" max="200" value="120" placeholder="30-200">
+                </div>
+                <button class="draw-btn" id="drawRectBtn">绘制图形</button>
+    
+                <div class="formula-box">
+                    <div class="formula-title">✅ 正确面积规律（教学标准）</div>
+                    <div class="formula-text">1.BE段：平滑抛物线（先增后减，无竖线）
+2.ED段：高固定→面积固定（水平直线）
+3.DC段：高递减→面积递减（斜线）
+坐标系：x=进度(0-100)，y=△BPQ面积</div>
+                </div>
+                <div class="result-box">
+                    <div class="result-text">矩形周长：<span id="rectPerimeter">600</span></div>
+                    <div class="result-text">矩形面积：<span id="rectArea">21600</span></div>
+                    <div class="result-text">BE长度=<span id="beLen">180</span></div>
+                    <div class="result-text">△BPQ面积=<span id="bpqArea">0</span></div>
+                </div>
+                <div class="path-tip" id="pathTip">Q:BE段(浅红)→ED段(浅蓝)→DC段(浅绿)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const rectCanvas = document.getElementById('rectCanvas');
+        const rectCtx = rectCanvas.getContext('2d');
+        const funcCanvas = document.getElementById('funcCanvas');
+        const funcCtx = funcCanvas.getContext('2d');
+        const rectLength = document.getElementById('rectLength');
+        const rectWidth = document.getElementById('rectWidth');
+        const drawRectBtn = document.getElementById('drawRectBtn');
+        const rectPerimeter = document.getElementById('rectPerimeter');
+        const rectArea = document.getElementById('rectArea');
+        const beLen = document.getElementById('beLen');
+        const bpqArea = document.getElementById('bpqArea');
+        const moveRange = document.getElementById('moveRange');
+        const pathTip = document.getElementById('pathTip');
+        
+        let rectCanvasSize = 0, funcCanvasSize = 0;
+        let A, B, C, D, E;
+        let totalQPath = 0, BE_len = 0, ED_len = 0, DC_len = 0;
+        let totalPPath = 0;
+        let qPathStatus = "";
+        let areaData = [];
+        const pathColors = {
+            BE: 'rgba(255, 192, 203, 0.3)',
+            ED: 'rgba(173, 216, 230, 0.3)',
+            DC: 'rgba(152, 251, 152, 0.3)',
+            BE_line: '#e74c3c',
+            ED_line: '#3498db',
+            DC_line: '#27ae60'
+        };
+
+        function resizeCanvas() {
+            rectCanvasSize = rectCanvas.offsetWidth;
+            rectCanvas.width = rectCanvasSize;
+            rectCanvas.height = rectCanvasSize;
+            funcCanvasSize = funcCanvas.offsetWidth;
+            funcCanvas.width = funcCanvasSize;
+            funcCanvas.height = funcCanvasSize;
+            drawFuncAxis();
+            drawAll();
+        }
+
+        // 隐藏坐标轴刻度，只留坐标轴和箭头+文字
+        function drawFuncAxis() {
+            funcCtx.clearRect(0, 0, funcCanvasSize, funcCanvasSize);
+            const padding = 30;
+            const xStart = padding;
+            const xEnd = funcCanvasSize - padding;
+            const yStart = funcCanvasSize - padding;
+            const yEnd = padding;
+            // 坐标轴和箭头
+            funcCtx.beginPath();
+            funcCtx.moveTo(xStart, yStart);
+            funcCtx.lineTo(xEnd, yStart);
+            funcCtx.lineTo(xEnd-5, yStart-5);
+            funcCtx.moveTo(xEnd, yStart);
+            funcCtx.lineTo(xEnd-5, yStart+5);
+            funcCtx.moveTo(xStart, yStart);
+            funcCtx.lineTo(xStart, yEnd);
+            funcCtx.lineTo(xStart-5, yEnd+5);
+            funcCtx.moveTo(xStart, yEnd);
+            funcCtx.lineTo(xStart+5, yEnd+5);
+            funcCtx.strokeStyle = '#2c3e50';
+            funcCtx.lineWidth = 2;
+            funcCtx.stroke();
+            // 坐标轴文字
+            funcCtx.font = '14px 微软雅黑';
+            funcCtx.fillStyle = '#2c3e50';
+            funcCtx.fillText('x(进度%)', xEnd-60, yStart+20);
+            funcCtx.fillText('y(面积)', xStart-40, yEnd);
+            
+            const maxArea = getMaxArea();
+            const xScale = (xEnd - xStart)/100;
+            const yScale = (yStart - yEnd)/maxArea;
+        }
+
+        function getMaxArea() {
+            const len = parseInt(rectLength.value) || 180;
+            const wid = parseInt(rectWidth.value) || 120;
+            return Math.floor((len * wid)/2);
+        }
+
+        function updateRectData() {
+            let len = parseInt(rectLength.value) || 180;
+            let wid = parseInt(rectWidth.value) || 120;
+            len = len < 50 ? 50 : len > 300 ? 300 : len;
+            wid = wid < 30 ? 30 : wid > 200 ? 200 : wid;
+            rectLength.value = len;
+            rectWidth.value = wid;
+
+            const peri = 2 * (len + wid);
+            const area = len * wid;
+            rectPerimeter.innerText = peri;
+            rectArea.innerText = area;
+            beLen.innerText = len;
+
+            const startX = (rectCanvasSize - len) / 2;
+            const startY = (rectCanvasSize - wid) / 2;
+            A = {x: startX, y: startY};
+            B = {x: startX, y: startY + wid};
+            C = {x: startX + len, y: startY + wid};
+            D = {x: startX + len, y: startY};
+            totalPPath = len;
+
+            BE_len = len;
+            const AE_len = Math.sqrt(BE_len * BE_len - wid * wid);
+            E = {x: A.x + AE_len, y: A.y};
+            E.x = E.x > D.x ? D.x : E.x;
+
+            ED_len = Math.sqrt(Math.pow(D.x - E.x, 2) + Math.pow(D.y - E.y, 2));
+            DC_len = wid; 
+            totalQPath = BE_len + ED_len + DC_len;
+            return {len, wid};
+        }
+
+        // BE段纯平滑抛物线，无竖线
+        function getPQPoint(progress) {
+            const {len, wid} = updateRectData();
+            const walkedQ = progress * totalQPath;
+            const BP = walkedQ <= BE_len ? (walkedQ/BE_len)*totalPPath : len;
+            const P = {x: B.x + BP, y: B.y};
+            let Q = {x: B.x, y: B.y};
+            let area = 0;
+
+            if (walkedQ <= BE_len) {
+                Q.x = B.x + (E.x - B.x) * (walkedQ / BE_len);
+                Q.y = B.y + (E.y - B.y) * (walkedQ / BE_len);
+                qPathStatus = "BE";
+                const height = B.y - Q.y;
+                area = Math.floor((BP * height)/2);
+            } 
+            else if (walkedQ <= BE_len + ED_len) {
+                const walkedED = walkedQ - BE_len;
+                Q.x = E.x + (D.x - E.x) * (walkedED / ED_len);
+                Q.y = E.y + (D.y - E.y) * (walkedED / ED_len);
+                qPathStatus = "ED";
+                area = Math.floor((len * wid)/2);
+            } 
+            else {
+                const walkedDC = walkedQ - BE_len - ED_len;
+                Q.x = D.x;
+                Q.y = D.y + (C.y - D.y) * (walkedDC / DC_len);
+                qPathStatus = "DC";
+                const height = C.y - Q.y;
+                area = Math.floor((len * height)/2);
+            }
+            area = area < 0 ? 0 : area;
+            bpqArea.innerText = area;
+            return {P, Q, area};
+        }
+
+        function drawRectGraph(P, Q) {
+            rectCtx.clearRect(0, 0, rectCanvasSize, rectCanvasSize);
+            const {len, wid} = updateRectData();
+
+            rectCtx.beginPath();
+            rectCtx.rect(A.x, A.y, len, wid);
+            rectCtx.strokeStyle = '#2980b9';
+            rectCtx.lineWidth = 2;
+            rectCtx.stroke();
+
+            rectCtx.beginPath();
+            rectCtx.moveTo(B.x, B.y);
+            rectCtx.lineTo(E.x, E.y);
+            rectCtx.strokeStyle = '#e74c3c';
+            rectCtx.lineWidth = 2;
+            rectCtx.stroke();
+
+            rectCtx.beginPath();
+            rectCtx.moveTo(B.x, B.y);
+            rectCtx.lineTo(E.x, E.y);
+            rectCtx.lineTo(D.x, D.y);
+            rectCtx.lineTo(C.x, C.y);
+            rectCtx.strokeStyle = '#95a5a6';
+            rectCtx.lineWidth = 1;
+            rectCtx.setLineDash([3,3]);
+            rectCtx.stroke();
+            rectCtx.setLineDash([]);
+
+            rectCtx.beginPath();
+            rectCtx.moveTo(B.x, B.y);
+            rectCtx.lineTo(P.x, P.y);
+            rectCtx.lineTo(Q.x, Q.y);
+            rectCtx.closePath();
+            rectCtx.fillStyle = pathColors[qPathStatus];
+            rectCtx.fill();
+
+            rectCtx.beginPath();
+            rectCtx.moveTo(B.x, B.y);
+            rectCtx.lineTo(Q.x, Q.y);
+            rectCtx.strokeStyle = '#27ae60';
+            rectCtx.lineWidth = 2;
+            rectCtx.stroke();
+
+            rectCtx.beginPath();
+            rectCtx.moveTo(P.x, P.y);
+            rectCtx.lineTo(Q.x, Q.y);
+            rectCtx.strokeStyle = '#9b59b6';
+            rectCtx.lineWidth = 2;
+            rectCtx.stroke();
+
+            rectCtx.beginPath();
+            rectCtx.arc(P.x, P.y, 5, 0, 2*Math.PI);
+            rectCtx.fillStyle = '#3498db';
+            rectCtx.fill();
+            rectCtx.stroke();
+
+            rectCtx.beginPath();
+            rectCtx.arc(Q.x, Q.y, 5, 0, 2*Math.PI);
+            rectCtx.fillStyle = '#e74c3c';
+            rectCtx.fill();
+            rectCtx.stroke();
+
+            rectCtx.font = 'bold italic 18px Times New Roman';
+            rectCtx.fillStyle = '#2c3e50';
+            rectCtx.fillText('A', A.x-15, A.y-15);
+            rectCtx.fillText('B', B.x-15, B.y+15);
+            rectCtx.fillText('C', C.x+15, C.y+15);
+            rectCtx.fillText('D', D.x+15, D.y-15);
+            rectCtx.fillText('E', E.x-15, E.y-15);
+            rectCtx.fillText('P', P.x+12, P.y+12);
+            rectCtx.fillText('Q', Q.x+12, Q.y+12);
+        }
+
+        // 平滑抛物线轨迹，无竖线无断点
+        function drawFuncGraph(currentProgress, currentArea) {
+            const padding = 30;
+            const maxArea = getMaxArea();
+            const xScale = (funcCanvasSize - 2*padding)/100;
+            const yScale = (funcCanvasSize - 2*padding)/maxArea;
+            drawFuncAxis();
+            areaData = [];
+
+            // 加密采样点，抛物线更平滑
+            for(let i=0; i<=currentProgress; i+=0.2){
+                const progress = i / 100;
+                const {len, wid} = updateRectData();
+                const walkedQ = progress * totalQPath;
+                let tempArea = 0;
+                let tempColor = "";
+
+                if (walkedQ <= BE_len) {
+                    const BP = (walkedQ/BE_len)*totalPPath;
+                    const Qy = B.y + (E.y - B.y) * (walkedQ / BE_len);
+                    const height = B.y - Qy;
+                    tempArea = Math.floor((BP * height)/2);
+                    tempColor = pathColors.BE_line;
+                } else if (walkedQ <= BE_len + ED_len) {
+                    tempArea = Math.floor((len * wid)/2);
+                    tempColor = pathColors.ED_line;
+                } else {
+                    const walkedDC = walkedQ - BE_len - ED_len;
+                    const Qy = D.y + (C.y - D.y) * (walkedDC / DC_len);
+                    const height = C.y - Qy;
+                    tempArea = Math.floor((len * height)/2);
+                    tempColor = pathColors.DC_line;
+                }
+                tempArea = tempArea < 0 ? 0 : tempArea;
+                const drawX = padding + i*xScale;
+                const drawY = funcCanvasSize - padding - tempArea*yScale;
+                const safeY = drawY < padding ? padding : drawY;
+                areaData.push({x:drawX, y:safeY, color:tempColor});
+            }
+
+            // 平滑连线
+            funcCtx.lineWidth = 2;
+            for(let i=0;i<areaData.length-1;i++){
+                funcCtx.beginPath();
+                funcCtx.moveTo(areaData[i].x, areaData[i].y);
+                funcCtx.lineTo(areaData[i+1].x, areaData[i+1].y);
+                funcCtx.strokeStyle = areaData[i].color;
+                funcCtx.stroke();
+            }
+            // 当前点高亮
+            const currX = padding + currentProgress*xScale;
+            const currY = funcCanvasSize - padding - currentArea*yScale;
+            const safeY = currY < padding ? padding : currY;
+            funcCtx.beginPath();
+            funcCtx.arc(currX, safeY, 4, 0, 2*Math.PI);
+            funcCtx.fillStyle = pathColors[qPathStatus+'_line'];
+            funcCtx.fill();
+        }
+
+        function drawAll() {
+            const currentProgress = parseInt(moveRange.value);
+            const progress = currentProgress / 100;
+            const {P, Q, area} = getPQPoint(progress);
+            drawRectGraph(P, Q);
+            drawFuncGraph(currentProgress, area);
+            pathTip.innerText = `Q:${qPathStatus}段（BE平滑抛物线|ED水平|DC斜线）`;
+        }
+
+        function resetData() {
+            areaData = [];
+            drawFuncAxis();
+            drawAll();
+        }
+
+        drawRectBtn.addEventListener('click', ()=>{resetData();});
+        moveRange.addEventListener('input', drawAll);
+        window.addEventListener('resize', ()=>{resetData();resizeCanvas();});
+        window.onload = () => {
+            resizeCanvas();
+            updateRectData();
+            drawAll();
+        };
+    </script>
+</body>
+</html>

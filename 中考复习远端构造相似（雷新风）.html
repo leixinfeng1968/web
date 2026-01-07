@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>欢迎来到雷老师微课堂 ～</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            padding: 20px;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        h1 {
+            font-size: 2.3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            padding: 10px 0;
+        }
+        
+        .subtitle {
+            font-size: 28px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            color: #e3f2fd;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        .geom-condition {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 12px 25px;
+            background: rgba(25, 118, 210, 0.3);
+            border-radius: 10px;
+            display: inline-block;
+            border: 2px solid rgba(100, 255, 218, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: #64ffda;
+            text-align: left;
+            text-indent: 2em;
+        }
+        .geom-condition span {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: bold;
+        }
+        
+        .content {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-top: 15px;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            max-width: 1200px;
+            min-height: 550px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        #myCanvas {
+            flex: 1;
+            min-width: 0;
+        }
+        .slider-section {
+            width: 350px;
+            min-width: 350px;
+        }
+        
+        #myCanvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: rgba(10, 25, 47, 0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100, 255, 218, 0.15);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* 响应式布局：窄屏时滑动条放在画布下方 */
+        @media (max-width: 900px) {
+            .canvas-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .slider-section {
+                width: 100%;
+                min-width: 0;
+                max-width: 500px;
+            }
+        }
+        
+        .canvas-note {
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #ffffff;
+            z-index: 10;
+            text-align: center;
+        }
+        .similarity-info {
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 12px;
+            border-radius: 5px;
+            color: #64ffda;
+            z-index: 10;
+            text-align: center;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 350px;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .slider-section {
+            padding: 18px;
+            background: rgba(25, 118, 210, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(100, 255, 218, 0.25);
+        }
+        
+        .slider-header {
+            font-size: 1.2rem;
+            margin-bottom: 18px;
+            color: #4fc3f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .slider {
+            width: 100%;
+            height: 12px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #1e88e5, #64ffda);
+            border-radius: 8px;
+            outline: none;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff6d00;
+            transition: all 0.3s ease;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #fff59d;
+        }
+        
+        .slider-control-group {
+            margin-bottom: 15px;
+        }
+        
+        .point-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.95rem;
+            color: #bbdefb;
+        }
+        
+        .point-label {
+            font-weight: 600;
+        }
+        
+        .slider-value {
+            font-weight: bold;
+            color: #64ffda;
+        }
+        
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            width: 100%;
+            padding: 20px;
+            color: #e3f2fd;
+        }
+        
+        @media (max-width: 1024px) {
+            .content {
+                flex-direction: column;
+                align-items: center;
+            }
+            h1 {
+                font-size: 2.0rem;
+            }
+            .subtitle {
+                font-size: 28px;
+            }
+            .geom-condition {
+                font-size: 28px;
+                padding: 10px 20px;
+                word-break: break-all;
+                text-indent: 2em;
+            }
+            .canvas-container {
+                min-height: 500px;
+                min-width: 350px;
+            }
+            #myCanvas {
+                height: 300px;
+            }
+            .principle-panel {
+                padding: 15px;
+            }
+            .principle-title {
+                font-size: 1.3rem;
+            }
+            .principle-content {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.7rem;
+            }
+            .subtitle {
+                font-size: 28px;
+            }
+            .geom-condition {
+                font-size: 28px;
+                padding: 8px 15px;
+            }
+            .canvas-container, .controls {
+                padding: 15px;
+            }
+            .slider-section {
+                padding: 12px;
+            }
+            .principle-panel {
+                padding: 12px;
+            }
+            .principle-title {
+                font-size: 1.2rem;
+            }
+            .principle-content {
+                font-size: 0.85rem;
+            }
+        }
+        
+        .highlight {
+            color: #ffd600;
+            font-weight: bold;
+        }
+        .highlight span, .instructions span.highlight {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+        
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, #64ffda, transparent);
+            margin: 15px 0;
+        }
+        .principle-panel {
+            width: 100%;
+            max-width: 1300px;
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        .principle-title {
+            font-size: 1.5rem;
+            color: #64ffda;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.3);
+            padding-bottom: 10px;
+        }
+        .principle-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #e3f2fd;
+        }
+        .principle-step {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(25, 118, 210, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #64ffda;
+        }
+        .principle-step-title {
+            font-weight: bold;
+            color: #4fc3f7;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+
+        <p class="subtitle">远端构造相似三角形</p>
+    </div>
+    
+    <div class="content">
+        <div class="geom-condition">题目：矩形<span>ABCD</span>中，<span>AD</span>=2，<span>AC</span>为对角线，<span>∠ACD</span>=30°，<span>E</span>，<span>F</span>分别为对角线<span>AC</span>上的两个动点，且<span>AE</span>=2<span>CF</span>，连接<span>DE</span>，<span>BF</span>，求<span>DE</span>+2<span>BF</span>的最小值</div>
+        
+        <div class="canvas-container">
+            <canvas id="myCanvas"></canvas>
+
+            
+            <div class="slider-section">
+                <div class="slider-header">
+                    <span>点位置控制</span>
+                </div>
+                <div class="slider-control-group">
+                    <div class="point-info">
+                        <span class="point-label">点<span>E</span>位置</span>
+                        <span class="slider-value" id="ePosition">50%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" class="slider" id="eSlider">
+                </div>
+                <div class="slider-control-group">
+                    <div class="point-info">
+                        <span class="point-label">点<span>M</span>位置</span>
+                        <span class="slider-value" id="mState">0%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="mSlider">
+                </div>
+                <div class="slider-control-group">
+                    <div class="point-info">
+                        <span class="point-label"><span>MN</span>垂线显示</span>
+                        <span class="slider-value" id="nState">0%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="nSlider">
+                </div>
+                <div class="slider-control-group">
+                    <div class="point-info">
+                    <span class="point-label">角MAE度数</span>
+                    <span class="slider-value" id="maeAngleValue">300°</span>
+                </div>
+                <input type="range" min="0" max="360" value="300" class="slider" id="maeAngleSlider">
+                </div>
+                
+                <div class="slider-control-group">
+                    <div class="point-info">
+                    <span class="point-label">标签字号</span>
+                    <span class="slider-value" id="labelSizeValue">36px</span>
+                </div>
+                <input type="range" min="12" max="72" value="36" class="slider" id="labelSizeSlider">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="principle-panel">
+        <div class="principle-title">数学原理说明</div>
+        <div class="principle-content">
+            <div class="principle-step">
+                <div class="principle-step-title">步骤1：问题分析</div>
+                <p>矩形ABCD中，AD=2，∠ACD=30°，动点E、F在对角线AC上，满足AE=2CF。要求DE+2BF的最小值。</p>
+            </div>
+            <div class="principle-step">
+                <div class="principle-step-title">步骤2：构造相似三角形</div>
+                <p>通过构造三角形AME与三角形CBF相似（相似比为2:1），将2BF转化为ME，从而将问题转化为求DE+ME的最小值。</p>
+            </div>
+            <div class="principle-step">
+                <div class="principle-step-title">步骤3：利用相似性质</div>
+                <p>由于△AME∽△CBF，所以ME/BF=2/1，即ME=2BF。因此DE+2BF=DE+ME。</p>
+            </div>
+            <div class="principle-step">
+                <div class="principle-step-title">步骤4：求最短路径</div>
+                <p>当D、E、M三点共线时，DE+ME取得最小值，即DM的长度。</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>版权归初中数学优质资源中心所有</br>HTML5 Canvas实现</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const eSlider = document.getElementById('eSlider');
+        const ePosition = document.getElementById('ePosition');
+        const mSlider = document.getElementById('mSlider');
+        const mState = document.getElementById('mState');
+        const nSlider = document.getElementById('nSlider');
+        const nState = document.getElementById('nState');
+        
+        const maeAngleSlider = document.getElementById('maeAngleSlider');
+        const maeAngleValue = document.getElementById('maeAngleValue');
+        
+        // 标签字号控制
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        let currentLabelSize = 36; // 默认36px
+        
+        let MAE_ANGLE = 300 * Math.PI / 180; // 300度角，确保角MAE等于角BCF
+        const targetM = { x: 0, y: 0 };
+        const originM = { x: 0, y: 0 };
+        const pointERadius = 6; 
+        const labelOffset = 12;
+        let canvasDimensions = {width: 0, height: 0};
+        let rectPoints = null;
+        
+        // 全局点变量，用于鼠标事件处理
+        let pointE = null;
+        let pointF = null;
+        let pointM = null;
+        let pointN = null;
+        
+        // 标签拖动功能的状态变量
+        let isDragging = false;
+        let draggedLabel = null;
+        let dragOffset = {x: 0, y: 0};
+        // 存储每个标签的自定义位置偏移量
+        let labelPositions = {
+            'A': {x: -labelOffset, y: -labelOffset}, 
+            'B': {x: labelOffset, y: -labelOffset}, 
+            'C': {x: labelOffset, y: labelOffset}, 
+            'D': {x: -labelOffset, y: labelOffset}, 
+            'E': {x: labelOffset, y: labelOffset}, 
+            'F': {x: -labelOffset, y: -labelOffset}, 
+            'M': {x: labelOffset, y: -labelOffset}, 
+            'N': {x: -labelOffset, y: -labelOffset}
+        };
+        
+        const AD = 2;
+        const CD = AD * Math.sqrt(3);    
+        function initCanvas() {
+            const containerRect = canvas.parentElement.getBoundingClientRect();
+            // 设置固定的宽高比例，确保图形不变形
+            const aspectRatio = 1.5; // 宽高比为1.5:1
+            const targetHeight = 910; // 原700增加30%
+            const targetWidth = targetHeight * aspectRatio;
+            
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            canvasDimensions.width = targetWidth;
+            canvasDimensions.height = targetHeight;
+            ctx.lineWidth = 2.5;
+        }
+
+        function calculateRectPoints() {
+        const w = canvasDimensions.width;
+        const h = canvasDimensions.height;
+        const scaleRatio = Math.min((w*0.6)/CD, (h*0.5)/AD) * 0.8;
+        const rectWidth = CD * scaleRatio;
+        const rectHeight = AD * scaleRatio;
+        let x = (w - rectWidth) / 2;
+        let y = (h - rectHeight) / 2 + rectHeight * 0.1 + 50 + 50;
+        
+        const points = {
+            A: {x: x, y: y},
+            B: {x: x + rectWidth, y: y},
+            C: {x: x + rectWidth, y: y + rectHeight},
+            D: {x: x, y: y + rectHeight},
+            width: rectWidth,
+            height: rectHeight
+        };
+        return points;
+    }
+
+        function distance(p1, p2) {
+            return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+        }
+
+        function drawGeometry() {
+            rectPoints = calculateRectPoints();
+            if (!rectPoints) return;
+            
+            const {A, B, C, D} = rectPoints;
+            const w = canvasDimensions.width;
+            const h = canvasDimensions.height;
+            ctx.clearRect(0, 0, w, h);
+            
+            const ePercentage = parseInt(eSlider.value) / 100;
+            pointE = {x: A.x + ePercentage * (C.x - A.x),y: A.y + ePercentage * (C.y - A.y)};
+            
+            const AE = distance(A, pointE);
+            const AC = distance(A, C);
+            const CF = AE / 2;
+            const fPercentage = (AC - CF) / AC;
+            pointF = {x: A.x + fPercentage * (C.x - A.x),y: A.y + fPercentage * (C.y - A.y)};
+            
+            const mPercentage = parseInt(mSlider.value) / 100;
+            // 计算点M的位置，添加平滑过渡效果
+            pointM = {x: originM.x + mPercentage * (targetM.x - originM.x),y: originM.y + mPercentage * (targetM.y - originM.y)};
+            
+            // 绘制点M的轨迹
+            if (mPercentage > 0 && mPercentage < 1) {
+                ctx.strokeStyle = 'rgba(255, 64, 129, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(originM.x, originM.y);
+                ctx.lineTo(pointM.x, pointM.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            const nPercentage = parseInt(nSlider.value) / 100;
+            
+            ePosition.textContent = `${Math.round(ePercentage * 100)}%`;
+            mState.textContent = `${Math.round(mPercentage * 100)}%`;
+            nState.textContent = `${Math.round(nPercentage * 100)}%`;
+            
+            // 绘制矩形ABCD
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.lineTo(D.x,D.y);ctx.closePath();
+            ctx.stroke();
+            
+            // 绘制对角线AC
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();ctx.moveTo(A.x, A.y);ctx.lineTo(C.x, C.y);ctx.stroke();
+            
+            // 绘制DE、BF
+            ctx.strokeStyle = '#64ffda';ctx.lineWidth = 3.5;
+            ctx.beginPath();ctx.moveTo(D.x, D.y);ctx.lineTo(pointE.x, pointE.y);ctx.stroke();
+            ctx.strokeStyle = '#ffd600';ctx.lineWidth = 3.5;
+            ctx.beginPath();ctx.moveTo(B.x, B.y);ctx.lineTo(pointF.x, pointF.y);ctx.stroke();
+            
+
+
+
+
+            
+            
+            
+            // 绘制AE、CF辅助线
+            ctx.strokeStyle = '#b0bec5';ctx.lineWidth = 2;
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(pointE.x,pointE.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(pointF.x,pointF.y);ctx.stroke();
+            
+            // 显示M点、AM、ME
+            if(mPercentage > 0){
+                // 绘制三角形AME
+                ctx.strokeStyle = '#ff4081';ctx.lineWidth = 2.5;ctx.setLineDash([5,3]);
+                ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(pointM.x,pointM.y);ctx.lineTo(pointE.x,pointE.y);ctx.closePath();
+                ctx.stroke();
+                // 添加三角形AME的填充
+                ctx.fillStyle = 'rgba(255, 64, 129, 0.2)';
+                ctx.fill();
+                
+                drawPoint(pointM, '#ff4081');
+                drawLabel('M', pointM, labelOffset, -labelOffset, 'start', 'bottom');
+                
+                // 绘制三角形CBF
+                ctx.strokeStyle = '#ff6d00';ctx.lineWidth = 2.5;ctx.setLineDash([5,3]);
+                ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(B.x,B.y);ctx.lineTo(pointF.x,pointF.y);ctx.closePath();
+                ctx.stroke();
+                // 添加三角形CBF的填充
+                ctx.fillStyle = 'rgba(255, 109, 0, 0.2)';
+                ctx.fill();
+                
+                // DA延长线向上 + MN水平向左（虚线），同步到达N
+                if(nPercentage > 0){
+                    pointN = {x: A.x, y: pointM.y};
+                    // 计算当前N点位置（带过渡效果）
+                    const currentNY = A.y - (A.y - pointN.y)*nPercentage;
+                    const currentNX = pointM.x - (pointM.x - pointN.x)*nPercentage;
+                    const currentN = {x: currentNX, y: currentNY};
+                    
+                    // DA延长线：A向上虚线，同步延伸
+                    ctx.strokeStyle = '#808080';ctx.lineWidth = 1.5;ctx.setLineDash([3,3]);
+                    ctx.beginPath();
+                    ctx.moveTo(A.x, A.y);
+                    ctx.lineTo(A.x, currentNY);
+                    ctx.stroke();
+                    
+                    // MN改虚线，同色系统一样式，同步延伸
+                    ctx.strokeStyle = '#ff4081';ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(pointM.x, pointM.y);
+                    ctx.lineTo(currentNX, pointM.y);
+                    ctx.stroke();
+                    
+                    // 绘制当前N点位置（带过渡效果）
+                    if (nPercentage > 0 && nPercentage < 1) {
+                        drawPoint(currentN, '#4fc3f7');
+                    }
+                    
+                    // 100%显示N点，取消直角符号
+                    if(nPercentage >= 1){
+                        drawPoint(pointN, '#4fc3f7');
+                        drawLabel('N', pointN, -labelOffset, -labelOffset, 'end', 'bottom');
+                    }
+                    
+                    ctx.setLineDash([]);
+                }else{
+                    ctx.setLineDash([]);
+                }
+            }
+            
+            // 绘制所有顶点
+            drawPoint(A, '#ffff33');drawPoint(B, '#ffff33');drawPoint(C, '#ffff33');drawPoint(D, '#ffff33');
+            drawPoint(pointE, '#64ffda');
+            drawPoint(pointF, '#ffd600');
+            
+            // 字母新罗马斜体加粗
+            ctx.font = `bold italic ${currentLabelSize}px Times New Roman`;ctx.textShadow = '0px 0px 3px rgba(0,0,0,0.9)';
+            drawLabel('A', A, -labelOffset, -labelOffset, 'end', 'bottom');
+            drawLabel('B', B, labelOffset, -labelOffset, 'start', 'bottom');
+            drawLabel('C', C, labelOffset, labelOffset, 'start', 'top');
+            drawLabel('D', D, -labelOffset, labelOffset, 'end', 'top');
+            drawLabel('E', pointE, labelOffset, labelOffset, 'start', 'top');
+            drawLabel('F', pointF, -labelOffset, -labelOffset, 'end', 'bottom');
+        }
+        
+        function drawLabel(text, point, offsetX, offsetY, align, baseline) {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = align;
+            ctx.textBaseline = baseline;
+            
+            // 使用自定义的标签位置偏移量
+            const customOffset = labelPositions[text] || {x: offsetX, y: offsetY};
+            ctx.fillText(text, point.x + customOffset.x, point.y + customOffset.y);
+            ctx.restore();
+        }
+        
+        // 鼠标事件处理函数
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // 确保rectPoints已初始化
+            if (!rectPoints) {
+                rectPoints = calculateRectPoints();
+                if (!rectPoints) return;
+            }
+            
+            // 检查是否点击在某个标签上
+            for (let label in labelPositions) {
+                let point = null;
+                let customOffset = labelPositions[label];
+                
+                // 根据标签名称获取对应的点
+                switch(label) {
+                    case 'A': point = rectPoints.A; break;
+                    case 'B': point = rectPoints.B; break;
+                    case 'C': point = rectPoints.C; break;
+                    case 'D': point = rectPoints.D; break;
+                    case 'E': point = pointE; break;
+                    case 'F': point = pointF; break;
+                    case 'M': point = pointM; break;
+                    case 'N': point = pointN; break;
+                }
+                
+                // 确保point存在
+                if (!point) continue;
+                
+                ctx.font = `bold italic ${currentLabelSize}px Times New Roman`;
+                const textMetrics = ctx.measureText(label);
+                const textWidth = textMetrics.width;
+                const textHeight = currentLabelSize * 0.8; // 更准确的高度估计
+                
+                // 计算标签的实际位置
+                const labelX = point.x + customOffset.x;
+                const labelY = point.y + customOffset.y;
+                let left, right, top, bottom;
+                
+                // 计算边界框，不需要复杂的对齐计算，直接使用实际文本位置
+                // 增加点击区域的大小，让标签更容易被点击
+                left = labelX - 10;
+                right = labelX + textWidth + 10;
+                top = labelY - textHeight - 5;
+                bottom = labelY + 5;
+                
+                // 检查鼠标是否在标签的边界框内
+                if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+                    isDragging = true;
+                    draggedLabel = label;
+                    dragOffset = {
+                        x: mouseX - labelX,
+                        y: mouseY - labelY
+                    };
+                    break;
+                }
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (!isDragging || !draggedLabel) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // 根据标签名称获取对应的点
+            let point = null;
+            switch(draggedLabel) {
+                case 'A': point = rectPoints?.A; break;
+                case 'B': point = rectPoints?.B; break;
+                case 'C': point = rectPoints?.C; break;
+                case 'D': point = rectPoints?.D; break;
+                case 'E': point = pointE; break;
+                case 'F': point = pointF; break;
+                case 'M': point = pointM; break;
+                case 'N': point = pointN; break;
+            }
+            
+            if (point) {
+                // 更新标签的自定义位置偏移量，与handleMouseDown保持一致的逻辑
+                labelPositions[draggedLabel].x = mouseX - dragOffset.x - point.x;
+                labelPositions[draggedLabel].y = mouseY - dragOffset.y - point.y;
+                
+                // 重新绘制画布
+                drawGeometry();
+            }
+        }
+        
+        function handleMouseUp() {
+            isDragging = false;
+            draggedLabel = null;
+            dragOffset = {x: 0, y: 0};
+        }
+        
+        function drawPoint(point, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(point.x, point.y, pointERadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';ctx.lineWidth = 1.5;ctx.stroke();
+        }
+
+        function handleResize() {
+            initCanvas();
+            rectPoints = calculateRectPoints();
+            if(rectPoints) {
+                originM.x = rectPoints.A.x;
+                originM.y = rectPoints.A.y;
+                // 重新计算targetM的位置，确保角MAE始终等于30度
+                const MA_length = rectPoints.height * 1.5; // MA长度设为AD的1.5倍
+                targetM.x = rectPoints.A.x - MA_length * Math.sin(MAE_ANGLE);
+                targetM.y = rectPoints.A.y - MA_length * Math.cos(MAE_ANGLE);
+            }
+            drawGeometry();
+        }
+
+        window.onload = function() {
+            initCanvas();
+            setTimeout(() => {
+                rectPoints = calculateRectPoints();
+                if(rectPoints) {
+                    originM.x = rectPoints.A.x;
+                    originM.y = rectPoints.A.y;
+                    // 计算targetM的位置，确保角MAE等于角BCF（30度）
+                    const MA_length = rectPoints.height * 1.5; // MA长度设为AD的1.5倍
+                    targetM.x = rectPoints.A.x - MA_length * Math.sin(MAE_ANGLE);
+                    targetM.y = rectPoints.A.y - MA_length * Math.cos(MAE_ANGLE);
+                }
+                drawGeometry();
+            }, 100);
+        }
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+        
+        eSlider.addEventListener('input', drawGeometry);
+        mSlider.addEventListener('input', drawGeometry);
+        nSlider.addEventListener('input', drawGeometry);
+        
+        // 添加标签拖动事件监听器
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+        
+        // 角MAE滑块事件监听器
+        maeAngleSlider.addEventListener('input', function() {
+            const degrees = parseInt(this.value);
+            MAE_ANGLE = degrees * Math.PI / 180; // 转换为弧度
+            maeAngleValue.textContent = `${degrees}°`;
+            
+            // 重新计算targetM的位置
+            if(rectPoints) {
+                const MA_length = rectPoints.height * 1.5;
+                targetM.x = rectPoints.A.x - MA_length * Math.sin(MAE_ANGLE);
+                targetM.y = rectPoints.A.y - MA_length * Math.cos(MAE_ANGLE);
+            }
+            
+            drawGeometry(); // 重新绘制几何图形
+        });
+        
+        // 标签字号滑块事件监听器
+        labelSizeSlider.addEventListener('input', function() {
+            currentLabelSize = parseInt(this.value);
+            labelSizeValue.textContent = `${currentLabelSize}px`;
+            drawGeometry(); // 重新绘制几何图形
+        });
+    </script>
+</body>
+</html>

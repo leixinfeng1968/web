@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>网页画板</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "微软雅黑", Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; touch-action: manipulation; overflow: hidden; background-color: #f8f8f8; }
+        .header { text-align: center; padding: 12px 0; background-color: #e9f5ff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 20px; color: #2c3e50; font-weight: 600; }
+        .menu-bar { background-color: #2c3e50; padding: 8px 15px; display: flex; gap: 20px; border-bottom: 2px solid #1a2533; }
+        .menu-item { color: #fff; cursor: pointer; padding: 5px 10px; border-radius: 4px; position: relative; }
+        .menu-item:hover { background-color: #3F51B5; }
+        .submenu { position: absolute; top: 30px; left: 0; background-color: #fff; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none; flex-direction: column; min-width: 120px; z-index: 2000; }
+        .submenu-item { padding: 8px 12px; color: #2c3e50; cursor: pointer; text-align: left; }
+        .submenu-item:hover { background-color: #e9f5ff; }
+        .menu-item:hover .submenu { display: flex; }
+
+        .main-container { display: flex; overflow: hidden; flex: 1; }
+        .left-toolbar { width: 60px; background-color: #e9f5ff; border-right: 1px solid #d1e7fd; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; }
+        .left-toolbar button { min-width: 45px; height: 45px; padding: 5px; font-size: 12px; border-radius: 6px; margin: 0; border: none; color: #fff; cursor: pointer; pointer-events: auto; }
+        
+        .canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; padding: 10px; }
+        #drawingCanvas { border: 1px solid #2c3e50; max-width: 100%; max-height: 100%; display: block; background-color: #fff; }
+        
+        .bottom-toolbar { display: flex; justify-content: center; padding: 10px 0; background-color: #e9f5ff; border-top: 1px solid #d1e7fd; gap: 15px; }
+        button { padding: 8px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        #undoButton { background-color: #FF5722; }
+        #redoButton { background-color: #4CAF50; }
+        #deleteButton { background-color: #2c3e50; display: none; }
+        #clearButton { background-color: #f44336; }
+        
+        #selectButton { background-color: #00BCD4; }
+        #pointButton { background-color: #e91e63; }
+        #penButton { background-color: #FF5722; }
+        #lineButton { background-color: #4CAF50; }
+        #dashButton { background-color: #8BC34A; }
+        #rectButton { background-color: #2196F3; }
+        #circleButton { background-color: #9C27B0; }
+        #rightTriangleButton { background-color: #FF9800; }
+        #isoTriangleButton { background-color: #607D8B; }
+        #labelButton { background-color: #795548; }
+        #eraserButton { background-color: #9E9E9E; }
+        #measureButton { background-color: #FF6D00; }
+        
+        .active { box-shadow: 0 0 8px rgba(0,0,0,0.4); transform: scale(1.05); }
+        #labelInputContainer { position: absolute; display: none; background: white; padding: 5px; border: 1px solid #2c3e50; z-index: 101; border-radius: 3px; }
+        #labelInput { width: 50px; padding: 5px; text-align: center; border: 1px solid #d1e7fd; outline: none; border-radius: 2px; }
+        #selectionBox { position: absolute; border: 1px solid #0096FF; background-color: rgba(0,150,255,0.1); display: none; pointer-events: none; z-index: 99; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>网页画板</h1>
+    </div>
+    
+    <div class="menu-bar">
+        <div class="menu-item">文件
+            <div class="submenu">
+                <div class="submenu-item" id="newCanvas">新建画布</div>
+                <div class="submenu-item" id="saveCanvas">保存图形</div>
+                <div class="submenu-item" id="exportCanvas">导出图片</div>
+            </div>
+        </div>
+        <div class="menu-item">编辑
+            <div class="submenu">
+                <div class="submenu-item" id="menuUndo">撤销</div>
+                <div class="submenu-item" id="menuRedo">重做</div>
+                <div class="submenu-item" id="menuDelete">删除选中</div>
+                <div class="submenu-item" id="menuClear">清空画布</div>
+            </div>
+        </div>
+        <div class="menu-item">显示
+            <div class="submenu">
+                <div class="submenu-item" id="showGrid">显示/隐藏网格</div>
+                <div class="submenu-item" id="showCoord">显示/隐藏坐标</div>
+                <div class="submenu-item" id="hideLabel">隐藏/显示标签</div>
+                <div class="submenu-item" id="hideObject">隐藏选中对象</div>
+                <div class="submenu-item" id="showObject">显示所有对象</div>
+            </div>
+        </div>
+        <div class="menu-item">构造
+            <div class="submenu">
+                <div class="submenu-item" id="makeMidpoint">构造中点</div>
+                <div class="submenu-item" id="makePointOnLine">构造线段上的点</div>
+                <div class="submenu-item" id="makePointOnRay">构造射线上的点</div>
+                <div class="submenu-item" id="makePointOnInfiniteLine">构造直线上的点</div>
+                <div class="submenu-item" id="makeIntersection">构造交点</div>
+                <div class="submenu-item" id="makeVertical">构造垂线</div>
+                <div class="submenu-item" id="makeParallel">构造平行线</div>
+                <div class="submenu-item" id="makeSegment">构造线段</div>
+                <div class="submenu-item" id="makeRay">构造射线</div>
+                <div class="submenu-item" id="makeLine">构造直线</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-toolbar">
+            <button id="selectButton">选择</button>
+            <button id="pointButton">点</button>
+            <button id="penButton">画笔</button>
+            <button id="lineButton">实线</button>
+            <button id="dashButton">虚线</button>
+            <button id="rectButton">矩形</button>
+            <button id="circleButton">圆形</button>
+            <button id="rightTriangleButton">直角三角</button>
+            <button id="isoTriangleButton">等腰三角</button>
+            <button id="labelButton">标记</button>
+            <button id="eraserButton">橡皮</button>
+            <button id="measureButton">测量</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+            <div id="selectionBox"></div>
+            <div id="labelInputContainer">
+                <input type="text" id="labelInput" placeholder="A" maxlength="1" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-toolbar">
+        <button id="undoButton">撤销</button>
+        <button id="redoButton">重做</button>
+        <button id="deleteButton">删除选中</button>
+        <button id="clearButton">清除画布</button>
+    </div>    
+    <script>
+        // 全局元素获取（确保无遗漏）
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const selectButton = document.getElementById('selectButton');
+        const pointButton = document.getElementById('pointButton');
+        const penButton = document.getElementById('penButton');
+        const lineButton = document.getElementById('lineButton');
+        const dashButton = document.getElementById('dashButton');
+        const rectButton = document.getElementById('rectButton');
+        const circleButton = document.getElementById('circleButton');
+        const rightTriangleButton = document.getElementById('rightTriangleButton');
+        const isoTriangleButton = document.getElementById('isoTriangleButton');
+        const labelButton = document.getElementById('labelButton');
+        const eraserButton = document.getElementById('eraserButton');
+        const measureButton = document.getElementById('measureButton');
+        const undoButton = document.getElementById('undoButton');
+        const redoButton = document.getElementById('redoButton');
+        const clearButton = document.getElementById('clearButton');
+        const deleteButton = document.getElementById('deleteButton');
+        const labelInputContainer = document.getElementById('labelInputContainer');
+        const labelInput = document.getElementById('labelInput');
+        const selectionBox = document.getElementById('selectionBox');
+        
+        const newCanvas = document.getElementById('newCanvas');
+        const saveCanvasBtn = document.getElementById('saveCanvas');
+        const exportCanvasBtn = document.getElementById('exportCanvas');
+        const menuUndo = document.getElementById('menuUndo');
+        const menuRedo = document.getElementById('menuRedo');
+        const menuDelete = document.getElementById('menuDelete');
+        const menuClear = document.getElementById('menuClear');
+        const showGrid = document.getElementById('showGrid');
+        const showCoord = document.getElementById('showCoord');
+        const hideLabel = document.getElementById('hideLabel');
+        const hideObject = document.getElementById('hideObject');
+        const showObject = document.getElementById('showObject');
+        const makeMidpoint = document.getElementById('makeMidpoint');
+        const makePointOnLine = document.getElementById('makePointOnLine');
+        const makePointOnRay = document.getElementById('makePointOnRay');
+        const makePointOnInfiniteLine = document.getElementById('makePointOnInfiniteLine');
+        const makeIntersection = document.getElementById('makeIntersection');
+        const makeVertical = document.getElementById('makeVertical');
+        const makeParallel = document.getElementById('makeParallel');
+        const makeSegment = document.getElementById('makeSegment');
+        const makeRay = document.getElementById('makeRay');
+        const makeLine = document.getElementById('makeLine');
+
+        // 图形存储
+        const shapes = {points: [], penPaths: [], lines: [], dashes: [], rectangles: [], circles: [], rightTriangles: [], isoTriangles: [], labels: [], measures: []};    
+        let selectedObjects = [];
+        let isSelecting = false;
+        let isDragging = false;
+        let selectStartPos = null;
+        let dragOffset = {x:0, y:0};
+        let shiftKeyPressed = false;    
+
+        // 撤销重做 + 标签全局唯一递增（核心）
+        const history = [];
+        const redoStack = [];
+        let currentTool = 'pen';
+        let isDrawing = false;
+        let currentShape = null;
+        let labelPosition = {x:0, y:0};
+        let showGridFlag = false;
+        let showCoordFlag = false;
+        let showLabelFlag = true;
+        
+        // 新增：跟踪鼠标下的线
+        let mouseOverLine = null;
+        let mousePosition = {x: 0, y: 0};
+        
+        // 新增：标签拖动状态
+        let isDraggingLabel = false;
+        let draggedLabel = null;
+        let labelDragOffset = {x: 0, y: 0};
+        let labelDragRadius = 0;
+
+        // 初始化画布（自适应）
+        function initCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const w = container.clientWidth - 40;
+            const h = container.clientHeight - 40;
+            canvas.width = w;
+            canvas.height = h;
+            redrawCanvas();
+        }
+
+        // 页面加载立即初始化+绑定事件（解决按钮失效根源）
+        window.onload = function() {
+            initCanvas();
+            setActiveTool('pen');
+            bindAllEvents();
+        };
+        window.addEventListener('resize', initCanvas);
+
+        // 彻底修复按钮失效：事件绑定无遗漏、无冲突
+        function bindAllEvents() {
+            // 全局shift键
+            window.addEventListener('keydown', (e) => { shiftKeyPressed = e.shiftKey; });
+            window.addEventListener('keyup', (e) => { shiftKeyPressed = false; });
+
+            // 左侧工具按钮（逐个绑定，确保100%生效）
+            selectButton.onclick = () => setActiveTool('select');
+            pointButton.onclick = () => setActiveTool('point');
+            penButton.onclick = () => setActiveTool('pen');
+            lineButton.onclick = () => setActiveTool('line');
+            dashButton.onclick = () => setActiveTool('dash');
+            rectButton.onclick = () => setActiveTool('rectangle');
+            circleButton.onclick = () => setActiveTool('circle');
+            rightTriangleButton.onclick = () => setActiveTool('rightTriangle');
+            isoTriangleButton.onclick = () => setActiveTool('isoTriangle');
+            labelButton.onclick = () => setActiveTool('label');
+            eraserButton.onclick = () => setActiveTool('eraser');
+            measureButton.onclick = () => setActiveTool('measure');
+            
+            // 底部工具栏
+            undoButton.onclick = undoLastAction;
+            redoButton.onclick = redoLastAction;
+            clearButton.onclick = clearCanvas;
+            deleteButton.onclick = deleteSelected;
+            
+            // 标签输入
+            labelInput.addEventListener('input', handleLabelInput);
+            labelInput.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {labelInput.value = '';labelInputContainer.style.display = 'none';}
+            });
+            
+            // 画布交互（鼠标+触屏双支持）
+            canvas.onmousedown = startDrawing;
+            canvas.ontouchstart = startDrawing;
+            canvas.onmousemove = drawShape;
+            canvas.ontouchmove = drawShape;
+            canvas.onmouseup = endDrawing;
+            canvas.ontouchend = endDrawing;
+            
+            // 菜单功能
+            newCanvas.onclick = clearCanvas;
+            saveCanvasBtn.onclick = saveAsJson;
+            exportCanvasBtn.onclick = exportAsImage;
+            menuUndo.onclick = undoLastAction;
+            menuRedo.onclick = redoLastAction;
+            menuDelete.onclick = deleteSelected;
+            menuClear.onclick = clearCanvas;
+            showGrid.onclick = () => {showGridFlag = !showGridFlag; redrawCanvas();};
+            showCoord.onclick = () => {showCoordFlag = !showCoordFlag; redrawCanvas();};
+            hideLabel.onclick = () => {showLabelFlag = !showLabelFlag; redrawCanvas();};
+            hideObject.onclick = hideSelectedObjects;
+            showObject.onclick = showAllObjects;
+            
+            // 几何构造
+            makeMidpoint.onclick = createMidpoint;
+            makePointOnLine.onclick = createPointOnLine;
+            makePointOnRay.onclick = createPointOnRay;
+            makePointOnInfiniteLine.onclick = createPointOnInfiniteLine;
+            makeIntersection.onclick = createIntersection;
+            makeVertical.onclick = createVerticalLine;
+            makeParallel.onclick = createParallelLine;
+            makeSegment.onclick = createSegment;
+            makeRay.onclick = createRay;
+            makeLine.onclick = createLine;
+        }
+
+        // 工具激活（样式+光标同步，无延迟）
+        function setActiveTool(tool) {
+            // 重置所有状态，确保工具切换时不受之前操作影响
+            document.querySelectorAll('.left-toolbar button').forEach(btn => btn.classList.remove('active'));
+            
+            currentTool = tool;
+            isDrawing = false;
+            currentShape = null;
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            
+            // 重置选择相关状态
+            isSelecting = false;
+            isDragging = false;
+            selectStartPos = null;
+            dragOffset = {x:0, y:0};
+            
+            // 隐藏选择框
+            selectionBox.style.display = 'none';
+            
+            // 隐藏标签输入容器
+            labelInputContainer.style.display = 'none';
+            
+            // 设置光标样式
+            switch(tool) {
+                case 'select': 
+                    selectButton.classList.add('active'); 
+                    canvas.style.cursor = 'move'; 
+                    break;
+                case 'point': 
+                    pointButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'pen': 
+                    penButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'line': 
+                    lineButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'dash': 
+                    dashButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'rectangle': 
+                    rectButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'circle': 
+                    circleButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'rightTriangle': 
+                    rightTriangleButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'isoTriangle': 
+                    isoTriangleButton.classList.add('active'); 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+                case 'label': 
+                    labelButton.classList.add('active'); 
+                    canvas.style.cursor = 'text'; 
+                    break;
+                case 'eraser': 
+                    eraserButton.classList.add('active'); 
+                    canvas.style.cursor = 'pointer'; 
+                    break;
+                case 'measure': 
+                    measureButton.classList.add('active'); 
+                    canvas.style.cursor = 'help'; 
+                    break;
+                default: 
+                    canvas.style.cursor = 'crosshair'; 
+                    break;
+            }
+            
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            
+            redrawCanvas();
+        }
+
+        // 历史记录（撤销重做同步标签指针，不乱号）
+        function saveHistory() {
+            redoStack.length = 0;
+            // 简化历史记录，只保存基本形状数据，不处理复杂引用关系
+            // 直接使用浅拷贝，避免JSON.stringify可能出现的循环引用问题
+            const saveState = {};
+            Object.keys(shapes).forEach(key => {
+                saveState[key] = [];
+                for (let i = 0; i < shapes[key].length; i++) {
+                    const shape = shapes[key][i];
+                    // 创建一个新对象，只复制基本属性
+                    const newShape = {};
+                    // 复制所有非对象属性
+                    for (const prop in shape) {
+                        if (shape.hasOwnProperty(prop)) {
+                            const value = shape[prop];
+                            if (typeof value !== 'object' || value === null) {
+                                newShape[prop] = value;
+                            }
+                        }
+                    }
+                    saveState[key].push(newShape);
+                }
+            });
+            history.push(saveState);
+            if (history.length > 30) history.shift();
+        }
+        function undoLastAction() {
+            if (history.length === 0) return;
+            // 简化撤销操作，直接恢复基本形状数据
+            const saveState = {};
+            Object.keys(shapes).forEach(key => {
+                saveState[key] = [];
+                for (let i = 0; i < shapes[key].length; i++) {
+                    const shape = shapes[key][i];
+                    const newShape = {};
+                    for (const prop in shape) {
+                        if (shape.hasOwnProperty(prop)) {
+                            const value = shape[prop];
+                            if (typeof value !== 'object' || value === null) {
+                                newShape[prop] = value;
+                            }
+                        }
+                    }
+                    saveState[key].push(newShape);
+                }
+            });
+            redoStack.push(saveState);
+            
+            const lastState = history.pop();
+            Object.keys(shapes).forEach(key => shapes[key] = lastState[key] || []);
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        function redoLastAction() {
+            if (redoStack.length === 0) return;
+            // 简化重做操作，直接恢复基本形状数据
+            const saveState = {};
+            Object.keys(shapes).forEach(key => {
+                saveState[key] = [];
+                for (let i = 0; i < shapes[key].length; i++) {
+                    const shape = shapes[key][i];
+                    const newShape = {};
+                    for (const prop in shape) {
+                        if (shape.hasOwnProperty(prop)) {
+                            const value = shape[prop];
+                            if (typeof value !== 'object' || value === null) {
+                                newShape[prop] = value;
+                            }
+                        }
+                    }
+                    saveState[key].push(newShape);
+                }
+            });
+            history.push(saveState);
+            
+            const nextState = redoStack.pop();
+            Object.keys(shapes).forEach(key => shapes[key] = nextState[key] || []);
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+
+        // 清空/删除（清空重置标签，删除更新指针）
+        function clearCanvas() {
+            saveHistory();
+            Object.keys(shapes).forEach(key => shapes[key] = []);
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        // 检查线段的两个端点是否在同一条直线上
+        function arePointsOnSameLine(p1, p2) {
+            if (!p1.parentLine || !p2.parentLine) return false;
+            return p1.parentLine === p2.parentLine;
+        }
+        
+        // 删除线时，同时删除线上的点和相关线段
+        function deleteLineAndChildren(line) {
+            // 删除线上的点
+            if (line.pointsOnLine) {
+                line.pointsOnLine.forEach(point => {
+                    const idx = shapes.points.indexOf(point);
+                    if (idx !== -1) {
+                        shapes.points.splice(idx, 1);
+                        // 删除与该点相关的线段
+                        shapes.lines.forEach((segment, i) => {
+                            if (segment.p1 === point || segment.p2 === point) {
+                                shapes.lines.splice(i, 1);
+                            }
+                        });
+                    }
+                });
+                line.pointsOnLine = [];
+            }
+            
+            // 删除中点
+            if (line.midpoints) {
+                line.midpoints.forEach(midpoint => {
+                    const idx = shapes.points.indexOf(midpoint);
+                    if (idx !== -1) shapes.points.splice(idx, 1);
+                });
+                line.midpoints = [];
+            }
+            
+            // 删除交点
+            if (line.intersections) {
+                line.intersections.forEach(intersection => {
+                    const idx = shapes.points.indexOf(intersection);
+                    if (idx !== -1) shapes.points.splice(idx, 1);
+                });
+                line.intersections = [];
+            }
+            
+            // 删除构造线
+            if (line.constructedLines) {
+                line.constructedLines.forEach(constructedLine => {
+                    const idx = shapes.lines.indexOf(constructedLine);
+                    if (idx !== -1) shapes.lines.splice(idx, 1);
+                });
+                line.constructedLines = [];
+            }
+            
+            // 删除子对象
+            if (line.children) {
+                line.children.forEach(child => {
+                    const idx = shapes.lines.indexOf(child);
+                    if (idx !== -1) shapes.lines.splice(idx, 1);
+                });
+                line.children = [];
+            }
+        }
+        
+        function deleteSelected() {
+            if (selectedObjects.length === 0) return;
+            saveHistory();
+            
+            // 先收集所有要删除的线，然后处理它们的子对象
+            const linesToDelete = [];
+            selectedObjects.forEach(({type, shape}) => {
+                if (type === 'lines' || type === 'dashes') {
+                    linesToDelete.push(shape);
+                }
+            });
+            
+            // 删除线及其子对象
+            linesToDelete.forEach(line => {
+                deleteLineAndChildren(line);
+            });
+            
+            // 删除选中的对象
+            selectedObjects.forEach(({type, shape}) => {
+                const arr = shapes[type + 's'] || shapes[type];
+                const idx = arr.indexOf(shape);
+                if(idx !== -1) arr.splice(idx, 1);
+            });
+            
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+
+        // 标签输入（仅允许大写字母）
+        function handleLabelInput(e) {
+            const char = e.target.value.toUpperCase();
+            if (char.length > 0 && /^[A-Z]$/.test(char)) {
+                saveHistory();
+                shapes.labels.push({x: labelPosition.x, y: labelPosition.y, content: char, fontSize: 16});
+                redrawCanvas();
+                labelInput.value = '';
+                labelInputContainer.style.display = 'none';
+            }
+        }
+
+        // 获取坐标（兼容所有设备）
+        function getPosition(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            if(e.touches && e.touches.length>0) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+            return {x, y};
+        }
+
+        // 更新构造菜单项的状态
+        function updateConstructMenuStatus() {
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            const hasTwoPoints = selectedPoints.length === 2;
+            const hasOnePoint = selectedPoints.length === 1;
+            
+            // 检查是否选中了一条线段
+            const selectedLines = selectedObjects.filter(obj => ['lines','dashes'].includes(obj.type));
+            const hasOneLine = selectedLines.length === 1;
+            const hasTwoLines = selectedLines.length === 2;
+            
+            // 检查是否同时选中了一个点和一条线
+            const hasPointAndLine = hasOnePoint && hasOneLine;
+            
+            // 更新构造线段、射线、直线的状态
+            makeSegment.style.color = hasTwoPoints ? '#2c3e50' : '#999';
+            makeSegment.style.cursor = hasTwoPoints ? 'pointer' : 'not-allowed';
+            makeSegment.style.pointerEvents = hasTwoPoints ? 'auto' : 'none';
+            
+            makeRay.style.color = hasTwoPoints ? '#2c3e50' : '#999';
+            makeRay.style.cursor = hasTwoPoints ? 'pointer' : 'not-allowed';
+            makeRay.style.pointerEvents = hasTwoPoints ? 'auto' : 'none';
+            
+            makeLine.style.color = hasTwoPoints ? '#2c3e50' : '#999';
+            makeLine.style.cursor = hasTwoPoints ? 'pointer' : 'not-allowed';
+            makeLine.style.pointerEvents = hasTwoPoints ? 'auto' : 'none';
+            
+            // 更新构造中点和线上点的状态（只需要一条线）
+            makeMidpoint.style.color = hasOneLine ? '#2c3e50' : '#999';
+            makeMidpoint.style.cursor = hasOneLine ? 'pointer' : 'not-allowed';
+            makeMidpoint.style.pointerEvents = hasOneLine ? 'auto' : 'none';
+            
+            makePointOnLine.style.color = hasOneLine ? '#2c3e50' : '#999';
+            makePointOnLine.style.cursor = hasOneLine ? 'pointer' : 'not-allowed';
+            makePointOnLine.style.pointerEvents = hasOneLine ? 'auto' : 'none';
+            
+            makePointOnRay.style.color = hasOneLine ? '#2c3e50' : '#999';
+            makePointOnRay.style.cursor = hasOneLine ? 'pointer' : 'not-allowed';
+            makePointOnRay.style.pointerEvents = hasOneLine ? 'auto' : 'none';
+            
+            makePointOnInfiniteLine.style.color = hasOneLine ? '#2c3e50' : '#999';
+            makePointOnInfiniteLine.style.cursor = hasOneLine ? 'pointer' : 'not-allowed';
+            makePointOnInfiniteLine.style.pointerEvents = hasOneLine ? 'auto' : 'none';
+            
+            // 更新构造交点的状态（需要两条线）
+            makeIntersection.style.color = hasTwoLines ? '#2c3e50' : '#999';
+            makeIntersection.style.cursor = hasTwoLines ? 'pointer' : 'not-allowed';
+            makeIntersection.style.pointerEvents = hasTwoLines ? 'auto' : 'none';
+            
+            // 更新构造垂线和平行线的状态（需要一个点和一条线）
+            makeVertical.style.color = hasPointAndLine ? '#2c3e50' : '#999';
+            makeVertical.style.cursor = hasPointAndLine ? 'pointer' : 'not-allowed';
+            makeVertical.style.pointerEvents = hasPointAndLine ? 'auto' : 'none';
+            
+            makeParallel.style.color = hasPointAndLine ? '#2c3e50' : '#999';
+            makeParallel.style.cursor = hasPointAndLine ? 'pointer' : 'not-allowed';
+            makeParallel.style.pointerEvents = hasPointAndLine ? 'auto' : 'none';
+        }
+        
+        // 精准选择
+        function selectObjectAtPoint(pos) {
+            // 先检查端点，优先选择端点
+            let found = false;
+            // 遍历所有点，检查是否有端点在鼠标位置附近
+            for(let i = shapes.points.length-1; i >= 0; i--) {
+                const point = shapes.points[i];
+                if(isPointInShape(pos, point, 'points')) {
+                    const existingIdx = selectedObjects.findIndex(item => item.shape === point);
+                    if (!shiftKeyPressed) selectedObjects = [];
+                    if(existingIdx === -1) selectedObjects.push({type: 'points', shape: point});
+                    else selectedObjects.splice(existingIdx, 1);
+                    found = true;
+                    break;
+                }
+            }
+            
+            // 如果没有找到端点，再检查其他类型
+            if(!found) {
+                const types = ['labels','measures','penPaths','circles','rectangles','isoTriangles','rightTriangles','dashes','lines'];
+                for(let type of types) {
+                    for(let i = shapes[type].length-1; i >= 0; i--) {
+                        const shape = shapes[type][i];
+                        if(isPointInShape(pos, shape, type)) {
+                            const existingIdx = selectedObjects.findIndex(item => item.shape === shape);
+                            if (!shiftKeyPressed) selectedObjects = [];
+                            if(existingIdx === -1) selectedObjects.push({type, shape});
+                            else selectedObjects.splice(existingIdx, 1);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(found) break;
+                }
+            }
+            
+            if(!found && !shiftKeyPressed) selectedObjects = [];
+            
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+        }
+        function selectObjectsInRect(rect) {
+            // 恢复默认类型顺序，确保所有工具都能正常工作
+            const types = ['labels','measures','penPaths','circles','rectangles','isoTriangles','rightTriangles','dashes','lines','points'];
+            if(!shiftKeyPressed) selectedObjects = [];
+            for(let type of types) {
+                for(let shape of shapes[type]) {
+                    if(isShapeInRect(shape, type, rect) && !selectedObjects.some(item=>item.shape===shape)) {
+                        selectedObjects.push({type, shape});
+                    }
+                }
+            }
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+        }
+
+        // 碰撞检测
+        function isPointInShape(pos, shape, type) {
+            const tolerance = 5;
+            switch(type) {
+                case 'points': return Math.abs(pos.x-shape.x)<=tolerance && Math.abs(pos.y-shape.y)<=tolerance;
+                case 'lines': case 'dashes': return linePointDistance(pos, shape) <= tolerance;
+                case 'rectangles': return pos.x>=shape.x-tolerance && pos.x<=shape.x+shape.width+tolerance && pos.y>=shape.y-tolerance && pos.y<=shape.y+shape.height+tolerance;
+                case 'circles': return Math.sqrt((pos.x-shape.x)**2 + (pos.y-shape.y)**2) <= shape.radius + tolerance;
+                case 'rightTriangles': case 'isoTriangles': return pointInTriangle(pos, shape);
+                case 'labels': case 'measures': return pos.x>=shape.x-15 && pos.x<=shape.x+15 && pos.y>=shape.y-15 && pos.y<=shape.y+15;
+                case 'penPaths': return penPathPointDistance(pos, shape) <= tolerance;
+                default: return false;
+            }
+        }
+        function isShapeInRect(shape, type, rect) {
+            const {x: rectX, y: rectY, width: rectW, height: rectH} = rect;
+            const rectRight = rectX + rectW;
+            const rectBottom = rectY + rectH;
+            switch(type) {
+                case 'points': return shape.x >= rectX && shape.x <= rectRight && shape.y >= rectY && shape.y <= rectBottom;
+                case 'lines': case 'dashes': return (shape.x1>=rectX&&shape.x1<=rectRight&&shape.y1>=rectY&&shape.y1<=rectBottom)||(shape.x2>=rectX&&shape.x2<=rectRight&&shape.y2>=rectY&&shape.y2<=rectBottom);
+                case 'rectangles': return shape.x>=rectX && shape.x+shape.width<=rectRight && shape.y>=rectY && shape.y+shape.height<=rectBottom;
+                case 'circles': return shape.x-shape.radius>=rectX && shape.x+shape.radius<=rectRight && shape.y-shape.radius>=rectY && shape.y+shape.radius<=rectBottom;
+                case 'rightTriangles': case 'isoTriangles': return (shape.x1>=rectX||shape.x2>=rectX||shape.x3>=rectX) && (shape.x1<=rectRight||shape.x2<=rectRight||shape.x3<=rectRight) && (shape.y1>=rectY||shape.y2>=rectY||shape.y3>=rectY) && (shape.y1<=rectBottom||shape.y2<=rectBottom||shape.y3<=rectBottom);
+                case 'labels': case 'measures': return shape.x>=rectX && shape.x<=rectRight && shape.y>=rectY && shape.y<=rectBottom;
+                case 'penPaths': return shape.points.some(p=>p.x>=rectX&&p.x<=rectRight&&p.y>=rectY&&p.y<=rectBottom);
+                default: return false;
+            }
+        }
+
+        // 辅助计算
+        function linePointDistance(pos, line) {
+            const {x1,y1,x2,y2} = line;
+            const dx = x2-x1, dy = y2-y1;
+            const len2 = dx*dx + dy*dy;
+            if(len2 === 0) return Math.sqrt((pos.x-x1)**2 + (pos.y-y1)**2);
+            
+            let t = ((pos.x-x1)*dx + (pos.y-y1)*dy)/len2;
+            
+            // 对于线段，限制t在0-1之间；对于射线和直线，不限制t的范围
+            const lineType = line.shapeType || 'segment';
+            if (lineType === 'segment') {
+                t = Math.max(0, Math.min(1, t));
+            }
+            
+            const x = x1 + t*dx, y = y1 + t*dy;
+            return Math.sqrt((pos.x-x)**2 + (pos.y-y)**2);
+        }
+        function pointInTriangle(pos, tri) {
+            const {x1,y1,x2,y2,x3,y3} = tri;
+            const area = Math.abs((x2-x1)*(y3-y1)-(y2-y1)*(x3-x1))/2;
+            const a1 = Math.abs((x1-pos.x)*(y2-pos.y)-(y1-pos.y)*(x2-pos.x))/2;
+            const a2 = Math.abs((x2-pos.x)*(y3-pos.y)-(y2-pos.y)*(x3-pos.x))/2;
+            const a3 = Math.abs((x3-pos.x)*(y1-pos.y)-(y3-pos.y)*(x1-pos.x))/2;
+            return Math.abs(a1+a2+a3 - area) < 1;
+        }
+        function penPathPointDistance(pos, path) {
+            for(let i=0; i<path.points.length-1; i++) {
+                const line = {x1:path.points[i].x, y1:path.points[i].y, x2:path.points[i+1].x, y2:path.points[i+1].y};
+                if(linePointDistance(pos, line) <= 5) return true;
+            }
+            return false;
+        }
+
+        // 更新所有构造线的位置
+        function updateConstructedLines() {
+            // 1. 先更新线上的点和交点的位置
+            shapes.points.forEach(point => {
+                if (point.parentLine) {
+                    // 线上的点
+                    const line = point.parentLine;
+                    // 保存原始标签位置与点位置的偏移量
+                    const originalOffsetX = point.originalLabelOffsetX || (point.labelX - point.x);
+                    const originalOffsetY = point.originalLabelOffsetY || (point.labelY - point.y);
+                    
+                    // 根据参数t更新点的位置
+                    point.x = line.x1 + point.lineParam * (line.x2 - line.x1);
+                    point.y = line.y1 + point.lineParam * (line.y2 - line.y1);
+                    
+                    // 根据偏移量更新标签位置
+                    point.labelX = point.x + originalOffsetX;
+                    point.labelY = point.y + originalOffsetY;
+                    
+                    // 保存偏移量，确保下次更新时保持一致
+                    point.originalLabelOffsetX = originalOffsetX;
+                    point.originalLabelOffsetY = originalOffsetY;
+                } else if (point.parentLines) {
+                    // 两条线的交点
+                    const [line1, line2] = point.parentLines;
+                    // 计算新的交点位置
+                    const intersection = calculateIntersection(line1, line2);
+                    if (intersection) {
+                        // 保存原始标签位置与点位置的偏移量
+                        const originalOffsetX = point.originalLabelOffsetX || (point.labelX - point.x);
+                        const originalOffsetY = point.originalLabelOffsetY || (point.labelY - point.y);
+                        
+                        // 更新交点位置
+                        point.x = intersection.x;
+                        point.y = intersection.y;
+                        
+                        // 根据偏移量更新标签位置
+                        point.labelX = point.x + originalOffsetX;
+                        point.labelY = point.y + originalOffsetY;
+                        
+                        // 保存偏移量，确保下次更新时保持一致
+                        point.originalLabelOffsetX = originalOffsetX;
+                        point.originalLabelOffsetY = originalOffsetY;
+                    }
+                }
+            });
+            
+            // 2. 再更新线段的位置
+            shapes.lines.forEach(line => {
+                if (line.type === 'vertical' || line.type === 'parallel') {
+                    const parentLine = line.parentLine;
+                    const parentPoint = line.parentPoint;
+                    
+                    if (parentLine && parentPoint) {
+                        // 计算方向向量
+                        const dx = parentLine.x2 - parentLine.x1;
+                        const dy = parentLine.y2 - parentLine.y1;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const nx = dx / length;
+                        const ny = dy / length;
+                        
+                        const scale = 1000;
+                        
+                        if (line.type === 'vertical') {
+                            // 更新垂线
+                            line.x1 = parentPoint.x - ny * scale;
+                            line.y1 = parentPoint.y + nx * scale;
+                            line.x2 = parentPoint.x + ny * scale;
+                            line.y2 = parentPoint.y - nx * scale;
+                        } else if (line.type === 'parallel') {
+                            // 更新平行线
+                            line.x1 = parentPoint.x - nx * scale;
+                            line.y1 = parentPoint.y - ny * scale;
+                            line.x2 = parentPoint.x + nx * scale;
+                            line.y2 = parentPoint.y + ny * scale;
+                        }
+                    }
+                } else if (line.parentLine) {
+                    // 线段在另一条直线上，直接使用端点位置，端点会自动更新
+                    line.x1 = line.p1.x;
+                    line.y1 = line.p1.y;
+                    line.x2 = line.p2.x;
+                    line.y2 = line.p2.y;
+                } else if (line.p1 && line.p2) {
+                    // 普通线段，直接使用端点位置
+                    line.x1 = line.p1.x;
+                    line.y1 = line.p1.y;
+                    line.x2 = line.p2.x;
+                    line.y2 = line.p2.y;
+                }
+            });
+        }
+        
+        // 拖拽移动（双向联动：点动更新线段，线段动更新端点）
+        function moveSelectedObjects(dx, dy) {
+            selectedObjects.forEach(({type, shape}) => {
+                switch(type) {
+                    case 'points': 
+                        if (shape.parentLine) {
+                            // 线上的点，根据线的类型限制移动范围
+                            const line = shape.parentLine;
+                            
+                            // 计算线段的方向向量
+                            const lineDx = line.x2 - line.x1;
+                            const lineDy = line.y2 - line.y1;
+                            const lineLength = Math.sqrt(lineDx * lineDx + lineDy * lineDy);
+                            
+                            // 计算拖拽向量
+                            const dragDx = dx;
+                            const dragDy = dy;
+                            
+                            // 计算拖拽向量在线段方向上的投影长度
+                            const projection = (dragDx * lineDx + dragDy * lineDy) / lineLength;
+                            
+                            // 计算新的参数t
+                            const deltaT = projection / lineLength;
+                            let newT = shape.lineParam + deltaT;
+                            
+                            // 根据线的类型限制t的范围
+                            const lineType = line.shapeType || 'segment';
+                            switch (lineType) {
+                                case 'segment':
+                                    // 线段：t在0-1之间
+                                    newT = Math.max(0, Math.min(1, newT));
+                                    break;
+                                case 'ray':
+                                    // 射线：t >= 0
+                                    newT = Math.max(0, newT);
+                                    break;
+                                case 'line':
+                                    // 直线：t为任意实数，不限制
+                                    break;
+                            }
+                            
+                            // 更新参数t
+                            shape.lineParam = newT;
+                        } else {
+                            // 普通点，自由移动
+                            shape.x += dx;
+                            shape.y += dy;
+                            shape.labelX = (shape.labelX || shape.x) + dx;
+                            shape.labelY = (shape.labelY || shape.y) + dy;
+                            
+                            // 更新所有与该点相关的线段
+                            shapes.lines.forEach(line => {
+                                if (line.p1 === shape) {
+                                    line.x1 = shape.x;
+                                    line.y1 = shape.y;
+                                    // 更新线段的中点
+                                    if(line.midpoints) {
+                                        line.midpoints.forEach(midpoint => {
+                                            midpoint.x = (line.x1 + line.x2) / 2;
+                                            midpoint.y = (line.y1 + line.y2) / 2;
+                                            midpoint.labelX = midpoint.x;
+                                            midpoint.labelY = midpoint.y - 15;
+                                        });
+                                    }
+                                }
+                                if (line.p2 === shape) {
+                                    line.x2 = shape.x;
+                                    line.y2 = shape.y;
+                                    // 更新线段的中点
+                                    if(line.midpoints) {
+                                        line.midpoints.forEach(midpoint => {
+                                            midpoint.x = (line.x1 + line.x2) / 2;
+                                            midpoint.y = (line.y1 + line.y2) / 2;
+                                            midpoint.labelX = midpoint.x;
+                                            midpoint.labelY = midpoint.y - 15;
+                                        });
+                                    }
+                                }
+                            });
+                            shapes.dashes.forEach(line => {
+                                if (line.p1 === shape) {
+                                    line.x1 = shape.x;
+                                    line.y1 = shape.y;
+                                    // 更新线段的中点
+                                    if(line.midpoints) {
+                                        line.midpoints.forEach(midpoint => {
+                                            midpoint.x = (line.x1 + line.x2) / 2;
+                                            midpoint.y = (line.y1 + line.y2) / 2;
+                                            midpoint.labelX = midpoint.x;
+                                            midpoint.labelY = midpoint.y - 15;
+                                        });
+                                    }
+                                }
+                                if (line.p2 === shape) {
+                                    line.x2 = shape.x;
+                                    line.y2 = shape.y;
+                                    // 更新线段的中点
+                                    if(line.midpoints) {
+                                        line.midpoints.forEach(midpoint => {
+                                            midpoint.x = (line.x1 + line.x2) / 2;
+                                            midpoint.y = (line.y1 + line.y2) / 2;
+                                            midpoint.labelX = midpoint.x;
+                                            midpoint.labelY = midpoint.y - 15;
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        break;
+                    
+                    case 'lines': case 'dashes': 
+                        // 先更新线段本身的坐标
+                        shape.x1 += dx;
+                        shape.y1 += dy;
+                        shape.x2 += dx;
+                        shape.y2 += dy;
+                        
+                        // 然后更新其两个端点
+                        if (shape.p1) {
+                            shape.p1.x += dx;
+                            shape.p1.y += dy;
+                            shape.p1.labelX += dx;
+                            shape.p1.labelY += dy;
+                        }
+                        if (shape.p2) {
+                            shape.p2.x += dx;
+                            shape.p2.y += dy;
+                            shape.p2.labelX += dx;
+                            shape.p2.labelY += dy;
+                        }
+                        
+                        // 更新线段的中点
+                        if(shape.midpoints) {
+                            shape.midpoints.forEach(midpoint => {
+                                midpoint.x = (shape.x1 + shape.x2) / 2;
+                                midpoint.y = (shape.y1 + shape.y2) / 2;
+                                midpoint.labelX = midpoint.x;
+                                midpoint.labelY = midpoint.y - 15;
+                            });
+                        }
+                        break;
+                    
+                    case 'rectangles': shape.x += dx; shape.y += dy; break;
+                    case 'circles': shape.x += dx; shape.y += dy; break;
+                    case 'rightTriangles': case 'isoTriangles': 
+                        shape.x1 += dx; shape.y1 += dy;
+                        shape.x2 += dx; shape.y2 += dy;
+                        shape.x3 += dx; shape.y3 += dy; break;
+                    case 'labels': case 'measures': shape.x += dx; shape.y += dy; break;
+                    case 'penPaths': shape.points.forEach(p => {p.x += dx; p.y += dy;}); break;
+                }
+            });
+            
+            // 更新所有构造线和线上的点
+            updateConstructedLines();
+        }
+
+        // 选中边框
+        function drawSelectionBorder(type, shape) {
+            ctx.save();
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3,2]);
+            switch(type) {
+                case 'points': ctx.beginPath();ctx.arc(shape.x, shape.y, 8, 0, 2*Math.PI);ctx.stroke();break;
+                case 'lines': case 'dashes': ctx.beginPath();ctx.moveTo(shape.x1, shape.y1);ctx.lineTo(shape.x2, shape.y2);ctx.stroke();break;
+                case 'rectangles': ctx.strokeRect(shape.x-2, shape.y-2, shape.width+4, shape.height+4);break;
+                case 'circles': ctx.beginPath();ctx.arc(shape.x, shape.y, shape.radius+2, 0, 2*Math.PI);ctx.stroke();break;
+                case 'rightTriangles': case 'isoTriangles': ctx.beginPath();ctx.moveTo(shape.x1, shape.y1);ctx.lineTo(shape.x2, shape.y2);ctx.lineTo(shape.x3, shape.y3);ctx.closePath();ctx.stroke();break;
+                case 'labels': case 'measures': ctx.strokeRect(shape.x-12, shape.y-16, 24, 20);break;
+                case 'penPaths': ctx.beginPath();shape.points.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();break;
+            }
+            ctx.restore();
+        }
+
+        // 检查鼠标下的线
+        function checkMouseOverLine(pos) {
+            if (currentTool !== 'point') {
+                mouseOverLine = null;
+                return;
+            }
+            
+            // 遍历所有线段，检查是否在鼠标下
+            const types = ['lines', 'dashes'];
+            for (let type of types) {
+                for (let i = shapes[type].length - 1; i >= 0; i--) {
+                    const line = shapes[type][i];
+                    if (isPointInShape(pos, line, type)) {
+                        mouseOverLine = {shape: line, type: type};
+                        return;
+                    }
+                }
+            }
+            mouseOverLine = null;
+        }
+        
+        // 检查鼠标是否在标签上
+        function isMouseOnLabel(pos, point) {
+            if (!point.label) return false;
+            // 计算标签的位置
+            const labelX = point.labelX || point.x;
+            const labelY = point.labelY || point.y;
+            // 计算点的位置
+            const pointX = point.x;
+            const pointY = point.y;
+            
+            // 检查鼠标是否在标签区域内，但排除点本身的位置
+            // 点本身的点击应该优先触发点拖动，而不是标签拖动
+            const isOnPoint = Math.abs(pos.x - pointX) <= 5 && Math.abs(pos.y - pointY) <= 5;
+            const isOnLabel = Math.abs(pos.x - labelX) <= 15 && Math.abs(pos.y - labelY) <= 15;
+            
+            return isOnLabel && !isOnPoint;
+        }
+        
+        // 开始绘制（无逻辑漏洞）
+        function startDrawing(e) {
+            // 重置绘图状态，确保不受之前操作影响
+            isDrawing = false;
+            currentShape = null;
+            
+            e.preventDefault();
+            shiftKeyPressed = e.shiftKey || shiftKeyPressed;
+            const pos = getPosition(e);
+            
+            if(currentTool === 'select') {
+                isSelecting = true;
+                selectStartPos = {...pos};
+                isDragging = false;
+                isDraggingLabel = false;
+                
+                // 检查是否点击了标签
+                for (let i = shapes.points.length - 1; i >= 0; i--) {
+                    const point = shapes.points[i];
+                    if (isMouseOnLabel(pos, point)) {
+                        isDraggingLabel = true;
+                        draggedLabel = point;
+                        // 计算初始半径
+                        const dx = point.labelX - point.x;
+                        const dy = point.labelY - point.y;
+                        labelDragRadius = Math.sqrt(dx * dx + dy * dy);
+                        return;
+                    }
+                }
+                
+                // 检查是否点击了点
+                let clickedPoint = null;
+                for (let i = shapes.points.length - 1; i >= 0; i--) {
+                    const point = shapes.points[i];
+                    if (Math.abs(pos.x - point.x) <= 5 && Math.abs(pos.y - point.y) <= 5) {
+                        clickedPoint = point;
+                        break;
+                    }
+                }
+                
+                if (clickedPoint) {
+                    // 处理点的选择，考虑Shift键状态
+                    const existingIdx = selectedObjects.findIndex(item => item.shape === clickedPoint);
+                    if (!shiftKeyPressed) selectedObjects = [];
+                    
+                    // 如果已经选中，则取消选择；否则添加到选中列表
+                    if (existingIdx === -1) {
+                        selectedObjects.push({type: 'points', shape: clickedPoint});
+                    } else {
+                        selectedObjects.splice(existingIdx, 1);
+                    }
+                    
+                    deleteButton.style.display = selectedObjects.length > 0 ? 'block' : 'none';
+                    // 标记为准备拖动
+                    isDragging = selectedObjects.length > 0;
+                    selectionBox.style.display = 'none';
+                    
+                    // 更新构造菜单项状态
+                    updateConstructMenuStatus();
+                    
+                    redrawCanvas();
+                    return;
+                }
+                
+                // 先不选择对象，等拖动开始后再判断是框选还是拖动对象
+                selectedObjects = [];
+                selectionBox.style.display = 'block';
+                selectionBox.style.left = `${pos.x + canvas.offsetLeft}px`;
+                selectionBox.style.top = `${pos.y + canvas.offsetTop}px`;
+                selectionBox.style.width = '0px';
+                selectionBox.style.height = '0px';
+                redrawCanvas();
+                return;
+            }
+            
+            isDrawing = true;
+            currentShape = null;
+            
+            try {
+                saveHistory();
+            } catch (error) {
+                console.error('保存历史记录失败:', error);
+                // 即使保存历史记录失败，也要继续执行绘图操作
+            }
+            
+            switch(currentTool) {
+                case 'point': 
+                    const newLabel = getNextLabelChar();
+                    if (mouseOverLine) {
+                        // 在线上创建点
+                        const line = mouseOverLine.shape;
+                        
+                        // 计算点在线上的参数t
+                        const lineDx = line.x2 - line.x1;
+                        const lineDy = line.y2 - line.y1;
+                        const lineLength = Math.sqrt(lineDx * lineDx + lineDy * lineDy);
+                        const dx = pos.x - line.x1;
+                        const dy = pos.y - line.y1;
+                        const t = (dx * lineDx + dy * lineDy) / (lineLength * lineLength);
+                        
+                        // 创建点并保存关联关系
+                        const x = line.x1 + t * lineDx;
+                        const y = line.y1 + t * lineDy;
+                        const point = addPointWithOuterLabel(x, y, newLabel);
+                        point.parentLine = line;
+                        point.lineParam = t;
+                        
+                        // 保存线段对点的引用
+                        if (!line.pointsOnLine) line.pointsOnLine = [];
+                        line.pointsOnLine.push(point);
+                    } else {
+                        // 普通点，自由移动
+                        addPointWithOuterLabel(pos.x, pos.y, newLabel);
+                    }
+                    isDrawing = false;
+                    redrawCanvas();
+                    break;
+                case 'pen': 
+                    currentShape = {points:[{...pos}]};
+                    shapes.penPaths.push(currentShape);
+                    break;
+                case 'line': 
+                    currentShape = {x1:pos.x, y1:pos.y, x2:pos.x, y2:pos.y, shapeType: 'line'};
+                    shapes.lines.push(currentShape);
+                    break;
+                case 'dash': 
+                    currentShape = {x1:pos.x, y1:pos.y, x2:pos.x, y2:pos.y, shapeType: 'dash'};
+                    shapes.dashes.push(currentShape);
+                    break;
+                case 'rectangle': 
+                    currentShape = {x:pos.x, y:pos.y, width:0, height:0};
+                    shapes.rectangles.push(currentShape);
+                    break;
+                case 'circle': 
+                    currentShape = {x:pos.x, y:pos.y, radius:0};
+                    shapes.circles.push(currentShape);
+                    break;
+                case 'rightTriangle': 
+                    currentShape = {x1:pos.x, y1:pos.y, x2:pos.x, y2:pos.y, x3:pos.x, y3:pos.y};
+                    shapes.rightTriangles.push(currentShape);
+                    break;
+                case 'isoTriangle': 
+                    currentShape = {x1:pos.x, y1:pos.y, x2:pos.x, y2:pos.y, x3:pos.x, y3:pos.y};
+                    shapes.isoTriangles.push(currentShape);
+                    break;
+                case 'label': 
+                    labelPosition = pos;
+                    labelInputContainer.style.display = 'block';
+                    labelInputContainer.style.left = `${pos.x + canvas.offsetLeft + 10}px`;
+                    labelInputContainer.style.top = `${pos.y + canvas.offsetTop - 10}px`;
+                    labelInput.focus();
+                    isDrawing = false;
+                    break;
+                case 'eraser': 
+                    eraseAtPoint(pos); 
+                    redrawCanvas(); 
+                    break;
+                case 'measure': 
+                    measureAtPoint(pos); 
+                    redrawCanvas(); 
+                    break;
+            }
+        }
+        
+        // 鼠标/触摸移动事件，用于跟踪鼠标下的线
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPosition(e);
+            mousePosition = pos;
+            checkMouseOverLine(pos);
+            if (currentTool === 'point') {
+                redrawCanvas();
+            }
+        });
+        
+        // 添加触摸移动事件监听器，用于跟踪触摸下的线
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const pos = getPosition(e);
+            mousePosition = pos;
+            checkMouseOverLine(pos);
+            if (currentTool === 'point') {
+                redrawCanvas();
+            }
+        });
+
+        // 绘制中
+        function drawShape(e) {
+            e.preventDefault();
+            const pos = getPosition(e);
+            if(currentTool === 'select') {
+                if(isSelecting && !isDraggingLabel) {
+                    // 检查是否需要开始拖动或更新选择框
+                    if(!isDragging) {
+                        // 计算移动距离，判断是拖动还是框选
+                        const dx = pos.x - selectStartPos.x;
+                        const dy = pos.y - selectStartPos.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // 如果移动距离很小，可能是点击选择，不启动框选
+                        if(distance > 5) {
+                            // 更新选择框位置和大小
+                            const x = Math.min(pos.x, selectStartPos.x);
+                            const y = Math.min(pos.y, selectStartPos.y);
+                            selectionBox.style.left = `${x + canvas.offsetLeft}px`;
+                            selectionBox.style.top = `${y + canvas.offsetTop}px`;
+                            selectionBox.style.width = `${Math.abs(pos.x - selectStartPos.x)}px`;
+                            selectionBox.style.height = `${Math.abs(pos.y - selectStartPos.y)}px`;
+                        }
+                    } else if(selectedObjects.length>0) {
+                        // 拖动选中的对象
+                        const dx = pos.x - selectStartPos.x;
+                        const dy = pos.y - selectStartPos.y;
+                        moveSelectedObjects(dx, dy);
+                        selectStartPos = {...pos};
+                        redrawCanvas();
+                    }
+                } else if(isDraggingLabel && draggedLabel) {
+                    // 标签拖动逻辑 - 限制标签只能在点的附近活动
+                    const point = draggedLabel;
+                    const pointX = point.x;
+                    const pointY = point.y;
+                    
+                    // 计算鼠标位置相对于点的向量
+                    const dx = pos.x - pointX;
+                    const dy = pos.y - pointY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // 设置标签拖动的最小和最大距离
+                    const minDistance = 15; // 最小距离，避免太近压线或压点
+                    const maxDistance = 50; // 最大距离，限制标签活动范围
+                    
+                    let newDistance = distance;
+                    // 限制距离在最小和最大之间
+                    if (distance < minDistance) {
+                        newDistance = minDistance;
+                    } else if (distance > maxDistance) {
+                        newDistance = maxDistance;
+                    }
+                    
+                    // 计算新的标签位置
+                    let newLabelX, newLabelY;
+                    if (distance === 0) {
+                        // 避免除以零，默认向上偏移
+                        newLabelX = pointX;
+                        newLabelY = pointY - newDistance;
+                    } else {
+                        // 保持方向不变，调整距离
+                        const ratio = newDistance / distance;
+                        newLabelX = pointX + dx * ratio;
+                        newLabelY = pointY + dy * ratio;
+                    }
+                    
+                    // 更新标签位置
+                    point.labelX = newLabelX;
+                    point.labelY = newLabelY;
+                    redrawCanvas();
+                }
+                return;
+            }
+            if(!isDrawing || !currentShape) return;
+            switch(currentTool) {
+                case 'pen': currentShape.points.push({...pos}); break;
+                case 'line': case 'dash': currentShape.x2 = pos.x; currentShape.y2 = pos.y; break;
+                case 'rectangle': currentShape.width = pos.x - currentShape.x; currentShape.height = pos.y - currentShape.y; break;
+                case 'circle': currentShape.radius = Math.sqrt((pos.x-currentShape.x)**2 + (pos.y-currentShape.y)**2); break;
+                case 'rightTriangle': currentShape.x2 = pos.x; currentShape.y2 = currentShape.y1; currentShape.x3 = currentShape.x1; currentShape.y3 = pos.y; break;
+                case 'isoTriangle': currentShape.x2 = pos.x; currentShape.y2 = currentShape.y1; currentShape.x3 = (currentShape.x1+pos.x)/2; currentShape.y3 = pos.y; break;
+                case 'eraser': eraseAtPoint(pos); redrawCanvas(); break;
+            }
+            redrawCanvas();
+        }
+
+        // 核心：标签严格递增，永不重复（彻底解决BCC、重复B问题）
+        function endDrawing(e) {
+            e.preventDefault();
+            if(currentTool === 'select') {
+                isSelecting = false;
+                isDragging = false;
+                isDraggingLabel = false;
+                draggedLabel = null;
+                
+                const pos = getPosition(e);
+                // 计算选择框的宽高
+                const width = Math.abs(pos.x - selectStartPos.x);
+                const height = Math.abs(pos.y - selectStartPos.y);
+                
+                // 隐藏选择框
+                selectionBox.style.display = 'none';
+                
+                // 只有当selectedObjects为空且有明显的选择框时，才执行框选
+                if(selectedObjects.length === 0) {
+                    const rect = {
+                        x: Math.min(selectStartPos.x, pos.x),
+                        y: Math.min(selectStartPos.y, pos.y),
+                        width: width,
+                        height: height
+                    };
+                    
+                    // 检查是否有明显的选择框
+                    if(width > 5 || height > 5) {
+                        selectObjectsInRect(rect);
+                    } else {
+                        // 点击选择
+                        selectObjectAtPoint(pos);
+                    }
+                }
+                
+                deleteButton.style.display = selectedObjects.length > 0 ? 'block' : 'none';
+                redrawCanvas();
+                return;
+            }
+            isDrawing = false;
+            
+            // 实线/虚线：AB 递增（下一个必是C）
+            if((currentTool === 'line' || currentTool === 'dash') && currentShape) {
+                const label1 = getNextLabelChar();
+                addLineEndpointWithOuterLabel(currentShape.x1, currentShape.y1, currentShape.x2, currentShape.y2, label1);
+                const p1 = shapes.points[shapes.points.length - 1]; // 获取刚添加的第一个端点
+                
+                const label2 = getNextLabelChar();
+                addLineEndpointWithOuterLabel(currentShape.x2, currentShape.y2, currentShape.x1, currentShape.y1, label2);
+                const p2 = shapes.points[shapes.points.length - 1]; // 获取刚添加的第二个端点
+                
+                // 将端点引用保存到线段对象中
+                currentShape.p1 = p1;
+                currentShape.p2 = p2;
+            }
+            
+            // 矩形：ABCD 顺序递增
+            if(currentTool === 'rectangle' && currentShape) {
+                const x = Math.min(currentShape.x, currentShape.x + currentShape.width);
+                const y = Math.min(currentShape.y, currentShape.y + currentShape.height);
+                const width = Math.abs(currentShape.width);
+                const height = Math.abs(currentShape.height);
+                
+                const D_labelX = x - 20; const D_labelY = y + height + 20;
+                const A_labelX = D_labelX; const A_labelY = y - 8;
+                const B_labelX = x + width + 8; const B_labelY = y - 8;
+                const C_labelX = x + width + 8; const C_labelY = D_labelY;
+                
+                const A = getNextLabelChar();
+                shapes.points.push({x:x,y:y,label:A,labelX:A_labelX,labelY:A_labelY});
+                
+                const B = getNextLabelChar();
+                shapes.points.push({x:x+width,y:y,label:B,labelX:B_labelX,labelY:B_labelY});
+                
+                const C = getNextLabelChar();
+                shapes.points.push({x:x+width,y:y+height,label:C,labelX:C_labelX,labelY:C_labelY});
+                
+                const D = getNextLabelChar();
+                shapes.points.push({x:x,y:y+height,label:D,labelX:D_labelX,labelY:D_labelY});
+            }
+            
+            // 直角/等腰三角：ABC 顺序递增（无重复）
+            if((currentTool === 'rightTriangle' || currentTool === 'isoTriangle') && currentShape) {
+                const label1 = getNextLabelChar();
+                addPointWithOuterLabel(currentShape.x1, currentShape.y1, label1);
+                const label2 = getNextLabelChar();
+                addPointWithOuterLabel(currentShape.x2, currentShape.y2, label2);
+                const label3 = getNextLabelChar();
+                addPointWithOuterLabel(currentShape.x3, currentShape.y3, label3);
+            }
+            
+            // 圆形：圆心标签递增
+            if(currentTool === 'circle' && currentShape) {
+                const centerLabel = getNextLabelChar();
+                addPointWithOuterLabel(currentShape.x, currentShape.y, centerLabel);
+            }
+            currentShape = null;
+            redrawCanvas();
+        }
+
+        // 标签递增逻辑（严格按字母顺序，确保唯一）
+        function getNextLabelChar() {
+            // 获取已使用的字母标签集合，忽略非字母标签（如'中点'）
+            const usedLabels = new Set(shapes.points
+                .map(p => p.label)
+                .filter(label => typeof label === 'string' && label.length === 1 && label >= 'A' && label <= 'Z'));
+            
+            // 从'A'开始寻找第一个未使用的字母
+            for(let charCode = 65; charCode <= 90; charCode++) {
+                const nextLabel = String.fromCharCode(charCode);
+                if(!usedLabels.has(nextLabel)) {
+                    return nextLabel;
+                }
+            }
+            
+            // 如果所有字母都已使用，从'A'重新开始
+            return 'A';
+        }
+
+        // 标签外置（不压图形）
+        function addPointWithOuterLabel(x, y, label) {
+            let labelX, labelY;
+            if(y - 15 > 0) {labelX = x; labelY = y - 15;}
+            else if(x + 15 < canvas.width) {labelX = x + 15; labelY = y;}
+            else if(y + 15 < canvas.height) {labelX = x; labelY = y + 15;}
+            else {labelX = x - 15; labelY = y;}
+            const point = {x, y, label, labelX, labelY};
+            shapes.points.push(point);
+            return point;
+        }
+        function addLineEndpointWithOuterLabel(x, y, tx, ty, label) {
+            let labelX = x, labelY = y;
+            const offset = 15;
+            if(Math.abs(y - ty) < 5) {labelY = y - offset; if(labelY <0) labelY = y + offset;}
+            else if(Math.abs(x - tx) < 5) {labelX = x + offset; if(labelX>canvas.width) labelX = x - offset;}
+            else {const dx=x-tx, dy=y-ty, len=Math.sqrt(dx*dx+dy*dy); labelX=x+(dx/len)*offset; labelY=y+(dy/len)*offset;}
+            shapes.points.push({x, y, label, labelX, labelY});
+        }
+
+        // 橡皮功能
+        function eraseAtPoint(pos) {
+            const types = ['penPaths','measures','labels','isoTriangles','rightTriangles','circles','rectangles','dashes','lines','points'];
+            for(let type of types) {
+                for(let i=shapes[type].length-1; i>=0; i--) {
+                    if(isPointInShape(pos, shapes[type][i], type)) {
+                        shapes[type].splice(i,1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 测量功能
+        function measureAtPoint(pos) {
+            let target = null, type = '';
+            const types = ['lines','dashes','rightTriangles','isoTriangles','circles','points'];
+            for(let t of types) {
+                for(let shape of shapes[t]) {
+                    if(isPointInShape(pos, shape, t)) {target=shape; type=t; break;}
+                }
+                if(target) break;
+            }
+            if(!target) return;
+            saveHistory();
+            let content = ''; const x=pos.x+10, y=pos.y-10;
+            switch(type) {
+                case 'lines': case 'dashes': content=`长度=${Math.sqrt(Math.pow(target.x2-target.x1,2)+Math.pow(target.y2-target.y1,2)).toFixed(1)}`; break;
+                case 'circles': content=`半径=${target.radius.toFixed(1)}`; break;
+                case 'rightTriangles': content=`直角边=${Math.sqrt(Math.pow(target.x2-target.x1,2)+Math.pow(target.y2-target.y1,2)).toFixed(1)},${Math.sqrt(Math.pow(target.x3-target.x1,2)+Math.pow(target.y3-target.y1,2)).toFixed(1)}`; break;
+                case 'points': content=`(${target.x.toFixed(0)},${target.y.toFixed(0)})`; break;
+            }
+            shapes.measures.push({x,y,content,fontSize:14});
+            redrawCanvas();
+        }
+
+        // 几何构造
+        function createMidpoint() {
+            if(selectedObjects.length!==1 || !['lines','dashes'].includes(selectedObjects[0].type)) return alert('请先选中一条线段');
+            saveHistory();
+            const line=selectedObjects[0].shape;
+            const midpoint = addPointWithOuterLabel((line.x1+line.x2)/2, (line.y1+line.y2)/2, '中点');
+            // 保存中点与线段的关联关系
+            midpoint.masterLine = line;
+            // 保存线段与中点的关联关系
+            if(!line.midpoints) line.midpoints = [];
+            line.midpoints.push(midpoint);
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        // 在线上构造点
+        function createPointOnLine() {
+            if(selectedObjects.length!==1 || !['lines','dashes'].includes(selectedObjects[0].type)) return alert('请先选中一条线段');
+            saveHistory();
+            const line = selectedObjects[0].shape;
+            
+            // 在线上随机生成一个点（参数t在0到1之间）
+            const t = Math.random();
+            const x = line.x1 + t * (line.x2 - line.x1);
+            const y = line.y1 + t * (line.y2 - line.y1);
+            
+            // 创建点并保存关联关系
+            const label = getNextLabelChar();
+            const point = addPointWithOuterLabel(x, y, label);
+            point.parentLine = line;
+            point.lineParam = t; // 保存点在线上的参数位置
+            
+            // 保存线段对点的引用
+            if(!line.pointsOnLine) line.pointsOnLine = [];
+            line.pointsOnLine.push(point);
+            
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        // 构造射线上的点
+        function createPointOnRay() {
+            if(selectedObjects.length!==1 || !['lines','dashes'].includes(selectedObjects[0].type)) return alert('请先选中一条射线');
+            saveHistory();
+            const line = selectedObjects[0].shape;
+            
+            // 在射线上随机生成一个点（参数t >= 0，因为射线从p1出发向p2方向延伸）
+            const t = Math.random() * 2; // 0到2之间，确保在射线上
+            const x = line.x1 + t * (line.x2 - line.x1);
+            const y = line.y1 + t * (line.y2 - line.y1);
+            
+            // 创建点并保存关联关系
+            const label = getNextLabelChar();
+            const point = addPointWithOuterLabel(x, y, label);
+            point.parentLine = line;
+            point.lineParam = t; // 保存点在线上的参数位置
+            
+            // 保存射线对点的引用
+            if(!line.pointsOnLine) line.pointsOnLine = [];
+            line.pointsOnLine.push(point);
+            
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        // 构造直线上的点
+        function createPointOnInfiniteLine() {
+            if(selectedObjects.length!==1 || !['lines','dashes'].includes(selectedObjects[0].type)) return alert('请先选中一条直线');
+            saveHistory();
+            const line = selectedObjects[0].shape;
+            
+            // 在直线上随机生成一个点（参数t可以是任意实数，因为直线向两个方向无限延伸）
+            const t = (Math.random() - 0.5) * 4; // -2到2之间，确保在直线上
+            const x = line.x1 + t * (line.x2 - line.x1);
+            const y = line.y1 + t * (line.y2 - line.y1);
+            
+            // 创建点并保存关联关系
+            const label = getNextLabelChar();
+            const point = addPointWithOuterLabel(x, y, label);
+            point.parentLine = line;
+            point.lineParam = t; // 保存点在线上的参数位置
+            
+            // 保存直线对点的引用
+            if(!line.pointsOnLine) line.pointsOnLine = [];
+            line.pointsOnLine.push(point);
+            
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        // 计算两条线段的交点
+        function calculateIntersection(line1, line2) {
+            const {x1: x1, y1: y1, x2: x3, y2: y3} = line1;
+            const {x1: x2, y1: y2, x2: x4, y2: y4} = line2;
+            
+            const denominator = (y4 - y2) * (x3 - x1) - (x4 - x2) * (y3 - y1);
+            if (denominator === 0) return null; // 平行线，无交点
+            
+            // 计算交点坐标
+            const ua = ((x4 - x2) * (y1 - y2) - (y4 - y2) * (x1 - x2)) / denominator;
+            const ub = ((x3 - x1) * (y1 - y2) - (y3 - y1) * (x1 - x2)) / denominator;
+            
+            const x = x1 + ua * (x3 - x1);
+            const y = y1 + ua * (y3 - y1);
+            
+            return {x, y};
+        }
+        
+        // 构造两条线的交点
+        function createIntersection() {
+            // 检查是否选中了两条线
+            const selectedLines = selectedObjects.filter(obj => ['lines','dashes'].includes(obj.type));
+            if (selectedLines.length !== 2) {
+                return alert('请先选中两条线段');
+            }
+            saveHistory();
+            const line1 = selectedLines[0].shape;
+            const line2 = selectedLines[1].shape;
+            
+            // 计算交点
+            const intersection = calculateIntersection(line1, line2);
+            if (!intersection) {
+                return alert('两条线段不相交');
+            }
+            
+            // 创建交点
+            const label = getNextLabelChar();
+            const point = addPointWithOuterLabel(intersection.x, intersection.y, label);
+            
+            // 保存关联关系
+            point.parentLines = [line1, line2];
+            
+            // 保存线对交点的引用
+            if (!line1.intersections) line1.intersections = [];
+            line1.intersections.push(point);
+            if (!line2.intersections) line2.intersections = [];
+            line2.intersections.push(point);
+            
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        function createVerticalLine() {
+            // 检查是否选中了一个点和一条线
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            const selectedLines = selectedObjects.filter(obj => ['lines','dashes'].includes(obj.type));
+            if (selectedPoints.length !== 1 || selectedLines.length !== 1) {
+                return alert('请先选中一个点和一条线段');
+            }
+            saveHistory();
+            const point = selectedPoints[0].shape;
+            const line = selectedLines[0].shape;
+            
+            // 计算垂线
+            const dx = line.x2 - line.x1;
+            const dy = line.y2 - line.y1;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const nx = dx / length;
+            const ny = dy / length;
+            
+            // 过点作垂线，延伸适当长度
+            const scale = 10000;
+            const x1 = point.x - ny * scale;
+            const y1 = point.y + nx * scale;
+            const x2 = point.x + ny * scale;
+            const y2 = point.y - nx * scale;
+            
+            // 创建垂线并保存关联关系
+            const verticalLine = {x1, y1, x2, y2, type: 'vertical', shapeType: 'line', parentLine: line, parentPoint: point, visible: true};
+            shapes.lines.push(verticalLine);
+            
+            // 保存子对象引用到父对象
+            if (!line.children) line.children = [];
+            line.children.push(verticalLine);
+            
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        function createParallelLine() {
+            // 检查是否选中了一个点和一条线
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            const selectedLines = selectedObjects.filter(obj => ['lines','dashes'].includes(obj.type));
+            if (selectedPoints.length !== 1 || selectedLines.length !== 1) {
+                return alert('请先选中一个点和一条线段');
+            }
+            saveHistory();
+            const point = selectedPoints[0].shape;
+            const line = selectedLines[0].shape;
+            
+            // 计算平行线
+            const dx = line.x2 - line.x1;
+            const dy = line.y2 - line.y1;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const nx = dx / length;
+            const ny = dy / length;
+            
+            // 过点作平行线，延伸适当长度
+            const scale = 10000;
+            const x1 = point.x - nx * scale;
+            const y1 = point.y - ny * scale;
+            const x2 = point.x + nx * scale;
+            const y2 = point.y + ny * scale;
+            
+            // 创建平行线并保存关联关系
+            const parallelLine = {x1, y1, x2, y2, type: 'parallel', shapeType: 'line', parentLine: line, parentPoint: point, visible: true};
+            shapes.lines.push(parallelLine);
+            
+            // 保存子对象引用到父对象
+            if (!line.children) line.children = [];
+            line.children.push(parallelLine);
+            
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+
+        // 构造线段
+        function createSegment() {
+            // 检查是否选中了两个点
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            if (selectedPoints.length !== 2) {
+                return alert('请先选中两个点');
+            }
+            saveHistory();
+            const p1 = selectedPoints[0].shape;
+            const p2 = selectedPoints[1].shape;
+            
+            // 创建线段
+            const segment = {x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, p1: p1, p2: p2};
+            
+            // 检查两个点是否在同一条线上
+            if (arePointsOnSameLine(p1, p2)) {
+                segment.parentLine = p1.parentLine;
+                // 保存线段到父对象
+                if (!p1.parentLine.children) p1.parentLine.children = [];
+                p1.parentLine.children.push(segment);
+            }
+            
+            shapes.lines.push(segment);
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+
+        // 构造射线
+        function createRay() {
+            // 检查是否选中了两个点
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            if (selectedPoints.length !== 2) {
+                return alert('请先选中两个点');
+            }
+            saveHistory();
+            const p1 = selectedPoints[0].shape;
+            const p2 = selectedPoints[1].shape;
+            // 射线：从p1出发，经过p2，向p2方向无限延伸
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const scale = 10000 / length; // 延伸10000像素，确保覆盖整个画布
+            const ray = {x1: p1.x, y1: p1.y, x2: p1.x + dx * scale, y2: p1.y + dy * scale, p1: p1, p2: p2, shapeType: 'ray', visible: true};
+            // 确保射线属性不会被意外修改
+            Object.defineProperty(ray, 'shapeType', {
+                value: 'ray',
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
+            shapes.lines.push(ray);
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        // 构造直线
+        function createLine() {
+            // 检查是否选中了两个点
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            if (selectedPoints.length !== 2) {
+                return alert('请先选中两个点');
+            }
+            saveHistory();
+            const p1 = selectedPoints[0].shape;
+            const p2 = selectedPoints[1].shape;
+            // 直线：经过p1和p2，向两个方向无限延伸
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const scale = 10000 / length; // 延伸10000像素，确保覆盖整个画布
+            const line = {
+                x1: p1.x - dx * scale, 
+                y1: p1.y - dy * scale, 
+                x2: p2.x + dx * scale, 
+                y2: p2.y + dy * scale,
+                p1: p1, 
+                p2: p2,
+                shapeType: 'line',
+                visible: true
+            };
+            // 确保直线属性不会被意外修改
+            Object.defineProperty(line, 'shapeType', {
+                value: 'line',
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
+            shapes.lines.push(line);
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+        // 构造线段
+        function createSegment() {
+            // 检查是否选中了两个点
+            const selectedPoints = selectedObjects.filter(obj => obj.type === 'points');
+            if (selectedPoints.length !== 2) {
+                return alert('请先选中两个点');
+            }
+            saveHistory();
+            const p1 = selectedPoints[0].shape;
+            const p2 = selectedPoints[1].shape;
+            
+            // 创建线段
+            const segment = {x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, p1: p1, p2: p2, shapeType: 'segment', visible: true};
+            
+            // 确保线段属性不会被意外修改
+            Object.defineProperty(segment, 'shapeType', {
+                value: 'segment',
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
+            
+            // 检查两个点是否在同一条线上
+            if (arePointsOnSameLine(p1, p2)) {
+                segment.parentLine = p1.parentLine;
+                // 保存线段到父对象
+                if (!p1.parentLine.children) p1.parentLine.children = [];
+                p1.parentLine.children.push(segment);
+            }
+            
+            shapes.lines.push(segment);
+            // 重置选中对象，确保后续工具操作不受影响
+            selectedObjects = [];
+            deleteButton.style.display = 'none';
+            // 更新构造菜单项状态
+            updateConstructMenuStatus();
+            redrawCanvas();
+        }
+        
+
+
+        // 重绘画布
+        function redrawCanvas() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            if(showGridFlag) drawGrid();
+            drawShapes('lines');drawShapes('dashes');drawShapes('rectangles');drawShapes('circles');
+            drawShapes('rightTriangles');drawShapes('isoTriangles');drawShapes('penPaths');
+            drawShapes('points');drawShapes('labels');drawShapes('measures');
+            if(showCoordFlag) drawCoord();
+            selectedObjects.forEach(({type, shape}) => drawSelectionBorder(type, shape));
+        }
+        // 隐藏选中对象
+        function hideSelectedObjects() {
+            if (selectedObjects.length === 0) return;
+            selectedObjects.forEach(({shape}) => {
+                shape.visible = false;
+            });
+            redrawCanvas();
+        }
+        
+        // 显示所有对象
+        function showAllObjects() {
+            Object.keys(shapes).forEach(type => {
+                shapes[type].forEach(shape => {
+                    shape.visible = true;
+                });
+            });
+            redrawCanvas();
+        }
+        
+        function drawShapes(type) {
+            shapes[type].forEach(shape => {
+                // 只绘制可见的对象
+                if (shape.visible === false) return;
+                
+                ctx.save(); ctx.strokeStyle='#000'; ctx.fillStyle='#000';
+                
+                // 检查是否是鼠标下的线，并且当前是点工具
+                const isMouseOver = mouseOverLine && currentTool === 'point' && mouseOverLine.shape === shape && mouseOverLine.type === type;
+                if (isMouseOver) {
+                    // 高亮显示：红色，粗线条
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 3;
+                }
+                
+                switch(type) {
+                    case 'points': ctx.beginPath();ctx.arc(shape.x,shape.y,3,0,2*Math.PI);ctx.fill();if(showLabelFlag){ctx.font='italic 24px Times New Roman';ctx.fillText(shape.label,shape.labelX,shape.labelY);}break;
+                    case 'lines': 
+                        // 优先信任shapeType属性，只有在没有指定时才自动检测
+                        let lineType = shape.shapeType || 'segment';
+                        
+                        // 检查是否是正在绘制中的直线
+                        const isDrawingLine = isDrawing && currentTool === 'line' && currentShape === shape;
+                        
+                        // 如果是正在绘制中的直线，强制将其视为直线类型
+                        if (isDrawingLine) {
+                            lineType = 'line';
+                        } else if (!shape.shapeType) {
+                            // 只有在没有指定shapeType时，才检查线的实际属性
+                            // 对于射线和直线，x1,y1到x2,y2的距离远大于p1到p2的距离
+                            if (shape.p1 && shape.p2) {
+                                // 计算原始点之间的距离
+                                const originalDist = Math.sqrt(
+                                    Math.pow(shape.p2.x - shape.p1.x, 2) + 
+                                    Math.pow(shape.p2.y - shape.p1.y, 2)
+                                );
+                                
+                                // 计算当前线的长度
+                                const currentDist = Math.sqrt(
+                                    Math.pow(shape.x2 - shape.x1, 2) + 
+                                    Math.pow(shape.y2 - shape.y1, 2)
+                                );
+                                
+                                // 如果当前线的长度远大于原始点之间的距离，说明是射线或直线
+                                if (currentDist > originalDist * 2) {
+                                    // 检查是否为射线（从p1出发，经过p2）
+                                    const isRay = Math.abs(
+                                        (shape.x2 - shape.x1) * (shape.p2.y - shape.p1.y) - 
+                                        (shape.y2 - shape.y1) * (shape.p2.x - shape.p1.x)
+                                    ) < 1e-6;
+                                    
+                                    if (isRay) {
+                                        lineType = 'ray';
+                                    } else {
+                                        lineType = 'line';
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 对于射线和直线，确保它们始终延伸到画布边缘
+                        let x1 = shape.x1;
+                        let y1 = shape.y1;
+                        let x2 = shape.x2;
+                        let y2 = shape.y2;
+                        
+                        // 计算线的方向向量
+                        const dx = x2 - x1;
+                        const dy = y2 - y1;
+                        let nx, ny;
+                        
+                        // 获取原始点作为参考
+                        const originalP1 = shape.p1;
+                        const originalP2 = shape.p2;
+                        
+                        // 处理正在绘制中的直线
+                        if (isDrawingLine) {
+                            // 对于正在绘制中的直线，使用当前鼠标位置与起点的向量作为方向
+                            const length = Math.sqrt(dx * dx + dy * dy);
+                            nx = dx / length;
+                            ny = dy / length;
+                            
+                            // 向两个方向无限延伸
+                            const scale = 10000;
+                            x1 = shape.x1 - nx * scale;
+                            y1 = shape.y1 - ny * scale;
+                            x2 = shape.x1 + nx * scale;
+                            y2 = shape.y1 + ny * scale;
+                        } else if (lineType === 'ray' && originalP1) {
+                            // 射线：从p1出发，经过p2，向p2方向无限延伸
+                            const length = Math.sqrt(dx * dx + dy * dy);
+                            nx = dx / length;
+                            ny = dy / length;
+                            
+                            const scale = 10000;
+                            x1 = originalP1.x;
+                            y1 = originalP1.y;
+                            x2 = originalP1.x + nx * scale;
+                            y2 = originalP1.y + ny * scale;
+                        } else if (lineType === 'line') {
+                            // 处理普通直线（包括垂线和平行线）
+                            const length = Math.sqrt(dx * dx + dy * dy);
+                            
+                            // 如果长度为0，说明是一个点，直接返回
+                            if (length === 0) {
+                                ctx.beginPath();
+                                ctx.moveTo(x1, y1);
+                                ctx.lineTo(x2, y2);
+                                ctx.stroke();
+                                return;
+                            }
+                            
+                            // 计算方向向量
+                            nx = dx / length;
+                            ny = dy / length;
+                            
+                            // 向两个方向无限延伸
+                            const scale = 10000;
+                            
+                            if (originalP1 && originalP2) {
+                                // 对于有原始点的直线，使用原始点作为参考
+                                const originalDx = originalP2.x - originalP1.x;
+                                const originalDy = originalP2.y - originalP1.y;
+                                const originalLength = Math.sqrt(originalDx * originalDx + originalDy * originalDy);
+                                const originalNx = originalDx / originalLength;
+                                const originalNy = originalDy / originalLength;
+                                
+                                x1 = originalP1.x - originalNx * scale;
+                                y1 = originalP1.y - originalNy * scale;
+                                x2 = originalP1.x + originalNx * scale;
+                                y2 = originalP1.y + originalNy * scale;
+                            } else {
+                                // 对于垂线和平行线等没有原始点的直线，使用当前方向向量延伸
+                                x1 = shape.x1 - nx * scale;
+                                y1 = shape.y1 - ny * scale;
+                                x2 = shape.x1 + nx * scale;
+                                y2 = shape.y1 + ny * scale;
+                            }
+                        }
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                        break;
+                    case 'dashes': 
+                        if (isMouseOver) {
+                            ctx.setLineDash([]); // 高亮时显示为实线
+                        } else {
+                            ctx.setLineDash([5,3]);
+                        }
+                        ctx.beginPath();ctx.moveTo(shape.x1,shape.y1);ctx.lineTo(shape.x2,shape.y2);ctx.stroke();ctx.setLineDash([]);break;
+                    case 'rectangles': 
+                        // 确保绘制的矩形位置和大小正确，处理width和height为负数的情况
+                        const rectX = Math.min(shape.x, shape.x + shape.width);
+                        const rectY = Math.min(shape.y, shape.y + shape.height);
+                        const rectWidth = Math.abs(shape.width);
+                        const rectHeight = Math.abs(shape.height);
+                        ctx.beginPath();ctx.rect(rectX, rectY, rectWidth, rectHeight);ctx.stroke();break;
+                    case 'circles': 
+                        // 确保radius为正数
+                        const radius = Math.abs(shape.radius);
+                        ctx.beginPath();ctx.arc(shape.x, shape.y, radius, 0, 2*Math.PI);ctx.stroke();break;
+                    case 'rightTriangles':case 'isoTriangles':ctx.beginPath();ctx.moveTo(shape.x1,shape.y1);ctx.lineTo(shape.x2,shape.y2);ctx.lineTo(shape.x3,shape.y3);ctx.closePath();ctx.stroke();break;
+                    case 'penPaths':ctx.beginPath();shape.points.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();break;
+                    case 'labels':if(showLabelFlag){ctx.font=`${shape.fontSize}px 微软雅黑`;ctx.fillText(shape.content,shape.x,shape.y);}break;
+                    case 'measures':ctx.font=`${shape.fontSize}px 微软雅黑`;ctx.fillStyle='#e63946';ctx.fillText(shape.content,shape.x,shape.y);break;
+                }
+                ctx.restore();
+            });
+        }
+
+        // 网格+坐标
+        function drawGrid() {
+            ctx.save();ctx.strokeStyle='#eee';ctx.lineWidth=1;
+            const step=30;
+            for(let x=0;x<canvas.width;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+            for(let y=0;y<canvas.height;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+            ctx.restore();
+        }
+        function drawCoord() {
+            ctx.save();ctx.fillStyle='#999';ctx.font='12px 微软雅黑';
+            const step=30;
+            for(let x=step;x<canvas.width;x+=step) ctx.fillText(x-step,x,12);
+            for(let y=step;y<canvas.height;y+=step) ctx.fillText(y-step,0,y);
+            ctx.restore();
+        }
+
+        // 保存+导出
+        function saveAsJson() {
+            const blob=new Blob([JSON.stringify(shapes)],{type:'application/json'});
+            const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='几何图形.json';a.click();
+        }
+        function exportAsImage() {
+            const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='几何图形.png';a.click();
+        }
+    </script>
+</body>
+</html>
