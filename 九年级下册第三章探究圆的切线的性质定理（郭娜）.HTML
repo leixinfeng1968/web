@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探究圆的切线的性质定理 - 九年级数学</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #canvas {
+            border: 2px solid #333;
+            touch-action: none;
+            background-color: #fff;
+        }
+        .info-table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .info-table th, .info-table td {
+            border: 1px solid #666;
+            padding: 8px;
+            text-align: center;
+        }
+        .thinking-section {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f0f8ff;
+            border-radius: 6px;
+            border-left: 4px solid #2563eb;
+        }
+        .corollary-tip {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #fef3c7;
+            border-radius: 4px;
+            border-left: 4px solid #d97706;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-5">
+    <h1 class="text-center text-2xl font-bold text-gray-800">探究圆的切线的性质定理</h1>
+    <div class="text-center text-sm text-gray-500 mb-4">课件署名：郭娜</div>
+
+    <div class="flex justify-center">
+        <canvas id="canvas" width="600" height="400"></canvas>
+    </div>
+
+    <table class="info-table">
+        <thead>
+            <tr class="bg-gray-200">
+                <th>圆心O坐标</th>
+                <th>切点P坐标</th>
+                <th>OP（半径）长度</th>
+                <th>OP与切线夹角</th>
+                <th>定理结论</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="center-coord">(300, 200)</td>
+                <td id="point-coord">(400, 200)</td>
+                <td id="radius-length">100</td>
+                <td id="angle-value">90°</td>
+                <td id="theorem-result">OP ⊥ 切线</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="thinking-section">
+        <strong>探究思考题：</strong>
+        <ol>
+            <li>拖动切点P沿圆周移动，观察OP与切线的夹角是否始终为90°？</li>
+            <li>结合操作现象，总结圆的切线的核心性质：________________________</li>
+            <li>思考：过圆上一点有几条切线？这条切线与该点的半径有什么关系？</li>
+        </ol>
+        <strong>定理内容：</strong> 圆的切线垂直于经过切点的半径。<br>
+        <strong>交互操作：</strong> 鼠标/触屏拖动红色切点P，体验动态验证过程。
+    </div>
+
+    <div class="corollary-tip">
+        <strong>推论演示：</strong> 图中橙色虚线为<strong>过圆心且垂直于切线的直线</strong>，拖动P点可观察到该直线<strong>始终经过切点P</strong>。
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        // 固定圆参数
+        const center = { x: 300, y: 200 };
+        const radius = 100;
+        let pointP = { x: center.x + radius, y: center.y };
+        let isDragging = false;
+
+        // 逐帧动画，保证顺滑
+        function animate() {
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        // 更新信息面板
+        function updateInfo() {
+            document.getElementById('center-coord').textContent = `(${center.x}, ${center.y})`;
+            document.getElementById('point-coord').textContent = `(${pointP.x.toFixed(0)}, ${pointP.y.toFixed(0)})`;
+            document.getElementById('radius-length').textContent = radius;
+            document.getElementById('angle-value').textContent = '90°';
+            document.getElementById('theorem-result').textContent = 'OP ⊥ 切线';
+        }
+
+        // 绘制图形（新增推论直线）
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 1. 绘制圆
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 2. 绘制半径OP（红色实线）
+            ctx.beginPath();
+            ctx.moveTo(center.x, center.y);
+            ctx.lineTo(pointP.x, pointP.y);
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 3. 绘制切点P（扩大半径，便于拖拽）
+            ctx.beginPath();
+            ctx.arc(pointP.x, pointP.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#dc2626';
+            ctx.fill();
+
+            // 4. 计算切线方向并绘制（绿色虚线）
+            const dx = pointP.x - center.x;
+            const dy = pointP.y - center.y;
+            const tangentLen = 180;
+            const mag = Math.hypot(dx, dy) || 1;
+            const tx = -dy / mag;
+            const ty = dx / mag;
+            const t1 = { x: pointP.x - tx * tangentLen, y: pointP.y - ty * tangentLen };
+            const t2 = { x: pointP.x + tx * tangentLen, y: pointP.y + ty * tangentLen };
+            ctx.beginPath();
+            ctx.moveTo(t1.x, t1.y);
+            ctx.lineTo(t2.x, t2.y);
+            ctx.strokeStyle = '#16a34a';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 5. 绘制推论直线：过圆心且垂直于切线的直线（橙色长虚线）
+            // 该直线与半径OP重合，延长至切线外，直观验证必过切点
+            const extendLen = 50; // 延长长度
+            const lineEnd = {
+                x: pointP.x + dx / mag * extendLen,
+                y: pointP.y + dy / mag * extendLen
+            };
+            ctx.beginPath();
+            ctx.moveTo(center.x - dx / mag * extendLen, center.y - dy / mag * extendLen);
+            ctx.lineTo(lineEnd.x, lineEnd.y);
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 6. 标注文字
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#333';
+            ctx.fillText('O', center.x - 10, center.y - 10);
+            ctx.fillText('P', pointP.x + 12, pointP.y + 12);
+            ctx.fillText('切线', t2.x - 30, t2.y - 10);
+            ctx.fillStyle = '#d97706';
+            ctx.fillText('过圆心⊥切线的直线', center.x + 20, center.y - 20);
+        }
+
+        // 优化鼠标拖拽逻辑
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const dragRadius = 20;
+            if (Math.hypot(mouseX - pointP.x, mouseY - pointP.y) < dragRadius) {
+                isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const angle = Math.atan2(mouseY - center.y, mouseX - center.x);
+            pointP.x = center.x + radius * Math.cos(angle);
+            pointP.y = center.y + radius * Math.sin(angle);
+            updateInfo();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+
+        // 优化移动端触屏逻辑
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) return;
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const touchY = e.touches[0].clientY - rect.top;
+            const dragRadius = 20;
+            if (Math.hypot(touchX - pointP.x, touchY - pointP.y) < dragRadius) {
+                isDragging = true;
+                e.preventDefault();
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length > 1) return;
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const touchY = e.touches[0].clientY - rect.top;
+            const angle = Math.atan2(touchY - center.y, touchX - center.x);
+            pointP.x = center.x + radius * Math.cos(angle);
+            pointP.y = center.y + radius * Math.sin(angle);
+            updateInfo();
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // 初始化
+        updateInfo();
+        animate();
+    </script>
+</body>
+</html>

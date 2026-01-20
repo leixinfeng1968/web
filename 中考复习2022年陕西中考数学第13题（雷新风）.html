@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>初中数学课件 - 菱形动点定值问题</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .auto-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: #ffd600;
+            color: #1a237e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        .auto-btn:hover {
+            background: #ffab00;
+        }
+        .auto-btn.active {
+            background: #ff4081;
+            color: #fff;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
+        #myCanvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            width: 100%;
+            padding: 15px 0;
+            color: #e3f2fd;
+            margin-top: 15px;
+        }
+        .blank-line{display:inline-block;width:60px;height:2px;background:#ffda8b;vertical-align:bottom;margin:0 5px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2022年陕西中考数学第13题</h1>
+            <div class="geom-condition">
+                如图，在菱形ABCD中，AB＝4，BD＝7．若M、N分别是边AD、BC上的动点，且AM＝BN，作ME⊥BD，NF⊥BD，垂足分别为E、F，则ME＋NF的值为 　<span class="blank-line"></span>．
+            </div>
+            <div class="btn-group">
+                <button class="auto-btn" id="autoBtn">自动运动</button>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+            
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="500" value="200" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">200%</span>
+                </div>
+                <div class="single-slider">
+                    <span>移动M、N点</span>
+                    <input type="range" min="0" max="100" value="30" class="control-slider" id="mnSlider">
+                    <span class="slider-value" id="mnValue">30%</span>
+                </div>
+                <div class="single-slider">
+                    <span>控制∠ABC大小</span>
+                    <input type="range" min="30" max="90" value="60" class="control-slider" id="angleSlider">
+                    <span class="slider-value" id="angleValue">60°</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示定值答案+推导</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="ansSlider">
+                    <span class="slider-value" id="ansValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签字号大小</span>
+                    <input type="range" min="10" max="50" value="20" class="control-slider" id="labelSizeSlider">
+                    <span class="slider-value" id="labelSizeValue">20px</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="12" max="50" value="16" class="control-slider" id="titleSizeSlider">
+                    <span class="slider-value" id="titleSizeValue">16px</span>
+                </div>
+                <div class="single-slider">
+                    <span>画布高度</span>
+                    <input type="range" min="300" max="600" value="400" class="control-slider" id="canvasHeightSlider">
+                    <span class="slider-value" id="canvasHeightValue">400px</span>
+                </div>
+                <div class="single-slider">
+                    <span>绘制AC线段+M到AC垂线</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="acAnimationSlider">
+                    <span class="slider-value" id="acAnimationValue">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">制作时间：2026.1.18  作者：雷新风</div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const mnSlider = document.getElementById('mnSlider'); 
+        const ansSlider = document.getElementById('ansSlider');
+        const angleSlider = document.getElementById('angleSlider');
+        const scaleValue = document.getElementById('scaleValue');
+        const mnValue = document.getElementById('mnValue');
+        const ansValue = document.getElementById('ansValue');
+        const angleValue = document.getElementById('angleValue');
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        const titleSizeSlider = document.getElementById('titleSizeSlider');
+        const titleSizeValue = document.getElementById('titleSizeValue');
+        const geomCondition = document.querySelector('.geom-condition');
+        const h1Title = document.querySelector('h1');
+        const canvasHeightSlider = document.getElementById('canvasHeightSlider');
+        const canvasHeightValue = document.getElementById('canvasHeightValue');
+        const acAnimationSlider = document.getElementById('acAnimationSlider');
+        const acAnimationValue = document.getElementById('acAnimationValue');
+        let titleSize = 16;
+        let canvasHeight = 400;
+        let acAnimationProgress = 0;
+        let autoInterval = null;
+        let isAutoRunning = false;
+        
+        const pointRadius = 5; 
+        const labelOffset = 10;
+        let scaleRatio = 2.0, mnRatio = 0.3, ansRatio = 0, angleABC = 60;
+        let labelSize = 20;
+        let isDragging = false;
+        let draggedLabel = null;
+        let dragOffset = {x: 0, y: 0};
+        let labelPositions = {};
+        let isDraggingGraph = false;
+        let dragStartPos = {x: 0, y: 0};
+        let graphOffset = {x: 0, y: 0};
+        let canvasW, canvasH;
+        let A,B,C,D,M,N,E,F,O,H;
+        const AB_LEN = 4, BD_LEN = 7;
+        const ME_ADD_NF = 7*Math.sqrt(15)/8;
+        
+        // 自动运动功能
+        const autoBtn = document.getElementById('autoBtn');
+        autoBtn.addEventListener('click', function() {
+            if (isAutoRunning) {
+                clearInterval(autoInterval);
+                isAutoRunning = false;
+                autoBtn.textContent = '自动运动';
+                autoBtn.classList.remove('active');
+            } else {
+                let progress = 0;
+                const speed = 10;
+                autoInterval = setInterval(function() {
+                    progress += 0.5;
+                    mnRatio = (progress % 100) / 100;
+                    mnSlider.value = (progress % 100).toFixed(0);
+                    mnValue.textContent = (progress % 100).toFixed(0) + '%';
+                    initPoints();
+                    drawGraph();
+                }, speed);
+                isAutoRunning = true;
+                autoBtn.textContent = '停止运动';
+                autoBtn.classList.add('active');
+            }
+        });
+
+        function initCanvas() {
+            canvasW = canvas.width = canvas.offsetWidth;
+            canvasH = canvas.height = canvasHeight;
+            canvas.style.height = canvasHeight + 'px';
+            ctx.lineWidth = 3;
+            initPoints();
+            drawGraph();
+        }
+
+        function initPoints() {
+            const baseScale = Math.min(canvasW/42, canvasH/35);
+            const finalScale = baseScale * scaleRatio;
+            const sideLen = AB_LEN * finalScale;
+            const angleRad = angleABC * Math.PI / 180;
+
+            const centerX = canvasW / 2;
+            const BC_Y = canvasH / 2 + 50;
+            B = {x: centerX - (BD_LEN * finalScale) / 2, y: BC_Y};
+            C = {x: B.x + sideLen, y: BC_Y};
+            A = {x: B.x + sideLen * Math.cos(angleRad), y: B.y - sideLen * Math.sin(angleRad)};
+            D = {x: A.x + (C.x - B.x), y: A.y + (C.y - B.y)};
+            O = {x: (B.x + D.x) / 2, y: (B.y + D.y) / 2};//对角线交点
+
+            updateMN(finalScale);
+            updateEF();
+            calcFootPointH();
+        }
+
+        function calcFootPointH(){
+            const Ax = A.x, Ay = A.y, Cx = C.x, Cy = C.y, Mx = M.x, My = M.y;
+            const ACdx = Cx - Ax, ACdy = Cy - Ay;
+            const AMdx = Mx - Ax, AMdy = My - Ay;
+            const dot = AMdx * ACdx + AMdy * ACdy;
+            const AC_len2 = ACdx*ACdx + ACdy*ACdy;
+            const ratio = dot / AC_len2;
+            H = {x: Ax + ratio*ACdx, y: Ay + ratio*ACdy};
+        }
+
+        function updateMN(finalScale) {
+            const AM = AB_LEN * mnRatio;
+            const AD_vec = {x: D.x - A.x, y: D.y - A.y};
+            const AD_len = Math.sqrt(AD_vec.x**2 + AD_vec.y**2);
+            const ratio = AM / AB_LEN;
+            M = {x: A.x + AD_vec.x * ratio, y: A.y + AD_vec.y * ratio};
+            const BC_vec = {x: C.x - B.x, y: C.y - B.y};
+            N = {x: B.x + BC_vec.x * ratio, y: B.y + BC_vec.y * ratio};
+        }
+
+        function updateEF() {
+            const BD_vec = {x: D.x - B.x, y: D.y - B.y};
+            const BD_len = Math.sqrt(BD_vec.x**2 + BD_vec.y**2);
+            const unitX = BD_vec.x/BD_len;
+            const unitY = BD_vec.y/BD_len;
+
+            const projM = (M.x-B.x)*unitX + (M.y-B.y)*unitY;
+            E = {x: B.x + projM*unitX, y: B.y + projM*unitY};
+            const projN = (N.x-B.x)*unitX + (N.y-B.y)*unitY;
+            F = {x: B.x + projN*unitX, y: B.y + projN*unitY};
+        }
+
+        function drawGraph() {
+            ctx.clearRect(0,0,canvasW,canvasH);
+            
+            ctx.save();
+            ctx.translate(graphOffset.x, graphOffset.y);
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.lineTo(D.x,D.y);ctx.closePath();ctx.stroke();
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(D.x,D.y);ctx.stroke();
+
+            // 根据进度绘制AC线段和M到AC的垂线
+            if (acAnimationProgress > 0) {
+                ctx.setLineDash([6,4]);
+                ctx.lineWidth = 2.5;
+                
+                // 绘制AC线段（0-50%进度）
+                if (acAnimationProgress <= 0.5) {
+                    ctx.strokeStyle = '#64ffda';
+                    const progress = acAnimationProgress * 2; // 0-1
+                    const currX = A.x + (C.x - A.x) * progress;
+                    const currY = A.y + (C.y - A.y) * progress;
+                    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(currX,currY);ctx.stroke();
+                } else {
+                    // 完成AC线段
+                    ctx.strokeStyle = '#64ffda';
+                    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(C.x,C.y);ctx.stroke();
+                    
+                    // 绘制M到AC的垂线（50-100%进度）
+                    ctx.strokeStyle = '#ff9e80';
+                    const progress = (acAnimationProgress - 0.5) * 2; // 0-1
+                    const currX = M.x + (H.x - M.x) * progress;
+                    const currY = M.y + (H.y - M.y) * progress;
+                    ctx.beginPath();ctx.moveTo(M.x,M.y);ctx.lineTo(currX,currY);ctx.stroke();
+                }
+                
+                ctx.setLineDash([]);
+                ctx.lineWidth = 3;
+            }
+
+            drawPoint(A,'#ffff33');drawLabel('A',A,-labelOffset,-labelOffset);
+            drawPoint(B,'#ffff33');drawLabel('B',B,-labelOffset,labelOffset);
+            drawPoint(C,'#ffff33');drawLabel('C',C,labelOffset,labelOffset);
+            drawPoint(D,'#ffff33');drawLabel('D',D,labelOffset,-labelOffset);
+            drawPoint(M,'#ff4081');drawLabel('M',M,0,-labelOffset);
+            drawPoint(N,'#ff4081');drawLabel('N',N,0,labelOffset);
+            drawPoint(E,'#4dd0e1');drawLabel('E',E,-labelOffset,0);
+            drawPoint(F,'#4dd0e1');drawLabel('F',F,labelOffset,0);
+            
+            // 显示对角线交点O（进度超过50%）
+            if (acAnimationProgress > 0.5) {
+                drawPoint(O,'#00ff9d');drawLabel('O',O,labelOffset,labelOffset);
+            }
+            
+            // 显示垂足H（进度达到100%）
+            if (acAnimationProgress >= 1) {
+                drawPoint(H,'#00e5ff');drawLabel('H',H,labelOffset,labelOffset);
+                drawRightAngle(M,H,A);
+            }
+
+            ctx.strokeStyle = '#ff4081';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(M.x,M.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(N.x,N.y);ctx.stroke();
+
+            ctx.strokeStyle = '#4dd0e1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();ctx.moveTo(M.x,M.y);ctx.lineTo(E.x,E.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(N.x,N.y);ctx.lineTo(F.x,F.y);ctx.stroke();
+            drawRightAngle(M,E,D);drawRightAngle(N,F,D);
+            ctx.lineWidth = 3;
+
+            if(ansRatio > 0) {
+                ctx.save();
+                ctx.translate(-graphOffset.x, -graphOffset.y);
+                ctx.globalAlpha = ansRatio;
+                ctx.fillStyle = '#a5d6a7';
+                ctx.font = '18px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`AO=ME+NF=定值 √15/2`);
+                ctx.fillText(`点拨：在直角三角形ABO中，由勾股定理求出AO`);
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawPoint(p,color){
+            ctx.beginPath();ctx.fillStyle=color;ctx.arc(p.x,p.y,pointRadius,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.stroke();ctx.lineWidth=3;
+        }
+
+        function drawLabel(txt,p,ox,oy){
+            const pos = labelPositions[txt] || {x: ox, y: oy};
+            ctx.save();ctx.fillStyle='#fff';ctx.font='italic '+labelSize+'px Times New Roman';
+            ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,p.x+pos.x,p.y+pos.y);ctx.restore();
+        }
+
+        function drawRightAngle(p1,p2,p3){
+            const dx1 = p1.x-p2.x, dy1 = p1.y-p2.y;
+            const dx2 = p3.x-p2.x, dy2 = p3.y-p2.y;
+            const len1 = Math.sqrt(dx1**2+dy1**2), len2 = Math.sqrt(dx2**2+dy2**2);
+            const ux1=dx1/len1,uy1=dy1/len1,ux2=dx2/len2,uy2=dy2/len2;
+            const size=6;
+            ctx.beginPath();ctx.moveTo(p2.x+ux1*size,p2.y+uy1*size);ctx.lineTo(p2.x,p2.y);ctx.lineTo(p2.x+ux2*size,p2.y+uy2*size);ctx.stroke();
+        }
+
+        function drawACAndMH(){
+            clearInterval(drawTimer);
+            let progress = 0;
+            calcFootPointH();
+            drawTimer = setInterval(()=>{
+                progress += 0.015;
+                if(progress <= 1){
+                    drawGraph();
+                    ctx.save();
+                    ctx.translate(graphOffset.x, graphOffset.y);
+                    ctx.setLineDash([6,4]);
+                    ctx.strokeStyle = '#64ffda';
+                    ctx.lineWidth = 2.5;
+                    let currX = A.x + (C.x - A.x)*progress;
+                    let currY = A.y + (C.y - A.y)*progress;
+                    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(currX,currY);ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.lineWidth = 3;
+                    ctx.restore();
+                }else if(progress <= 2){
+                    const mhProgress = progress - 1;
+                    drawGraph(true);
+                    ctx.save();
+                    ctx.translate(graphOffset.x, graphOffset.y);
+                    ctx.strokeStyle = '#ff9e80';
+                    ctx.lineWidth = 2.5;
+                    let currX = M.x + (H.x - M.x)*mhProgress;
+                    let currY = M.y + (H.y - M.y)*mhProgress;
+                    ctx.beginPath();ctx.moveTo(M.x,M.y);ctx.lineTo(currX,currY);ctx.stroke();
+                    ctx.lineWidth = 3;
+                    ctx.restore();
+                }else{
+                    clearInterval(drawTimer);
+                    drawGraph(true);
+                }
+            },20);
+        }
+
+        scaleSlider.addEventListener('input',function(){
+            scaleRatio=this.value/100;scaleValue.innerText=this.value+'%';
+            acAnimationProgress = 0;
+            acAnimationSlider.value = 0;
+            acAnimationValue.innerText = '0%';
+            initPoints();drawGraph();
+        });
+        mnSlider.addEventListener('input',function(){
+            mnRatio=this.value/100;mnValue.innerText=this.value+'%';
+            acAnimationProgress = 0;
+            acAnimationSlider.value = 0;
+            acAnimationValue.innerText = '0%';
+            initPoints();drawGraph();
+        });
+        angleSlider.addEventListener('input',function(){
+            angleABC=this.value;angleValue.innerText=this.value+'°';
+            acAnimationProgress = 0;
+            acAnimationSlider.value = 0;
+            acAnimationValue.innerText = '0%';
+            initPoints();drawGraph();
+        });
+        ansSlider.addEventListener('input',function(){
+            ansRatio=this.value/100;ansValue.innerText=this.value+'%';drawGraph();
+        });
+        labelSizeSlider.addEventListener('input',function(){
+            labelSize=parseInt(this.value);labelSizeValue.innerText=this.value+'px';drawGraph();
+        });
+        titleSizeSlider.addEventListener('input',function(){
+            titleSize=parseInt(this.value);titleSizeValue.innerText=this.value+'px';
+            geomCondition.style.fontSize = titleSize + 'px';
+            h1Title.style.fontSize = (titleSize * 1.25) + 'px';
+        });
+        canvasHeightSlider.addEventListener('input',function(){
+            canvasHeight=parseInt(this.value);canvasHeightValue.innerText=this.value+'px';
+            initCanvas();
+        });
+        
+        // 绘制AC线段+M到AC垂线的滑动条事件
+        acAnimationSlider.addEventListener('input',function(){
+            acAnimationProgress = parseInt(this.value) / 100;
+            acAnimationValue.innerText = this.value + '%';
+            drawGraph();
+        });
+
+        function getLabelAtPosition(mouseX, mouseY) {
+            const labels = [
+                {name: 'A', point: A, offset: {x: -labelOffset, y: -labelOffset}},
+                {name: 'B', point: B, offset: {x: -labelOffset, y: labelOffset}},
+                {name: 'C', point: C, offset: {x: labelOffset, y: labelOffset}},
+                {name: 'D', point: D, offset: {x: labelOffset, y: -labelOffset}},
+                {name: 'M', point: M, offset: {x: 0, y: -labelOffset}},
+                {name: 'N', point: N, offset: {x: 0, y: labelOffset}},
+                {name: 'E', point: E, offset: {x: -labelOffset, y: 0}},
+                {name: 'F', point: F, offset: {x: labelOffset, y: 0}},
+                {name: 'O', point: O, offset: {x: labelOffset, y: labelOffset}},
+                {name: 'H', point: H, offset: {x: labelOffset, y: labelOffset}}
+            ];
+            
+            for (const label of labels) {
+                const pos = labelPositions[label.name] || label.offset;
+                const textX = label.point.x + pos.x + graphOffset.x;
+                const textY = label.point.y + pos.y + graphOffset.y;
+                
+                ctx.font = 'italic ' + labelSize + 'px Times New Roman';
+                const metrics = ctx.measureText(label.name);
+                const textWidth = metrics.width;
+                const textHeight = labelSize;
+                
+                const left = textX - textWidth / 2;
+                const right = textX + textWidth / 2;
+                const top = textY - textHeight / 2;
+                const bottom = textY + textHeight / 2;
+                
+                if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+                    return label;
+                }
+            }
+            return null;
+        }
+        
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const label = getLabelAtPosition(mouseX, mouseY);
+            if (label) {
+                isDragging = true;
+                draggedLabel = label.name;
+                const pos = labelPositions[label.name] || label.offset;
+                dragOffset.x = mouseX - (label.point.x + pos.x + graphOffset.x);
+                dragOffset.y = mouseY - (label.point.y + pos.y + graphOffset.y);
+            } else {
+                isDraggingGraph = true;
+                dragStartPos.x = mouseX;
+                dragStartPos.y = mouseY;
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (isDragging && draggedLabel) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const labels = [
+                    {name: 'A', point: A}, {name: 'B', point: B}, {name: 'C', point: C}, {name: 'D', point: D},
+                    {name: 'M', point: M}, {name: 'N', point: N}, {name: 'E', point: E}, {name: 'F', point: F},
+                    {name: 'O', point: O}, {name: 'H', point: H}
+                ];
+                
+                const label = labels.find(l => l.name === draggedLabel);
+                if (label) {
+                    // 计算标签相对于其点的新偏移量，不影响图形位置
+                    labelPositions[draggedLabel] = {
+                        x: mouseX - label.point.x - graphOffset.x - dragOffset.x,
+                        y: mouseY - label.point.y - graphOffset.y - dragOffset.y
+                    };
+                    drawGraph();
+                }
+            } else if (isDraggingGraph) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const dx = mouseX - dragStartPos.x;
+                const dy = mouseY - dragStartPos.y;
+                
+                graphOffset.x += dx;
+                graphOffset.y += dy;
+                
+                dragStartPos.x = mouseX;
+                dragStartPos.y = mouseY;
+                
+                drawGraph();
+            }
+        }
+        
+        function handleMouseUp() {
+            isDragging = false;
+            draggedLabel = null;
+            isDraggingGraph = false;
+        }
+        
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+        
+        // 初始化画布
+        window.onload = initCanvas;
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>

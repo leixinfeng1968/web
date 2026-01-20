@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>初中数学课件 - 菱形动点定值问题</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .auto-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: #ffd600;
+            color: #1a237e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        .auto-btn:hover {
+            background: #ffab00;
+        }
+        .auto-btn.active {
+            background: #ff4081;
+            color: #fff;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
+        #myCanvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            width: 100%;
+            padding: 15px 0;
+            color: #e3f2fd;
+            margin-top: 15px;
+        }
+        .blank-line{display:inline-block;width:60px;height:2px;background:#ffda8b;vertical-align:bottom;margin:0 5px;}
+        .think-hint {width:100%;max-width:800px;margin:15px auto 0;padding:8px;border:2px solid #FFB74D;border-radius:8px;background-color:rgba(255,248,225,0.1);font-family:'Segoe UI', 'Microsoft YaHei';font-size:13px;color:#ffd740;text-align:center;opacity:0;transition:opacity 0.3s ease, box-shadow 0.3s ease}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2022年陕西中考数学副题第13题</h1>
+            <div class="geom-condition">
+                如图，在菱形ABCD中，边长为12，∠C=60°。点P是边BC上的一个动点，连接AP。过点D作AP的平行线EF，使EF=AP。连接AE、PF，形成平行四边形AEFP。则平行四边形AEFP的面积为 　<span class="blank-line"></span>。
+            </div>
+            <div class="btn-group">
+                <button class="auto-btn" id="autoBtn">自动运动</button>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+            
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="500" value="200" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">200%</span>
+                </div>
+                <div class="single-slider">
+                    <span>控制动点P</span>
+                    <input type="range" min="0" max="100" value="50" class="control-slider" id="sliderPInput">
+                    <span class="slider-value" id="sliderPValue">50%</span>
+                </div>
+                <div class="single-slider">
+                    <span>绘制DP连线</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="sliderDPInput">
+                    <span class="slider-value" id="sliderDPValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示定值答案</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="ansSlider">
+                    <span class="slider-value" id="ansValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签字号大小</span>
+                    <input type="range" min="10" max="50" value="20" class="control-slider" id="labelSizeSlider">
+                    <span class="slider-value" id="labelSizeValue">20px</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="12" max="50" value="16" class="control-slider" id="titleSizeSlider">
+                    <span class="slider-value" id="titleSizeValue">16px</span>
+                </div>
+                <div class="single-slider">
+                    <span>画布高度</span>
+                    <input type="range" min="200" max="600" value="400" class="control-slider" id="canvasHeightSlider">
+                    <span class="slider-value" id="canvasHeightValue">400px</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示思考提示</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="hintSlider">
+                    <span class="slider-value" id="hintValue">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="think-hint" id="thinkHint">
+        思考：① 三角形APD与菱形ABCD的面积有什么关系？② 三角形APD与平行四边形AEFP的面积有什么关系？
+    </div>
+    
+    <div class="footer">制作时间：2026.1.20  作者：雷新风</div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const sliderPInput = document.getElementById('sliderPInput');
+        const sliderDPInput = document.getElementById('sliderDPInput');
+        const ansSlider = document.getElementById('ansSlider');
+        const scaleValue = document.getElementById('scaleValue');
+        const sliderPValue = document.getElementById('sliderPValue');
+        const sliderDPValue = document.getElementById('sliderDPValue');
+        const ansValue = document.getElementById('ansValue');
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        const titleSizeSlider = document.getElementById('titleSizeSlider');
+        const titleSizeValue = document.getElementById('titleSizeValue');
+        const geomCondition = document.querySelector('.geom-condition');
+        const h1Title = document.querySelector('h1');
+        const canvasHeightSlider = document.getElementById('canvasHeightSlider');
+        const canvasHeightValue = document.getElementById('canvasHeightValue');
+        const thinkHint = document.getElementById('thinkHint');
+        const hintSlider = document.getElementById('hintSlider');
+        const hintValue = document.getElementById('hintValue');
+        let titleSize = 16;
+        let canvasHeight = 400;
+        let hintRatio = 0;
+        let autoInterval = null;
+        let isAutoRunning = false;
+        
+        const pointRadius = 5; 
+        const labelOffset = 10;
+        let scaleRatio = 2.0, tP = 0.5, tDP = 0, ansRatio = 0;
+        let labelSize = 20;
+        let isDragging = false;
+        let draggedLabel = null;
+        let dragOffset = {x: 0, y: 0};
+        let labelPositions = {};
+        let isDraggingGraph = false;
+        let dragStartPos = {x: 0, y: 0};
+        let graphOffset = {x: 0, y: 0};
+        let canvasW, canvasH;
+        let A,B,C,D,P,E,F;
+        const L = 12;
+        const fixedX = 0;
+        const fixedY = 0;
+        
+        // 自动运动功能
+        const autoBtn = document.getElementById('autoBtn');
+        autoBtn.addEventListener('click', function() {
+            if (isAutoRunning) {
+                clearInterval(autoInterval);
+                isAutoRunning = false;
+                autoBtn.textContent = '自动运动';
+                autoBtn.classList.remove('active');
+            } else {
+                let progress = 0;
+                const speed = 10;
+                autoInterval = setInterval(function() {
+                    progress += 0.5;
+                    tP = (progress % 100) / 100;
+                    sliderPInput.value = (progress % 100).toFixed(0);
+                    sliderPValue.textContent = (progress % 100).toFixed(0) + '%';
+                    updatePointP();
+                    drawGraph();
+                }, speed);
+                isAutoRunning = true;
+                autoBtn.textContent = '停止运动';
+                autoBtn.classList.add('active');
+            }
+        });
+        
+        // 初始化菱形顶点
+        function initPoints() {
+            const baseScale = Math.min(canvasW/42, canvasH/35);
+            const finalScale = baseScale * scaleRatio;
+            const h = L * Math.sqrt(3)/2 * finalScale;
+            
+            // 计算菱形顶点坐标（不包含偏移量，在drawGraph中通过translate应用）
+            A = { x: fixedX - L/2 * finalScale, y: fixedY + h/2 };
+            B = { x: fixedX + L/2 * finalScale, y: fixedY + h/2 };
+            D = { x: fixedX, y: fixedY - h/2 };
+            
+            // 计算C点坐标（基于菱形性质）
+            const dx = D.x - B.x;
+            const dy = D.y - B.y;
+            const det = dx*dx + dy*dy;
+            const a = (dx*dx - dy*dy)/det;
+            const b = 2*dx*dy/det;
+            C = {
+                x: a*(A.x - B.x) + b*(A.y - B.y) + B.x,
+                y: b*(A.x - B.x) - a*(A.y - B.y) + B.y
+            };
+            
+            // 计算P点坐标
+            updatePointP();
+        }
+        
+        // 更新P点坐标
+        function updatePointP() {
+            const BP = tP * L * scaleRatio * Math.min(canvasW/42, canvasH/35);
+            const BC_vec = {x: C.x - B.x, y: C.y - B.y};
+            const BC_len = Math.sqrt(BC_vec.x**2 + BC_vec.y**2);
+            const ratio = BP / BC_len;
+            P = {x: B.x + BC_vec.x * ratio, y: B.y + BC_vec.y * ratio};
+            
+            // 计算E和F点坐标（基于平行四边形AEFP，确保E在D左侧，F在D右侧，且EF与AP平行）
+            const AP_vec = {x: P.x - A.x, y: P.y - A.y};
+            
+            // 归一化AP向量
+            const AP_length = Math.sqrt(AP_vec.x**2 + AP_vec.y**2);
+            const AP_normalized = {
+                x: AP_vec.x / AP_length,
+                y: AP_vec.y / AP_length
+            };
+            
+            // 计算EF的中点为D，EF与AP平行且长度相等
+            // 计算EF的一半长度
+            const half_length = AP_length / 2;
+            
+            // 计算E和F点的位置
+            // E在D左侧（与AP方向相反的一侧）
+            E = {
+                x: D.x - AP_normalized.x * half_length,
+                y: D.y - AP_normalized.y * half_length
+            };
+            
+            // F在D右侧（与AP方向相同的一侧）
+            F = {
+                x: D.x + AP_normalized.x * half_length,
+                y: D.y + AP_normalized.y * half_length
+            };
+        }
+        
+        function drawGraph() {
+            ctx.clearRect(0,0,canvasW,canvasH);
+            
+            ctx.save();
+            ctx.translate(graphOffset.x, graphOffset.y);
+
+            // 绘制菱形
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.lineTo(D.x,D.y);ctx.closePath();ctx.stroke();
+
+            // 绘制AP线段
+            ctx.strokeStyle = '#64ffda';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(P.x,P.y);ctx.stroke();
+            
+            // 绘制平行四边形AEFP
+            ctx.strokeStyle = '#ff9e80';
+            ctx.setLineDash([4,3]);
+            ctx.beginPath();
+            ctx.moveTo(A.x,A.y);
+            ctx.lineTo(E.x,E.y);
+            ctx.lineTo(F.x,F.y);
+            ctx.lineTo(P.x,P.y);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 根据进度绘制DP连线
+            if (tDP > 0) {
+                ctx.strokeStyle = '#4dd0e1';
+                ctx.setLineDash([6,4]);
+                ctx.lineWidth = 2.5;
+                const progress = tDP;
+                const currX = D.x + (P.x - D.x) * progress;
+                const currY = D.y + (P.y - D.y) * progress;
+                ctx.beginPath();ctx.moveTo(D.x,D.y);ctx.lineTo(currX,currY);ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.lineWidth = 3;
+            }
+
+            // 绘制所有点
+            drawPoint(A,'#ffff33');drawLabel('A',A,-labelOffset,-labelOffset);
+            drawPoint(B,'#ffff33');drawLabel('B',B,-labelOffset,labelOffset);
+            drawPoint(C,'#ffff33');drawLabel('C',C,labelOffset,labelOffset);
+            drawPoint(D,'#ffff33');drawLabel('D',D,labelOffset,-labelOffset);
+            drawPoint(P,'#ff4081');drawLabel('P',P,0,labelOffset);
+            drawPoint(E,'#9575cd');drawLabel('E',E,labelOffset,-labelOffset);
+            drawPoint(F,'#9575cd');drawLabel('F',F,labelOffset,labelOffset);
+
+            // 显示答案
+            if(ansRatio > 0) {
+                ctx.save();
+                ctx.translate(-graphOffset.x, -graphOffset.y);
+                ctx.globalAlpha = ansRatio;
+                ctx.fillStyle = '#a5d6a7';
+                ctx.font = '18px Segoe UI';
+                ctx.textAlign = 'center';
+                
+                // 计算平行四边形AEFP的面积（使用向量叉积）
+                const AE_vec = {x: E.x - A.x, y: E.y - A.y};
+                const AP_vec = {x: P.x - A.x, y: P.y - A.y};
+                const areaValue = Math.abs(AE_vec.x * AP_vec.y - AE_vec.y * AP_vec.x);
+                
+                ctx.fillText(`平行四边形AEFP的面积 = ${areaValue.toFixed(2)}`, canvasW / 2, canvasH - 30);
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawPoint(p,color){
+            ctx.beginPath();ctx.fillStyle=color;ctx.arc(p.x,p.y,pointRadius,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.stroke();ctx.lineWidth=3;
+        }
+
+        function drawLabel(txt,p,ox,oy){
+            const pos = labelPositions[txt] || {x: ox, y: oy};
+            ctx.save();ctx.fillStyle='#fff';ctx.font='italic '+labelSize+'px Times New Roman';
+            ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,p.x+pos.x,p.y+pos.y);ctx.restore();
+        }
+
+        function initCanvas() {
+            canvasW = canvas.width = canvas.offsetWidth;
+            canvasH = canvas.height = canvasHeight;
+            canvas.style.height = canvasHeight + 'px';
+            ctx.lineWidth = 3;
+            
+            // 将图形居中
+            graphOffset.x = canvasW / 2;
+            graphOffset.y = canvasH / 2;
+            
+            initPoints();
+            drawGraph();
+        }
+        
+        // 为所有滑动条添加mousedown事件监听器
+        const sliders = document.querySelectorAll('.control-slider');
+        sliders.forEach(slider => {
+            slider.addEventListener('mousedown', function(e) {
+                // 可以在这里添加任何需要的事件处理逻辑
+            });
+        });
+        
+        // 事件监听器
+        scaleSlider.addEventListener('input',function(){
+            scaleRatio=this.value/100;
+            scaleValue.innerText=this.value+'%';
+            initPoints();
+            drawGraph();
+        });
+        
+        sliderPInput.addEventListener('input',function(){
+            tP=this.value/100;
+            sliderPValue.innerText=this.value+'%';
+            updatePointP();
+            drawGraph();
+        });
+        
+        sliderDPInput.addEventListener('input',function(){
+            tDP=this.value/100;
+            sliderDPValue.innerText=this.value+'%';
+            drawGraph();
+        });
+        
+        ansSlider.addEventListener('input',function(){
+            ansRatio=this.value/100;
+            ansValue.innerText=this.value+'%';
+            drawGraph();
+        });
+        
+        labelSizeSlider.addEventListener('input',function(){
+            labelSize=parseInt(this.value);
+            labelSizeValue.innerText=this.value+'px';
+            drawGraph();
+        });
+        
+        titleSizeSlider.addEventListener('input',function(){
+            titleSize=parseInt(this.value);
+            titleSizeValue.innerText=this.value+'px';
+            geomCondition.style.fontSize = titleSize + 'px';
+            h1Title.style.fontSize = (titleSize * 1.25) + 'px';
+        });
+        
+        canvasHeightSlider.addEventListener('input',function(){
+            canvasHeight=parseInt(this.value);
+            canvasHeightValue.innerText=this.value+'px';
+            initCanvas();
+        });
+        
+        // 显示思考提示的滑动条事件
+        hintSlider.addEventListener('input',function(){
+            hintRatio=parseInt(this.value)/100;
+            hintValue.innerText=this.value+'%';
+            thinkHint.style.opacity = hintRatio;
+        });
+        
+        // 鼠标事件处理
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // 检查是否点击在标签上
+            const label = getLabelAtPosition(mouseX, mouseY);
+            if (label) {
+                isDragging = true;
+                draggedLabel = label.name;
+                const pos = labelPositions[label.name] || label.offset;
+                dragOffset.x = mouseX - (label.point.x + pos.x + graphOffset.x);
+                dragOffset.y = mouseY - (label.point.y + pos.y + graphOffset.y);
+            } else {
+                isDraggingGraph = true;
+                dragStartPos.x = mouseX;
+                dragStartPos.y = mouseY;
+            }
+        });
+        
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            if (isDragging && draggedLabel) {
+                const label = getLabelObject(draggedLabel);
+                if (label) {
+                    labelPositions[draggedLabel] = {
+                        x: mouseX - label.point.x - graphOffset.x - dragOffset.x,
+                        y: mouseY - label.point.y - graphOffset.y - dragOffset.y
+                    };
+                    drawGraph();
+                }
+            } else if (isDraggingGraph) {
+                const deltaX = mouseX - dragStartPos.x;
+                const deltaY = mouseY - dragStartPos.y;
+                graphOffset.x += deltaX;
+                graphOffset.y += deltaY;
+                dragStartPos.x = mouseX;
+                dragStartPos.y = mouseY;
+                initPoints();
+                drawGraph();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            isDraggingGraph = false;
+            draggedLabel = null;
+        });
+        
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            isDraggingGraph = false;
+            draggedLabel = null;
+        });
+        
+        function getLabelObject(labelName) {
+            const labels = [
+                {name: 'A', point: A, offset: {x: -labelOffset, y: -labelOffset}},
+                {name: 'B', point: B, offset: {x: -labelOffset, y: labelOffset}},
+                {name: 'C', point: C, offset: {x: labelOffset, y: labelOffset}},
+                {name: 'D', point: D, offset: {x: labelOffset, y: -labelOffset}},
+                {name: 'P', point: P, offset: {x: 0, y: labelOffset}},
+                {name: 'E', point: E, offset: {x: labelOffset, y: -labelOffset}},
+                {name: 'F', point: F, offset: {x: labelOffset, y: labelOffset}}
+            ];
+            return labels.find(label => label.name === labelName) || null;
+        }
+        
+        function getLabelAtPosition(mouseX, mouseY) {
+            const labels = [
+                {name: 'A', point: A, offset: {x: -labelOffset, y: -labelOffset}},
+                {name: 'B', point: B, offset: {x: -labelOffset, y: labelOffset}},
+                {name: 'C', point: C, offset: {x: labelOffset, y: labelOffset}},
+                {name: 'D', point: D, offset: {x: labelOffset, y: -labelOffset}},
+                {name: 'P', point: P, offset: {x: 0, y: labelOffset}},
+                {name: 'E', point: E, offset: {x: labelOffset, y: -labelOffset}},
+                {name: 'F', point: F, offset: {x: labelOffset, y: labelOffset}}
+            ];
+            
+            for (const label of labels) {
+                const pos = labelPositions[label.name] || label.offset;
+                const textX = label.point.x + pos.x + graphOffset.x;
+                const textY = label.point.y + pos.y + graphOffset.y;
+                
+                ctx.font = 'italic ' + labelSize + 'px Times New Roman';
+                const metrics = ctx.measureText(label.name);
+                const textWidth = metrics.width;
+                const textHeight = labelSize;
+                
+                const left = textX - textWidth / 2;
+                const right = textX + textWidth / 2;
+                const top = textY - textHeight / 2;
+                const bottom = textY + textHeight / 2;
+                
+                if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+                    return label;
+                }
+            }
+            return null;
+        }
+        
+        // 初始化
+        window.onload = initCanvas;
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>

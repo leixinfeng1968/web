@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角形外接圆尺规作图演示（北师大版九年级数学）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f0f8fb;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #4a90e2;
+            margin-bottom: 5px;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            text-align: center;
+        }
+        .author {
+            font-size: clamp(1rem, 1.5vw, 1.2rem);
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .controls {
+            width: 90vw;
+            max-width: 800px;
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            background-color: #95e1d3;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        .btn.active {
+            background-color: #f38181;
+            color: white;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #stepInfo {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .canvas-box {
+            position: relative;
+            width: 90vw;
+            max-width: 800px;
+            height: 0;
+            padding-bottom: 75%;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>三角形外接圆尺规作图演示</h1>
+    <div class="author">李娟茹</div>
+
+    <div class="controls">
+        <button class="btn active" onclick="setTriangle('acute')">锐角三角形</button>
+        <button class="btn" onclick="setTriangle('right')">直角三角形</button>
+        <button class="btn" onclick="setTriangle('obtuse')">钝角三角形</button>
+        <button class="btn" onclick="prevStep()" id="prevBtn" disabled>上一步</button>
+        <button class="btn" onclick="nextStep()" id="nextBtn">下一步</button>
+        <button class="btn" onclick="restartAnimation()">重新演示</button>
+    </div>
+
+    <div id="stepInfo">步骤1：绘制非等腰三角形ABC</div>
+
+    <div class="canvas-box">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const stepInfo = document.getElementById('stepInfo');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        let currentTriangle = 'acute';
+        let currentStep = 1;
+        let scale = 1;
+        let centerX = 0;
+        let centerY = 0;
+        let points = {};
+        let circumcenter = {};
+        let radius = 0;
+        let circleProgress = 0;
+        let showConstructionLines = true;
+
+        // 三类非等腰三角形顶点坐标（三边长、三角度数均不相等）
+        const trianglePoints = {
+            acute: { A: {x: -140, y: 60}, B: {x: 160, y: 70}, C: {x: -20, y: -130} },
+            right: { A: {x: 0, y: 0}, B: {x: 200, y: 0}, C: {x: 0, y: 150} },
+            obtuse: { A: {x: -160, y: 40}, B: {x: 130, y: 80}, C: {x: -50, y: 110} }
+        };
+
+        // 顶点标签外侧偏移量
+        const labelOffset = {
+            acute: { A: {x: -25, y: -15}, B: {x: 25, y: -15}, C: {x: 0, y: -25} },
+            right: { A: {x: -25, y: -25}, B: {x: 25, y: -15}, C: {x: -25, y: 15} },
+            obtuse: { A: {x: -25, y: -15}, B: {x: 25, y: -15}, C: {x: 0, y: 25} }
+        };
+
+        function init() {
+            initResponsive();
+            updatePoints();
+            drawStep();
+            updateButtons();
+        }
+
+        function initResponsive() {
+            const box = document.querySelector('.canvas-box');
+            canvas.width = box.offsetWidth;
+            canvas.height = box.offsetHeight;
+            scale = Math.min(canvas.width / 800, canvas.height / 600) * 0.8;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+        }
+
+        function updatePoints() {
+            const tp = trianglePoints[currentTriangle];
+            let offsetX = 0, offsetY = 0;
+            if(currentTriangle === 'right') {
+                offsetX = -100;
+                offsetY = -75;
+            }
+            points = {
+                A: {x: centerX + (tp.A.x + offsetX) * scale, y: centerY + (tp.A.y + offsetY) * scale},
+                B: {x: centerX + (tp.B.x + offsetX) * scale, y: centerY + (tp.B.y + offsetY) * scale},
+                C: {x: centerX + (tp.C.x + offsetX) * scale, y: centerY + (tp.C.y + offsetY) * scale}
+            };
+            calcArcRadius();
+            calcCircumcenter();
+        }
+
+        function calcArcRadius() {
+            const lenAB = Math.hypot(points.B.x - points.A.x, points.B.y - points.A.y);
+            const lenBC = Math.hypot(points.C.x - points.B.x, points.C.y - points.B.y);
+            window.arcData = {
+                AB: { r: lenAB * 0.6, p1: points.A, p2: points.B },
+                BC: { r: lenBC * 0.6, p1: points.B, p2: points.C }
+            };
+        }
+
+        function calcCircumcenter() {
+            const midAB = {x: (points.A.x + points.B.x)/2, y: (points.A.y + points.B.y)/2};
+            const vecAB = {x: points.B.x - points.A.x, y: points.B.y - points.A.y};
+            const midBC = {x: (points.B.x + points.C.x)/2, y: (points.B.y + points.C.y)/2};
+            const vecBC = {x: points.C.x - points.B.x, y: points.C.y - points.B.y};
+
+            const perpAB1 = {x: midAB.x - vecAB.y * 2, y: midAB.y + vecAB.x * 2};
+            const perpAB2 = {x: midAB.x + vecAB.y * 2, y: midAB.y - vecAB.x * 2};
+            const perpBC1 = {x: midBC.x - vecBC.y * 2, y: midBC.y + vecBC.x * 2};
+            const perpBC2 = {x: midBC.x + vecBC.y * 2, y: midBC.y - vecBC.x * 2};
+
+            const [x1,y1,x2,y2] = [perpAB1.x,perpAB1.y,perpAB2.x,perpAB2.y];
+            const [x3,y3,x4,y4] = [perpBC1.x,perpBC1.y,perpBC2.x,perpBC2.y];
+            const den = (x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
+            circumcenter.x = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/den;
+            circumcenter.y = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/den;
+            radius = Math.hypot(circumcenter.x - points.A.x, circumcenter.y - points.A.y);
+        }
+
+        function setTriangle(type) {
+            currentTriangle = type;
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            restartAnimation();
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                circleProgress = 0;
+                showConstructionLines = true;
+                drawStep();
+                updateButtons();
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < 5) {
+                currentStep++;
+                if (currentStep === 5) {
+                    showConstructionLines = false;
+                    animateCircle();
+                } else {
+                    drawStep();
+                }
+                updateButtons();
+            }
+        }
+
+        function restartAnimation() {
+            currentStep = 1;
+            circleProgress = 0; circleProgress = 0;
+            showConstructionLines = true;
+            updatePoints();
+            drawStep();
+            updateButtons();
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = currentStep <= 1;
+            nextBtn.disabled = currentStep >= 5;
+        }
+
+        function drawStep() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawTriangle();
+            
+            if (showConstructionLines || currentStep < 5) {
+                switch(currentStep) {
+                    case 2:
+                        stepInfo.textContent = "步骤2：作AB边的垂直平分线（两段相交弧）";
+                        drawPerpendicularLine('AB', '#4a90e2');
+                        break;
+                    case 3:
+                        stepInfo.textContent = "步骤3：作BC边的垂直平分线（两段相交弧）";
+                        drawPerpendicularLine('AB', '#4a90e2');
+                        drawPerpendicularLine('BC', '#f38181');
+                        break;
+                    case 4:
+                        stepInfo.textContent = "步骤4：标记垂直平分线交点（外心O）";
+                        drawPerpendicularLine('AB', '#4a90e2');
+                        drawPerpendicularLine('BC', '#f38181');
+                        drawPoint(circumcenter, 'O', '#ff5722');
+                        break;
+                    default:
+                        stepInfo.textContent = `步骤${currentStep}：绘制非等腰三角形ABC`;
+                }
+            } else if (currentStep === 5) {
+                stepInfo.textContent = "步骤5：以O为圆心，OA为半径画外接圆";
+                drawPoint(circumcenter, 'O', '#ff5722');
+                drawCircumcircle(1);
+            }
+        }
+
+        function animateCircle() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawTriangle();
+            drawPoint(circumcenter, 'O', '#ff5722');
+            
+            if (circleProgress < 1) {
+                circleProgress += 0.02;
+                drawCircumcircle(circleProgress);
+                requestAnimationFrame(animateCircle);
+            } else {
+                drawCircumcircle(1);
+            }
+        }
+
+        function drawTriangle() {
+            ctx.beginPath();
+            ctx.moveTo(points.A.x, points.A.y);
+            ctx.lineTo(points.B.x, points.B.y);
+            ctx.lineTo(points.C.x, points.C.y);
+            ctx.closePath();
+            const triColor = currentTriangle === 'acute' ? '#76a9fa' : currentTriangle === 'right' ? '#ffb6c1' : '#98fb98';
+            ctx.strokeStyle = triColor;
+            ctx.lineWidth = 3 * scale;
+            ctx.stroke();
+            drawOuterPoint(points.A, 'A', triColor);
+            drawOuterPoint(points.B, 'B', triColor);
+            drawOuterPoint(points.C, 'C', triColor);
+            if(currentTriangle === 'right') {
+                const rightLen = 20 * scale;
+                ctx.beginPath();
+                ctx.moveTo(points.A.x + rightLen, points.A.y);
+                ctx.lineTo(points.A.x, points.A.y);
+                ctx.lineTo(points.A.x, points.A.y - rightLen);
+                ctx.strokeStyle = '#ffb6c1';
+                ctx.lineWidth = 2 * scale;
+                ctx.stroke();
+            }
+        }
+
+        function drawOuterPoint(p, label, color) {
+            const offset = labelOffset[currentTriangle][label];
+            const labelX = p.x + offset.x * scale;
+            const labelY = p.y + offset.y * scale;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5 * scale, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.font = `${16 * scale}px Microsoft YaHei`;
+            ctx.fillStyle = color;
+            ctx.fillText(label, labelX, labelY);
+        }
+
+        function drawPerpendicularLine(side, color) {
+            const data = arcData[side];
+            const p1 = data.p1;
+            const p2 = data.p2;
+            const r = data.r;
+
+            const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+            const arcRange = Math.PI / 2;
+
+            ctx.strokeStyle = color;
+            ctx.setLineDash([3 * scale, 3 * scale]);
+            ctx.lineWidth = 2 * scale;
+            ctx.beginPath();
+            ctx.arc(p1.x, p1.y, r, angle - arcRange, angle + arcRange);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(p2.x, p2.y, r, angle + Math.PI - arcRange, angle + Math.PI + arcRange);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const intersections = calcArcIntersections(p1, p2, r);
+            drawPoint(intersections[0], '', color);
+            drawPoint(intersections[1], '', color);
+
+            const lineAngle = Math.atan2(intersections[1].y - intersections[0].y, intersections[1].x - intersections[0].x);
+            const extendLen = Math.max(canvas.width, canvas.height);
+            const startX = intersections[0].x - extendLen * Math.cos(lineAngle);
+            const startY = intersections[0].y - extendLen * Math.sin(lineAngle);
+            const endX = intersections[1].x + extendLen * Math.cos(lineAngle);
+            const endY = intersections[1].y + extendLen * Math.sin(lineAngle);
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5 * scale;
+            ctx.stroke();
+        }
+
+        function calcArcIntersections(p1, p2, r) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const d = Math.hypot(dx, dy);
+            const a = (d * d) / (2 * d);
+            const h = Math.sqrt(r * r - a * a);
+            const x2 = p1.x + a * dx / d;
+            const y2 = p1.y + a * dy / d;
+            return [
+                {x: x2 - h * dy / d, y: y2 + h * dx / d},
+                {x: x2 + h * dy / d, y: y2 - h * dx / d}
+            ];
+        }
+
+        function drawPoint(p, label, color = '#333') {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5 * scale, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            if(label) {
+                ctx.font = `${16 * scale}px Microsoft YaHei`;
+                ctx.fillStyle = color;
+                ctx.fillText(label, p.x + 10 * scale, p.y - 10 * scale);
+            }
+        }
+
+        function drawCircumcircle(progress) {
+            ctx.beginPath();
+            ctx.arc(circumcenter.x, circumcenter.y, radius, 0, 2 * Math.PI * progress);
+            ctx.strokeStyle = '#4a90e2';
+            ctx.lineWidth = 3 * scale;
+            ctx.stroke();
+        }
+
+        window.addEventListener('resize', () => {
+            initResponsive();
+            drawStep();
+        });
+        window.onload = init;
+    </script>
+</body>
+</html>

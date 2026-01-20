@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2021陕西中考数学第13题 - 圆在正方形内平移求最大距离</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+            padding: 0 15px;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            max-width: calc(100% - 30px);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .auto-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: #ffd600;
+            color: #1a237e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        .auto-btn:hover {
+            background: #ffab00;
+        }
+        .auto-btn.active {
+            background: #ff4081;
+            color: #fff;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
+        #myCanvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            padding: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .reset-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: linear-gradient(to right, #ff5252, #e53935);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .reset-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }
+        .blank-line {
+            display: inline-block;
+            width: 60px;
+            height: 2px;
+            background: #ffda8b;
+            vertical-align: bottom;
+            margin: 0 5px;
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2021年陕西中考数学第13题</h1>
+            <div class="geom-condition">
+                如图，正方形ABCD的边长为4，⊙O的半径为1．若⊙O在正方形ABCD内平移（⊙O可以与该正方形的边相切），则点A到⊙O上的点的距离的最大值为 　<span class="blank-line"></span>．
+            </div>
+            <div class="btn-group">
+                <button id="autoCircleBtn" class="auto-btn">圆自动运动</button>
+                <button id="autoPBtn" class="auto-btn">P点绕圆运动</button>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="1000" value="714" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">714%</span>
+                </div>
+                <div class="single-slider">
+                    <span>圆心O水平位置</span>
+                    <input type="range" min="0" max="100" value="44" class="control-slider" id="oxSlider">
+                    <span class="slider-value" id="oxValue">44%</span>
+                </div>
+                <div class="single-slider">
+                    <span>圆心O竖直位置</span>
+                    <input type="range" min="0" max="100" value="33" class="control-slider" id="oySlider">
+                    <span class="slider-value" id="oyValue">33%</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示AO连线</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="aoSlider">
+                    <span class="slider-value" id="aoValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>P点圆周位置</span>
+                    <input type="range" min="0" max="360" value="0" class="control-slider" id="maxDistSlider">
+                    <span class="slider-value" id="maxDistValue">0°</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示答案与解析</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="ansSlider">
+                    <span class="slider-value" id="ansValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签字号大小</span>
+                    <input type="range" min="10" max="50" value="37" class="control-slider" id="labelSizeSlider">
+                    <span class="slider-value" id="labelSizeValue">37px</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="12" max="50" value="40" class="control-slider" id="titleSizeSlider">
+                    <span class="slider-value" id="titleSizeValue">40px</span>
+                </div>
+                <div class="single-slider">
+                    <span>画布高度</span>
+                    <input type="range" min="300" max="600" value="400" class="control-slider" id="canvasHeightSlider">
+                    <span class="slider-value" id="canvasHeightValue">400px</span>
+                </div>
+                <div class="single-slider">
+                    <span>网格显示</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="gridSlider">
+                    <span class="slider-value" id="gridValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>线条粗细</span>
+                    <input type="range" min="1" max="10" value="3" class="control-slider" id="lineWidthSlider">
+                    <span class="slider-value" id="lineWidthValue">3px</span>
+                </div>
+                <div class="single-slider">
+                    <span>点大小</span>
+                    <input type="range" min="2" max="15" value="5" class="control-slider" id="pointSizeSlider">
+                    <span class="slider-value" id="pointSizeValue">5px</span>
+                </div>
+                <div class="single-slider">
+                    <span>动画速度</span>
+                    <input type="range" min="1" max="10" value="5" class="control-slider" id="speedSlider">
+                    <span class="slider-value" id="speedValue">5x</span>
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <button class="reset-btn" id="resetBtn">重置参数</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">制作时间：2026.1.20  作者：雷新风</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const oxSlider = document.getElementById('oxSlider');
+        const oySlider = document.getElementById('oySlider');
+        const aoSlider = document.getElementById('aoSlider');
+        const maxDistSlider = document.getElementById('maxDistSlider');
+        const ansSlider = document.getElementById('ansSlider');
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const titleSizeSlider = document.getElementById('titleSizeSlider');
+        const canvasHeightSlider = document.getElementById('canvasHeightSlider');
+        const gridSlider = document.getElementById('gridSlider');
+        const lineWidthSlider = document.getElementById('lineWidthSlider');
+        const pointSizeSlider = document.getElementById('pointSizeSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const autoCircleBtn = document.getElementById('autoCircleBtn');
+        const autoPBtn = document.getElementById('autoPBtn');
+
+        const scaleValue = document.getElementById('scaleValue');
+        const oxValue = document.getElementById('oxValue');
+        const oyValue = document.getElementById('oyValue');
+        const aoValue = document.getElementById('aoValue');
+        const maxDistValue = document.getElementById('maxDistValue');
+        const ansValue = document.getElementById('ansValue');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        const titleSizeValue = document.getElementById('titleSizeValue');
+        const canvasHeightValue = document.getElementById('canvasHeightValue');
+        const gridValue = document.getElementById('gridValue');
+        const lineWidthValue = document.getElementById('lineWidthValue');
+        const pointSizeValue = document.getElementById('pointSizeValue');
+        const speedValue = document.getElementById('speedValue');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const geomCondition = document.querySelector('.geom-condition');
+        const h1Title = document.querySelector('h1');
+
+        // 图形参数
+        let pointRadius = 5;
+        const labelOffset = 12;
+        let scaleRatio = 7.14; // 714%
+        let oxRatio = 0.44; // 44%
+        let oyRatio = 0.33; // 33%
+        let aoRatio = 0;
+        let pAngleDeg = 0; // P点角度（度）
+        let ansRatio = 0;
+        let labelSize = 37;
+        let titleSize = 40;
+        let canvasHeight = 400;
+        let gridRatio = 0;
+        let lineWidth = 3;
+        let animationSpeed = 5;
+        let canvasW, canvasH;
+        
+        // 标签拖动参数
+        let labelPositions = {}; // 存储标签的自定义位置
+        let isDraggingLabel = false;
+        let draggedLabel = null;
+        let dragOffset = {x: 0, y: 0};
+        
+        // 图形拖动参数
+        let isDraggingGraph = false;
+        let lastMousePos = {x: 0, y: 0};
+        let initialOXRatio = 0;
+        let initialOYRatio = 0;
+
+        let A, B, C, D, O, P_max;
+        const SIDE_LEN = 4;
+        const CIRCLE_R = 1;
+        const MAX_AO = 3 * Math.sqrt(2);
+        const MAX_DIST = MAX_AO + CIRCLE_R;
+
+        // 自动运动
+        let circleAutoInterval = null;
+        let pAutoInterval = null;
+
+        // 初始化画布（宽度自适应）
+        function initCanvas() {
+            canvasW = canvas.offsetWidth;
+            canvasH = canvasHeight;
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+            ctx.lineWidth = 3;
+            initPoints();
+            drawGraph();
+        }
+
+        // 初始化点坐标：A左上 → B左下 → C右下 → D右上
+        function initPoints() {
+            const baseScale = Math.min(canvasW / 40, canvasH / 40);
+            const finalScale = baseScale * scaleRatio;
+            const centerX = canvasW / 2;
+            const centerY = canvasH / 2;
+            const half = SIDE_LEN * finalScale / 2;
+
+            A = { x: centerX - half, y: centerY - half };
+            B = { x: centerX - half, y: centerY + half };
+            C = { x: centerX + half, y: centerY + half };
+            D = { x: centerX + half, y: centerY - half };
+
+            const minO = CIRCLE_R * finalScale;
+            const maxO = (SIDE_LEN - CIRCLE_R) * finalScale;
+            O = {
+                x: A.x + minO + (maxO - minO) * oxRatio,
+                y: A.y + minO + (maxO - minO) * oyRatio
+            };
+
+            updatePmax(finalScale);
+        }
+
+        // 更新P点位置（根据角度）
+        function updatePmax(finalScale) {
+            const circleRadius = CIRCLE_R * finalScale;
+            const rad = pAngleDeg * Math.PI / 180;
+            P_max = {
+                x: O.x + circleRadius * Math.cos(rad),
+                y: O.y + circleRadius * Math.sin(rad)
+            };
+        }
+
+        // 绘制图形
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            const finalScale = Math.min(canvasW / 40, canvasH / 40) * scaleRatio;
+            const circleRadius = CIRCLE_R * finalScale;
+
+            // 绘制网格
+            if (gridRatio > 0) {
+                drawGrid();
+            }
+
+            // 正方形
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.lineTo(D.x, D.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // 圆
+            ctx.strokeStyle = '#4dd0e1';
+            ctx.lineWidth = lineWidth - 1;
+            ctx.beginPath();
+            ctx.arc(O.x, O.y, circleRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(77, 208, 225, 0.2)';
+            ctx.fill();
+
+            // AO连线（只画线，不标文字）
+            if (aoRatio > 0) {
+                ctx.save();
+                ctx.globalAlpha = aoRatio;
+                ctx.strokeStyle = '#ff4081';
+                ctx.lineWidth = lineWidth - 1;
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y);
+                ctx.lineTo(O.x, O.y);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // A-P_max（只画线，不标文字）
+            ctx.save();
+            ctx.strokeStyle = '#ffd600';
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(P_max.x, P_max.y);
+            ctx.stroke();
+            ctx.restore();
+
+            // 绘制点（含P标签）
+            drawPoint(A, '#ffff33'); drawLabel('A', A, -labelOffset, -labelOffset);
+            drawPoint(B, '#ffff33'); drawLabel('B', B, -labelOffset, labelOffset);
+            drawPoint(C, '#ffff33'); drawLabel('C', C, labelOffset, labelOffset);
+            drawPoint(D, '#ffff33'); drawLabel('D', D, labelOffset, -labelOffset);
+            drawPoint(O, '#4dd0e1'); drawLabel('O', O, 0, -labelOffset * 1.5);
+            drawPoint(P_max, '#ffd600'); 
+            drawLabel('P', P_max, labelOffset, 0);
+        }
+        
+        // 绘制网格
+        function drawGrid() {
+            ctx.save();
+            ctx.globalAlpha = gridRatio;
+            ctx.strokeStyle = 'rgba(100, 255, 218, 0.3)';
+            ctx.lineWidth = 0.5;
+            
+            // 网格大小（像素）
+            const gridSize = 20;
+            
+            // 绘制垂直线
+            for (let x = 0; x < canvasW; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvasH);
+                ctx.stroke();
+            }
+            
+            // 绘制水平线
+            for (let y = 0; y < canvasH; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvasW, y);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+
+            // 答案解析（精确式）
+            if (ansRatio > 0) {
+                ctx.save();
+                ctx.globalAlpha = ansRatio;
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 20px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.textShadow = '0 0 5px rgba(0, 0, 0, 0.8)';
+                
+                // 在画布底部显示答案，避免被其他元素遮挡
+                const startY = canvasH - 120;
+                ctx.fillText(`1. 圆心O到A的最大距离 = AC = 3√2`, canvasW / 2, startY);
+                ctx.fillText(`2. 点A到⊙O上点的最大距离 = 3√2 + 1`, canvasW / 2, startY + 30);
+                ctx.fillText(`答案：3√2 + 1`, canvasW / 2, startY + 60);
+                
+                ctx.restore();
+            }
+        }
+
+        function drawPoint(p, color) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(p.x, p.y, pointRadius + 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function drawLabel(txt, p, ox, oy) {
+            const pos = labelPositions[txt] || {x: ox, y: oy};
+            ctx.save();
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold italic ${labelSize}px Times New Roman`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(txt, p.x + pos.x, p.y + pos.y);
+            ctx.restore();
+        }
+
+        // 圆自动运动（同时控制水平和垂直位置，平滑运动）
+        function startCircleAuto() {
+            if (circleAutoInterval) return;
+            autoCircleBtn.classList.add('active');
+            
+            // 初始化运动方向向量
+            let dirX = (Math.random() > 0.5) ? 1 : -1;
+            let dirY = (Math.random() > 0.5) ? 1 : -1;
+            
+            circleAutoInterval = setInterval(() => {
+                // 固定步长（可调整）
+                const step = 0.015;
+                
+                // 更新位置，考虑边界反弹
+                oxRatio += dirX * step;
+                oyRatio += dirY * step;
+                
+                // 边界检测和方向反转
+                if (oxRatio <= 0 || oxRatio >= 1) {
+                    dirX *= -1;
+                    oxRatio = Math.max(0, Math.min(1, oxRatio));
+                }
+                
+                if (oyRatio <= 0 || oyRatio >= 1) {
+                    dirY *= -1;
+                    oyRatio = Math.max(0, Math.min(1, oyRatio));
+                }
+                
+                // 偶尔随机改变方向（增加运动的随机性）
+                if (Math.random() < 0.02) {
+                    dirX = (Math.random() > 0.5) ? 1 : -1;
+                }
+                if (Math.random() < 0.02) {
+                    dirY = (Math.random() > 0.5) ? 1 : -1;
+                }
+                
+                // 同步更新滑动条值
+                const newOxValue = Math.round(oxRatio * 100);
+                const newOyValue = Math.round(oyRatio * 100);
+                
+                oxSlider.value = newOxValue;
+                oySlider.value = newOyValue;
+                
+                oxValue.innerText = newOxValue + '%';
+                oyValue.innerText = newOyValue + '%';
+                
+                // 重新初始化点并绘制图形
+                initPoints();
+                drawGraph();
+            }, 30);
+        }
+
+        function stopCircleAuto() {
+            clearInterval(circleAutoInterval);
+            circleAutoInterval = null;
+            autoCircleBtn.classList.remove('active');
+        }
+
+        // P点绕圆自动运动
+        function startPAuto() {
+            if (pAutoInterval) return;
+            autoPBtn.classList.add('active');
+            pAutoInterval = setInterval(() => {
+                pAngleDeg = (pAngleDeg + 1) % 360;
+                maxDistSlider.value = pAngleDeg;
+                maxDistValue.innerText = pAngleDeg + '°';
+                updatePmax(Math.min(canvasW / 40, canvasH / 40) * scaleRatio);
+                drawGraph();
+            }, 30);
+        }
+
+        function stopPAuto() {
+            clearInterval(pAutoInterval);
+            pAutoInterval = null;
+            autoPBtn.classList.remove('active');
+        }
+
+        // 按钮事件
+        autoCircleBtn.addEventListener('click', () => {
+            circleAutoInterval ? stopCircleAuto() : startCircleAuto();
+        });
+
+        autoPBtn.addEventListener('click', () => {
+            pAutoInterval ? stopPAuto() : startPAuto();
+        });
+
+        // 滑块事件
+        scaleSlider.addEventListener('input', () => {
+            scaleRatio = scaleSlider.value / 100;
+            scaleValue.innerText = scaleSlider.value + '%';
+            initPoints();
+            drawGraph();
+        });
+
+        oxSlider.addEventListener('input', () => {
+            oxRatio = oxSlider.value / 100;
+            oxValue.innerText = oxSlider.value + '%';
+            initPoints();
+            drawGraph();
+        });
+
+        oySlider.addEventListener('input', () => {
+            oyRatio = oySlider.value / 100;
+            oyValue.innerText = oySlider.value + '%';
+            initPoints();
+            drawGraph();
+        });
+
+        aoSlider.addEventListener('input', () => {
+            aoRatio = aoSlider.value / 100;
+            aoValue.innerText = aoSlider.value + '%';
+            drawGraph();
+        });
+
+        // P点圆周位置滑动条（0-360°）
+        maxDistSlider.addEventListener('input', () => {
+            pAngleDeg = parseInt(maxDistSlider.value);
+            maxDistValue.innerText = pAngleDeg + '°';
+            updatePmax(Math.min(canvasW / 40, canvasH / 40) * scaleRatio);
+            drawGraph();
+        });
+
+        ansSlider.addEventListener('input', () => {
+            ansRatio = ansSlider.value / 100;
+            ansValue.innerText = ansSlider.value + '%';
+            drawGraph();
+        });
+
+        labelSizeSlider.addEventListener('input', () => {
+            labelSize = labelSizeSlider.value;
+            labelSizeValue.innerText = labelSizeSlider.value + 'px';
+            drawGraph();
+        });
+
+        titleSizeSlider.addEventListener('input', () => {
+            titleSize = titleSizeSlider.value;
+            titleSizeValue.innerText = titleSizeSlider.value + 'px';
+            geomCondition.style.fontSize = titleSize + 'px';
+            h1Title.style.fontSize = (titleSize * 1.25) + 'px';
+        });
+
+        canvasHeightSlider.addEventListener('input', () => {
+            canvasHeight = canvasHeightSlider.value;
+            canvasHeightValue.innerText = canvasHeightSlider.value + 'px';
+            canvas.style.height = canvasHeight + 'px';
+            initCanvas();
+        });
+
+        // 窗口 resize 时重新初始化（保证自适应）
+        // 检查鼠标是否点击在标签上
+        function getLabelAtPosition(mouseX, mouseY) {
+            const labels = [
+                {name: 'A', point: A, offset: {x: -labelOffset, y: -labelOffset}},
+                {name: 'B', point: B, offset: {x: -labelOffset, y: labelOffset}},
+                {name: 'C', point: C, offset: {x: labelOffset, y: labelOffset}},
+                {name: 'D', point: D, offset: {x: labelOffset, y: -labelOffset}},
+                {name: 'O', point: O, offset: {x: 0, y: -labelOffset * 1.5}},
+                {name: 'P', point: P_max, offset: {x: labelOffset, y: 0}}
+            ];
+            
+            for (const label of labels) {
+                const pos = labelPositions[label.name] || label.offset;
+                const textX = label.point.x + pos.x;
+                const textY = label.point.y + pos.y;
+                
+                ctx.font = `bold italic ${labelSize}px Times New Roman`;
+                const metrics = ctx.measureText(label.name);
+                const textWidth = metrics.width;
+                const textHeight = labelSize;
+                
+                const left = textX - textWidth / 2;
+                const right = textX + textWidth / 2;
+                const top = textY - textHeight / 2;
+                const bottom = textY + textHeight / 2;
+                
+                if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+                    return label;
+                }
+            }
+            return null;
+        }
+        
+        // 鼠标事件处理（标签拖动和图形拖动）
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const label = getLabelAtPosition(mouseX, mouseY);
+            if (label) {
+                // 点击在标签上，开始拖动标签
+                isDraggingLabel = true;
+                draggedLabel = label.name;
+                const pos = labelPositions[label.name] || label.offset;
+                dragOffset.x = mouseX - (label.point.x + pos.x);
+                dragOffset.y = mouseY - (label.point.y + pos.y);
+            } else {
+                // 没有点击在标签上，开始拖动图形
+                isDraggingGraph = true;
+                lastMousePos = {x: mouseX, y: mouseY};
+                initialOXRatio = oxRatio;
+                initialOYRatio = oyRatio;
+            }
+        });
+        
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            if (isDraggingLabel && draggedLabel) {
+                // 查找被拖动的标签
+                const labels = [
+                    {name: 'A', point: A}, {name: 'B', point: B}, 
+                    {name: 'C', point: C}, {name: 'D', point: D}, 
+                    {name: 'O', point: O}, {name: 'P', point: P_max}
+                ];
+                const label = labels.find(l => l.name === draggedLabel);
+                
+                if (label) {
+                    // 更新标签位置
+                    labelPositions[draggedLabel] = {
+                        x: mouseX - label.point.x - dragOffset.x,
+                        y: mouseY - label.point.y - dragOffset.y
+                    };
+                    drawGraph();
+                }
+            } else if (isDraggingGraph) {
+                // 拖动图形
+                const dx = mouseX - lastMousePos.x;
+                const dy = mouseY - lastMousePos.y;
+                
+                // 根据画布宽度和高度计算比例变化
+                const dxRatio = dx / canvasW;
+                const dyRatio = dy / canvasH;
+                
+                // 更新圆心位置比例
+                oxRatio = Math.max(0, Math.min(1, initialOXRatio + dxRatio));
+                oyRatio = Math.max(0, Math.min(1, initialOYRatio + dyRatio));
+                
+                // 同步更新滑动条值
+                oxSlider.value = Math.round(oxRatio * 100);
+                oySlider.value = Math.round(oyRatio * 100);
+                oxValue.innerText = Math.round(oxRatio * 100) + '%';
+                oyValue.innerText = Math.round(oyRatio * 100) + '%';
+                
+                // 更新鼠标位置
+                lastMousePos = {x: mouseX, y: mouseY};
+                
+                // 重新绘制图形
+                initPoints();
+                drawGraph();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', function() {
+            isDraggingLabel = false;
+            draggedLabel = null;
+            isDraggingGraph = false;
+        });
+        
+        canvas.addEventListener('mouseleave', function() {
+            isDraggingLabel = false;
+            draggedLabel = null;
+            isDraggingGraph = false;
+        });
+        
+        // 网格显示控制
+        gridSlider.addEventListener('input', function() {
+            gridRatio = this.value / 100;
+            gridValue.innerText = this.value + '%';
+            drawGraph();
+        });
+        
+        // 线条粗细控制
+        lineWidthSlider.addEventListener('input', function() {
+            lineWidth = parseInt(this.value);
+            lineWidthValue.innerText = this.value + 'px';
+            drawGraph();
+        });
+        
+        // 点大小控制
+        pointSizeSlider.addEventListener('input', function() {
+            pointRadius = parseInt(this.value);
+            pointSizeValue.innerText = this.value + 'px';
+            drawGraph();
+        });
+        
+        // 动画速度控制
+        speedSlider.addEventListener('input', function() {
+            animationSpeed = parseInt(this.value);
+            speedValue.innerText = this.value + 'x';
+        });
+        
+        // 重置参数功能
+        resetBtn.addEventListener('click', function() {
+            // 重置滑块值
+            scaleSlider.value = 714;
+            oxSlider.value = 44;
+            oySlider.value = 33;
+            aoSlider.value = 0;
+            maxDistSlider.value = 0;
+            ansSlider.value = 0;
+            labelSizeSlider.value = 37;
+            titleSizeSlider.value = 40;
+            canvasHeightSlider.value = 400;
+            gridSlider.value = 0;
+            lineWidthSlider.value = 3;
+            pointSizeSlider.value = 5;
+            speedSlider.value = 5;
+            
+            // 重置变量值
+            scaleRatio = 7.14;
+            oxRatio = 0.44;
+            oyRatio = 0.33;
+            aoRatio = 0;
+            pAngleDeg = 0;
+            ansRatio = 0;
+            labelSize = 37;
+            titleSize = 40;
+            canvasHeight = 400;
+            gridRatio = 0;
+            lineWidth = 3;
+            pointRadius = 5;
+            animationSpeed = 5;
+            
+            // 重置标签位置
+            labelPositions = {};
+            
+            // 更新显示值
+            scaleValue.innerText = '714%';
+            oxValue.innerText = '44%';
+            oyValue.innerText = '33%';
+            aoValue.innerText = '0%';
+            maxDistValue.innerText = '0°';
+            ansValue.innerText = '0%';
+            labelSizeValue.innerText = '37px';
+            titleSizeValue.innerText = '40px';
+            canvasHeightValue.innerText = '400px';
+            gridValue.innerText = '0%';
+            lineWidthValue.innerText = '3px';
+            pointSizeValue.innerText = '5px';
+            speedValue.innerText = '5x';
+            
+            // 更新样式
+            geomCondition.style.fontSize = titleSize + 'px';
+            h1Title.style.fontSize = (titleSize * 1.25) + 'px';
+            canvas.style.height = canvasHeight + 'px';
+            
+            // 重新初始化画布
+            initCanvas();
+        });
+        
+        window.addEventListener('load', initCanvas);
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>
