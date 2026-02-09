@@ -169,6 +169,11 @@
             offsetY: 0
         };
 
+        // 拖动相关变量
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
         // 逻辑坐标点
         let points = {
             A: { x: 0, y: 6 },
@@ -346,6 +351,8 @@
         // 绘制所有图形
         function drawAll() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(panX, panY);
             
             const A = toCanvasPoint(points.A);
             const B = toCanvasPoint(points.B);
@@ -479,6 +486,7 @@
             drawPoint(D, 'D', '#0000ff', 'top');
             drawPoint(rotateP, 'P', '#ff9900', 'left');
             drawPoint(O, 'O', '#0099ff', 'right');
+            ctx.restore();
         }
 
         // 辅助线动画函数
@@ -491,6 +499,65 @@
                 isDrawingAux = false;
             }
         }
+
+        // 拖动功能 - 鼠标事件
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawAll();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // 拖动功能 - 触摸事件
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawAll();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
 
         // 初始化
         resetPoints();

@@ -13,29 +13,89 @@
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 700px;
         }
         h2 {
-            margin-bottom: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .geom-condition {
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            color: #64ffda;
             text-align: left;
-            font-size: 18px;
-            font-weight: normal;
-            width: 100%;
-            max-width: 800px;
+            line-height: 1.6;
             text-indent: 2em;
         }
-        .control-panel {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 20px;
-            max-width: 800px;
+        .container {
             width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
+        canvas {
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+            margin: 0 auto;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: 1.1rem;
+            color: #ffd600;
+            margin-bottom: 5px;
+            text-align: center;
         }
         .param-group {
             display: flex;
@@ -51,12 +111,17 @@
             width: 90px;
             white-space: nowrap;
             font-size: 14px;
+            color: #fff;
         }
         input[type="number"] {
             width: 70px;
             padding: 6px 4px;
             text-align: center;
             -moz-appearance: textfield;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(100,255,218,0.3);
+            border-radius: 4px;
+            color: #fff;
         }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
@@ -68,6 +133,20 @@
             flex: 1;
             min-width: 180px;
             margin: 0 8px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
         }
         button {
             padding: 6px 12px;
@@ -81,19 +160,6 @@
         button:hover {
             background: #0056b3;
         }
-        #canvas-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 800px;
-            width: 100%;
-        }
-        canvas {
-            border: 1px solid #ccc;
-            display: block;
-            margin: 0 auto;
-        }
         .btn-group {
             margin-top: 15px;
             text-align: center;
@@ -101,7 +167,17 @@
             justify-content: center;
             gap: 10px;
         }
+        #angleValue {
+            color: #ffd600;
+            font-weight: bold;
+        }
         @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
             .param-group {
                 flex-wrap: wrap;
                 overflow-x: hidden;
@@ -119,28 +195,45 @@
     </style>
 </head>
 <body>
-    <h2>矩形ABCD边长由参数控制，O为矩形对称中心 BP长也由参数控制，求三角形AOP面积最小值</h2>
-    
-    <div id="canvas-container">
-        <canvas id="demoCanvas"></canvas>
+    <div class="header">
+        <h2>线圆最值问题</h2>
+        <div class="geom-condition">
+            矩形ABCD边长由参数控制，O为矩形对称中心，BP长也由参数控制，求三角形AOP面积最小值
+        </div>
     </div>
 
-    <div class="control-panel">
-        <div class="param-group">
-            <label>AB长度：</label>
-            <input type="number" id="abLen" value="6" min="1" step="1">
-            <label>BC长度：</label>
-            <input type="number" id="bcLen" value="8" min="1" step="1">
-            <label>BP长度：</label>
-            <input type="number" id="bpLen" value="2" min="1" step="1">
-            <label>旋转角度：</label>
-            <input type="range" id="rotateAngle" min="0" max="360" value="322">
-            <span id="angleValue">322°</span>
-        </div>
-        <div class="btn-group">
-            <button id="applyParam">应用参数</button>
-            <button id="resetAll">重置所有</button>
-            <button id="drawAuxLine">绘制辅助线</button>
+    <div class="container">
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="demoCanvas"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="param-group">
+                    <label>AB长度：</label>
+                    <input type="number" id="abLen" value="6" min="1" step="1">
+                    <label>BC长度：</label>
+                    <input type="number" id="bcLen" value="8" min="1" step="1">
+                    <label>BP长度：</label>
+                    <input type="number" id="bpLen" value="2" min="1" step="1">
+                </div>
+                <div class="param-group">
+                    <label>旋转角度：</label>
+                    <input type="range" id="rotateAngle" min="0" max="360" value="322">
+                    <span id="angleValue">322°</span>
+                </div>
+                <div class="btn-group">
+                    <button id="applyParam">应用参数</button>
+                    <button id="resetAll">重置所有</button>
+                    <button id="drawAuxLine">绘制辅助线</button>
+                </div>
+                <div class="param-group">
+                    <label>题目文字大小：</label>
+                    <input type="range" id="fontSlider" min="80" max="200" value="100">
+                    <span id="fontValue">100%</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -154,9 +247,12 @@
         const applyParamBtn = document.getElementById('applyParam');
         const resetAllBtn = document.getElementById('resetAll');
         const drawAuxLineBtn = document.getElementById('drawAuxLine');
+        const fontSlider = document.getElementById('fontSlider');
+        const fontValueSpan = document.getElementById('fontValue');
         const canvas = document.getElementById('demoCanvas');
         const ctx = canvas.getContext('2d');
-        const canvasContainer = document.getElementById('canvas-container');
+        const canvasWrapper = document.querySelector('.canvas-wrapper');
+        const geomCondition = document.querySelector('.geom-condition');
 
         // 初始参数
         let params = {
@@ -168,6 +264,11 @@
             offsetX: 0,
             offsetY: 0
         };
+
+        // 拖动相关变量
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
 
         // 逻辑坐标点
         let points = {
@@ -267,6 +368,12 @@
             animateAuxLine();
         });
 
+        fontSlider.addEventListener('input', () => {
+            const fontSize = fontSlider.value / 100;
+            fontValueSpan.textContent = `${fontSlider.value}%`;
+            geomCondition.style.fontSize = `${fontSize}rem`;
+        });
+
         // 重置逻辑坐标点
         function resetPoints() {
             points.A = { x: 0, y: params.abLen };
@@ -320,10 +427,9 @@
 
         // 画布自适应
         function adaptCanvas() {
-            const containerWidth = canvasContainer.clientWidth - 40;
-            const containerHeight = window.innerHeight * 0.4;
+            const containerWidth = canvasWrapper.clientWidth - 20;
             canvas.width = containerWidth;
-            canvas.height = containerHeight;
+            canvas.height = 320;
 
             const logicWidth = params.bcLen * 1.2;
             const logicHeight = params.abLen * 1.2;
@@ -346,6 +452,8 @@
         // 绘制所有图形
         function drawAll() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(panX, panY);
             
             const A = toCanvasPoint(points.A);
             const B = toCanvasPoint(points.B);
@@ -479,6 +587,7 @@
             drawPoint(D, 'D', '#0000ff', 'top');
             drawPoint(rotateP, 'P', '#ff9900', 'left');
             drawPoint(O, 'O', '#0099ff', 'right');
+            ctx.restore();
         }
 
         // 辅助线动画函数
@@ -491,6 +600,65 @@
                 isDrawingAux = false;
             }
         }
+
+        // 拖动功能 - 鼠标事件
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawAll();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // 拖动功能 - 触摸事件
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawAll();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
 
         // 初始化
         resetPoints();

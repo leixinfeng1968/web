@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>正比例函数的图像和性质 - 元宇宙风格课件</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "Microsoft YaHei", sans-serif;}
+        /* 元宇宙核心背景：低性能友好，无卡顿 */
+        body {
+            padding: 20px 10px;
+            background: #0f172a;
+            background-image: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #4f46e5 100%);
+            background-attachment: fixed;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        /* 轻量动画：仅保留核心效果，避免渲染异常 */
+        @keyframes float {0%,100%{transform: translateY(0);}50%{transform: translateY(-8px);}}
+        @keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}
+        /* 坐标系专属：白昼元宇宙+梦幻光变动画 | 核心修改样式 */
+        @keyframes cosmicLight {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+        @keyframes starTwinkle {
+            0%,100% {opacity: 0.6;}
+            50% {opacity: 1;}
+        }
+        /* 容器：适配所有屏幕，无溢出 */
+        .container {max-width: 1400px; margin: 0 auto; width: 100%; padding: 0 10px;}
+        /* 课题标题：元宇宙霓虹渐变+漂浮，适配所有浏览器 */
+        h1 {
+            text-align: center;
+            margin: 20px 0 30px;
+            font-size: clamp(24px, 6vw, 36px);
+            font-weight: 700;
+            background: linear-gradient(90deg, #bae6fd, #60a5fa, #a5b4fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
+            animation: float 6s infinite ease-in-out;
+            letter-spacing: 1px;
+        }
+        /* 选项卡导航：玻璃拟态，无错位，点击灵敏 */
+        .tab-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: rgba(30, 27, 75, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 10px;
+            padding: 6px;
+            margin: 0 auto 15px;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .tab-nav button {
+            flex: 1;
+            min-width: 90px;
+            padding: 14px 8px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.6);
+            font-size: clamp(14px, 2vw, 16px);
+            font-weight: 600;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .tab-nav button.active {
+            background: rgba(79, 70, 229, 0.4);
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
+        }
+        .tab-nav button.active::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #60a5fa;
+            border-radius: 0 0 6px 6px;
+        }
+        .tab-nav button:hover:not(.active) {
+            background: rgba(30, 27, 75, 0.5);
+            color: #a5b4fc;
+        }
+        /* 选项卡内容：玻璃拟态核心，无渲染异常 */
+        .tab-content {
+            width: 100%;
+            margin: 0 auto;
+            padding: 25px;
+            background: rgba(15, 23, 42, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .tab-content::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #60a5fa, #4f46e5);
+            border-radius: 12px 12px 0 0;
+        }
+        /* 内容面板：淡入动画，无卡顿 */
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .tab-pane.active {display: block;}
+        /* 文本标题样式：层级清晰，元宇宙霓虹感 */
+        .tab-pane h2 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: clamp(18px, 3vw, 24px);
+            font-weight: 600;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+            background: linear-gradient(90deg, #bae6fd, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .tab-pane h3 {
+            color: #a5b4fc;
+            margin: 18px 0 12px;
+            font-size: clamp(16px, 2.5vw, 20px);
+            padding-left: 10px;
+            border-left: 3px solid #60a5fa;
+            font-weight: 600;
+        }
+        /* 基础文本：清晰可读，适配投影 */
+        .tab-pane p, .tab-pane ul, .tab-pane ol {
+            line-height: 1.8;
+            font-size: clamp(14px, 2vw, 16px);
+            margin-bottom: 12px;
+            color: #e2e8f0;
+        }
+        .tab-pane ul, .tab-pane ol {padding-left: 25px;}
+        .tab-pane ul li {list-style: square; color: #94a3b8;}
+        .tab-pane ul li::marker {color: #60a5fa;}
+        .tab-pane strong {
+            background: linear-gradient(90deg, #60a5fa, #a5b4fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 600;
+        }
+        /* 课堂小结：强化玻璃拟态，突出重点 */
+        .summary {
+            background: rgba(79, 70, 229, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.15);
+        }
+        .summary p {margin-bottom: 8px; color: #f8fafc;}
+        .summary strong {font-size: 16px;}
+        /* 坐标系容器：白昼元宇宙虚拟空间+明亮光变 | 核心修改样式 */
+        #canvasContainer {
+            width: 95%;
+            margin: 20px auto;
+            position: relative;
+            /* 白昼元宇宙背景：浅蓝渐变+明亮光层 */
+            background: radial-gradient(circle at center, #e6f7ff 0%, #b3e5fc 30%, #81d4fa 100%);
+            background-image: 
+                radial-gradient(circle at center, #e6f7ff 0%, #b3e5fc 30%, #81d4fa 100%),
+                linear-gradient(120deg, #64b5f633, #9c27b033, #00bcd433);
+            background-blend-mode: overlay;
+            animation: cosmicLight 15s infinite ease-in-out;
+            /* 星光改为明亮光斑 */
+            background-size: 200% 200%, 100% 100%;
+            border: 1px solid rgba(33, 150, 243, 0.6);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 0 30px rgba(33, 150, 243, 0.4), 0 0 15px rgba(100, 181, 246, 0.3) inset;
+        }
+        /* 画布遮罩：明亮光斑闪烁，适配白昼风格 | 核心修改 */
+        #canvasContainer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #2196f3 50%, transparent 50%),
+                radial-gradient(1px 1px at 40px 80px, #9c27b0 50%, transparent 50%),
+                radial-gradient(1px 1px at 70px 20px, #00bcd4 50%, transparent 50%),
+                radial-gradient(1px 1px at 90px 100px, #2196f3 50%, transparent 50%),
+                radial-gradient(1px 1px at 120px 50px, #9c27b0 50%, transparent 50%);
+            background-repeat: repeat;
+            background-size: 150px 150px;
+            animation: starTwinkle 8s infinite ease-in-out;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        canvas {
+            border-radius: 6px;
+            /* 白昼版半透明画布，提亮且透背景 */
+            background: rgba(255, 255, 255, 0.75);
+            display: block;
+            width: 100%;
+            height: auto;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        /* 控制栏：玻璃拟态，滑块样式统一，无错位 */
+        .control-bar {
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            margin: 0 auto 10px;
+            width: 95%;
+            text-align: center;
+            flex-wrap: wrap;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+        }
+        /* 滑块：原生样式优化，兼容所有浏览器，点击灵敏 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: clamp(100px, 20vw, 200px);
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(30, 27, 75, 0.6);
+            outline: none;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 8px #60a5fa;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 8px #60a5fa;
+            border: none;
+        }
+        /* 控制栏文本：清晰区分，元宇宙配色 */
+        .control-bar label {
+            font-size: clamp(14px, 2vw, 16px);
+            font-weight: 600;
+            margin-right: 6px;
+            color: #a5b4fc;
+        }
+        .control-bar span {
+            font-size: clamp(12px, 1.8vw, 14px);
+            color: #94a3b8;
+        }
+        /* k值提示：霓虹高亮，样式稳定 */
+        #kVal {
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            background: rgba(79, 70, 229, 0.3);
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            color: #e2e8f0;
+        }
+        .tip {
+            text-align: center;
+            font-size: clamp(12px, 1.5vw, 14px);
+            color: #94a3b8;
+            padding: 0 10px;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        /* 通用显示隐藏按钮：贴合元宇宙风格，统一所有按钮样式 */
+        .toggle-btn {
+            padding: 2px 8px;
+            margin: 8px 0;
+            border: 1px solid #60a5fa;
+            border-radius: 4px;
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .toggle-btn:hover {
+            background: rgba(96, 165, 250, 0.4);
+            color: #fff;
+            box-shadow: 0 0 6px #60a5fa;
+        }
+        /* 隐藏内容容器：默认隐藏，统一样式（表达式/概念/辨析） */
+        .hide-box {
+            display: none;
+            margin: 8px 0 15px 20px;
+            padding: 6px 10px;
+            border-left: 2px solid #60a5fa;
+            color: #bae6fd;
+            line-height: 1.8;
+        }
+        /* 移动端极致适配：无错位、无溢出、点击灵敏 */
+        @media (max-width: 768px) {
+            .tab-nav {gap: 4px; padding: 4px;}
+            .tab-nav button {padding: 10px 4px; min-width: 70px; font-size: 13px;}
+            .tab-content {padding: 18px;}
+            .control-bar {gap: 10px; padding: 12px; flex-wrap: wrap;}
+            input[type="range"] {width: clamp(80px, 25vw, 150px);}
+            h1 {margin: 15px 0 25px; font-size: clamp(20px, 5vw, 28px);}
+            .summary {padding: 15px;}
+            #canvasContainer {width: 100%; padding: 5px;}
+            .control-bar {width: 100%;}
+            .toggle-btn {padding: 1px 6px; font-size: 10px; margin: 6px 0;}
+            .hide-box {margin-left: 10px; padding: 5px 8px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 课题标题 -->
+        <h1>正比例函数的图像和性质</h1>
+
+        <!-- 选项卡导航 -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="tab1">一、情境导入</button>
+            <button class="tab-btn" data-tab="tab2">二、新授知识</button>
+            <button class="tab-btn" data-tab="tab3">三、性质总结</button>
+            <button class="tab-btn" data-tab="tab4">四、例题讲解</button>
+            <button class="tab-btn" data-tab="tab5">五、课堂小结</button>
+        </div>
+
+        <!-- 选项卡内容 -->
+        <div class="tab-content">
+            <!-- 板块1：情境导入 -->
+            <div class="tab-pane active" id="tab1">
+                <h2>情境导入</h2>
+                <p>汽车以60km/h的速度匀速行驶，行驶的路程y（km）与行驶时间x（h）之间的关系可以表示为：
+                    <button class="toggle-btn" onclick="toggleBox('expr1')">显示表达式</button>
+                </p>
+                <div class="hide-box" id="expr1"><strong>y = 60x</strong></div>
+                
+                <p>文具店的笔记本每本5元，购买的总价y（元）与购买数量x（本）之间的关系可以表示为：
+                    <button class="toggle-btn" onclick="toggleBox('expr2')">显示表达式</button>
+                </p>
+                <div class="hide-box" id="expr2"><strong>y = 5x</strong></div>
+                
+                <p>思考：这两个函数有什么共同特征？这样的函数我们称之为正比例函数，今天我们就一起来研究<strong>正比例函数的图像和性质</strong>。</p>
+            </div>
+
+            <!-- 板块2：新授知识 - 关键点辨析为按钮，坐标系白昼元宇宙背景 -->
+            <div class="tab-pane" id="tab2">
+                <h2>新授知识</h2>
+                <h3>活动一：认识正比例函数</h3>
+                <p>观察上述两个函数：<strong>y = 60x</strong>、<strong>y = 5x</strong>，它们的形式具有共同特点：
+                    <button class="toggle-btn" onclick="toggleBox('concept')">显示正比例函数概念</button>
+                </p>
+                <!-- 正比例函数概念容器 -->
+                <div class="hide-box" id="concept">一般地，形如 <strong>y = kx</strong>（k 是常数，且 k ≠ 0）的函数，叫做<strong>正比例函数</strong>，其中 k 叫做比例系数。</div>
+                
+                <!-- 关键点辨析：独立按钮，样式统一 -->
+                <button class="toggle-btn" onclick="toggleBox('analyse')">关键点辨析</button>
+                <!-- 关键点辨析内容容器 -->
+                <div class="hide-box" id="analyse">
+                    • k 是不为0的常数，缺一则不是正比例函数；<br>
+                    • 自变量 x 的次数为1，且不含常数项；<br>
+                    • 正比例函数的自变量取值范围是全体实数。
+                </div>
+
+                <h3>活动二：探究正比例函数的图像（交互式探究）</h3>
+                <p>正比例函数的图像是一条经过<strong>坐标原点(0,0)</strong>的直线，我们可以通过下方的元宇宙坐标系，直观探究正比例函数图像的特征：拖动滑块调整直线旋转角度，观察图像的位置变化，并关注斜率k的取值规律。</p>
+                <!-- 交互式坐标系：白昼元宇宙背景，其余不变 -->
+                <div id="canvasContainer">
+                    <canvas id="coordinate"></canvas>
+                </div>
+                <div class="control-bar">
+                    <label for="xAxisLen">X轴长度：</label>
+                    <input type="range" id="xAxisLen" min="50" max="400" value="120" step="10">
+                    <span id="xAxisLenVal">120</span>px
+
+                    <label for="yAxisLen">Y轴长度：</label>
+                    <input type="range" id="yAxisLen" min="50" max="400" value="80" step="10">
+                    <span id="yAxisLenVal">80</span>px
+
+                    <label for="lineRotate">直线角度：</label>
+                    <input type="range" id="lineRotate" min="-179" max="179" value="45" step="1">
+                    <span id="lineRotateVal">45°</span>
+
+                    <span id="kVal">k=1.00 (k>0，第一/三象限)</span>
+                </div>
+                <div class="tip">操作提示：拖动“直线角度”滑块，观察k的正负与直线所在象限的关系；k的绝对值越大，直线倾斜程度越大。</div>
+            </div>
+
+            <!-- 板块3：性质总结 -->
+            <div class="tab-pane" id="tab3">
+                <h2>性质总结</h2>
+                <p>通过交互式探究，我们发现正比例函数 <strong>y = kx（k ≠ 0）</strong> 的图像和性质由比例系数k的符号和绝对值决定，核心性质如下：</p>
+                <ul>
+                    <li><strong>图像特征</strong>：正比例函数的图像是一条<strong>经过原点的直线</strong>，因此画正比例函数图像时，只需再取一个点，两点确定一条直线即可。</li>
+                    <li><strong>当 k > 0 时</strong>
+                        <ul>
+                            <li>图像经过<strong>第一、三象限</strong>；</li>
+                            <li>y 随 x 的增大而<strong>增大</strong>（直线从左到右呈上升趋势）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>当 k < 0 时</strong>
+                        <ul>
+                            <li>图像经过<strong>第二、四象限</strong>；</li>
+                            <li>y 随 x 的增大而<strong>减小</strong>（直线从左到右呈下降趋势）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>k的绝对值影响</strong>：|k| 越大，直线与x轴的夹角越大，图像的<strong>倾斜程度越大</strong>。</li>
+                </ul>
+            </div>
+
+            <!-- 板块4：例题讲解 -->
+            <div class="tab-pane" id="tab4">
+                <h2>例题讲解</h2>
+                <h3>例1：判断下列函数是否为正比例函数，若是，指出比例系数k</h3>
+                <ol>
+                    <li>y = 3x —— 是，比例系数 k = 3</li>
+                    <li>y = -0.5x —— 是，比例系数 k = -0.5</li>
+                    <li>y = 2x + 1 —— 否，含常数项，不是正比例函数</li>
+                    <li>y = x² —— 否，自变量次数为2，不是正比例函数</li>
+                </ol>
+
+                <h3>例2：已知正比例函数 y = (m-1)x，根据条件求m的取值范围</h3>
+                <p>(1) y 随 x 的增大而增大；&nbsp;&nbsp;&nbsp;&nbsp;(2) 图像经过第二、四象限。</p>
+                <p><strong>解：</strong></p>
+                <p>(1) ∵ y 随 x 的增大而增大，∴ k > 0，即 m-1 > 0，解得 <strong>m > 1</strong>；</p>
+                <p>(2) ∵ 图像经过第二、四象限，∴ k < 0，即 m-1 < 0，解得 <strong>m < 1</strong>。</p>
+
+                <h3>例3：画出正比例函数 y = 2x 和 y = -1.5x 的图像</h3>
+                <p><strong>画法要点</strong>：① 取点：原点(0,0) + 任意一个非原点点（如x=1时，y=2x取(1,2)，y=-1.5x取(1,-1.5)）；② 连线：过两点画直线，即为正比例函数的图像。</p>
+            </div>
+
+            <!-- 板块5：课堂小结 -->
+            <div class="tab-pane" id="tab5">
+                <h2>课堂小结</h2>
+                <div class="summary">
+                    <p><strong>1. 核心概念</strong>：形如 y = kx（k≠0，k为常数）的函数是正比例函数，k为比例系数；</p>
+                    <p><strong>2. 图像特征</strong>：图像是经过坐标原点的一条直线，可用“两点法”快速作图；</p>
+                    <p><strong>3. 核心性质</strong>：k>0时，一、三象限，y随x增大而增大；k<0时，二、四象限，y随x增大而减小；|k|越大，直线倾斜程度越大；</p>
+                    <p><strong>4. 思想方法</strong>：数形结合（通过图像探究函数性质）、特殊到一般（从具体函数总结一般规律）。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 统一显示隐藏函数：适配所有按钮（表达式/概念/辨析）
+        function toggleBox(id) {
+            const box = document.getElementById(id);
+            const btn = event.target;
+            if (box.style.display === 'block') {
+                box.style.display = 'none';
+                // 仅概念/表达式按钮修改文字，辨析按钮保持固定文字
+                if (id === 'concept' || id === 'expr1' || id === 'expr2') {
+                    btn.innerText = btn.innerText.replace('隐藏', '显示');
+                }
+            } else {
+                box.style.display = 'block';
+                if (id === 'concept' || id === 'expr1' || id === 'expr2') {
+                    btn.innerText = btn.innerText.replace('显示', '隐藏');
+                }
+            }
+        }
+
+        // 选项卡切换：逻辑简化，无延迟，点击即切换
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除所有激活状态
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanes.forEach(p => p.classList.remove('active'));
+                // 激活当前选项卡
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                // 切换到坐标系时重新渲染，避免画布空白
+                if (tabId === 'tab2') {
+                    initCanvasSize();
+                    renderAll();
+                }
+            });
+        });
+
+        // 坐标系：变量全局化，渲染逻辑简化，无报错
+        const canvas = document.getElementById('coordinate');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const xAxisLenSlider = document.getElementById('xAxisLen');
+        const yAxisLenSlider = document.getElementById('yAxisLen');
+        const lineRotateSlider = document.getElementById('lineRotate');
+        const xVal = document.getElementById('xAxisLenVal');
+        const yVal = document.getElementById('yAxisLenVal');
+        const rotateVal = document.getElementById('lineRotateVal');
+        const kVal = document.getElementById('kVal');
+
+        // 坐标系基础参数：固定值+自适应，无异常
+        let axisWidth = 2;
+        let unitLen = 50;
+        let arrowSize = 10;
+        const lineWidth = 2;
+        const canvasAspectRatio = 1.5;
+
+        // 初始化画布尺寸：适配容器，无溢出
+        function initCanvasSize() {
+            const containerWidth = canvasContainer.clientWidth;
+            canvas.width = containerWidth;
+            canvas.height = containerWidth / canvasAspectRatio;
+            // 适配小屏幕，调整参数
+            const scale = canvas.width / 1000;
+            arrowSize = Math.max(8, 10 * scale);
+            axisWidth = Math.max(2, 2 * scale);
+            unitLen = Math.max(30, 50 * scale);
+        }
+
+        // 绘制箭头：简化路径，无渲染错位
+        function drawArrow(x, y, direction) {
+            ctx.save();
+            ctx.fillStyle = '#60a5fa';
+            ctx.shadowColor = '#60a5fa';
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            if (direction === 'right') {
+                ctx.moveTo(x - arrowSize, y - arrowSize/2);
+                ctx.lineTo(x, y);
+                ctx.lineTo(x - arrowSize, y + arrowSize/2);
+            } else if (direction === 'up') {
+                ctx.moveTo(x - arrowSize/2, y + arrowSize);
+                ctx.lineTo(x, y);
+                ctx.lineTo(x + arrowSize/2, y + arrowSize);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 绘制坐标系：简化代码，无闪烁
+        function drawAxis(xLen, yLen) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 2;
+            const fontSize = Math.max(12, 14 * (canvas.width / 1000));
+            ctx.font = `${fontSize}px 微软雅黑`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 原点O
+            ctx.beginPath();
+            ctx.arc(originX, originY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#60a5fa';
+            ctx.fill();
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillText('O', originX + fontSize, originY + fontSize);
+
+            // X轴
+            ctx.beginPath();
+            ctx.moveTo(originX - xLen, originY);
+            ctx.lineTo(originX + xLen, originY);
+            ctx.lineWidth = axisWidth;
+            ctx.strokeStyle = '#60a5fa';
+            ctx.stroke();
+            drawArrow(originX + xLen, originY, 'right');
+            ctx.fillText('X', originX + xLen + arrowSize, originY);
+
+            // X轴刻度
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#94a3b8';
+            for (let i = unitLen; i <= xLen; i += unitLen) {
+                ctx.beginPath();
+                ctx.moveTo(originX + i, originY - 4);
+                ctx.lineTo(originX + i, originY + 4);
+                ctx.stroke();
+                ctx.fillText(i/unitLen, originX + i, originY + fontSize + 2);
+                ctx.beginPath();
+                ctx.moveTo(originX - i, originY - 4);
+                ctx.lineTo(originX - i, originY + 4);
+                ctx.stroke();
+                ctx.fillText(-i/unitLen, originX - i, originY + fontSize + 2);
+            }
+
+            // Y轴
+            ctx.beginPath();
+            ctx.moveTo(originX, originY + yLen);
+            ctx.lineTo(originX, originY - yLen);
+            ctx.lineWidth = axisWidth;
+            ctx.strokeStyle = '#60a5fa';
+            ctx.stroke();
+            drawArrow(originX, originY - yLen, 'up');
+            ctx.fillText('Y', originX - arrowSize, originY - yLen);
+
+            // Y轴刻度
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#94a3b8';
+            for (let i = unitLen; i <= yLen; i += unitLen) {
+                ctx.beginPath();
+                ctx.moveTo(originX - 4, originY - i);
+                ctx.lineTo(originX + 4, originY - i);
+                ctx.stroke();
+                ctx.fillText(i/unitLen, originX - fontSize - 2, originY - i);
+                ctx.beginPath();
+                ctx.moveTo(originX - 4, originY + i);
+                ctx.lineTo(originX + 4, originY + i);
+                ctx.stroke();
+                ctx.fillText(-i/unitLen, originX - fontSize - 2, originY + i);
+            }
+            ctx.restore();
+        }
+
+        // 绘制正比例函数直线：无卡顿，k值计算准确
+        function drawRotateLine(angle, xLen, yLen) {
+            ctx.save();
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 2;
+            const rad = angle * Math.PI / 180;
+            let k = Math.tan(rad);
+            k = Number(k.toFixed(2)); // 保留2位小数，无精度异常
+
+            // 计算直线端点，无溢出
+            const xRight = originX + xLen;
+            const yRight = originY - k * (xRight - originX);
+            const xLeft = originX - xLen;
+            const yLeft = originY - k * (xLeft - originX);
+
+            // 绘制霓虹直线
+            ctx.beginPath();
+            ctx.moveTo(xLeft, yLeft);
+            ctx.lineTo(xRight, yRight);
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = '#f472b6';
+            ctx.shadowColor = '#f472b6';
+            ctx.shadowBlur = 6;
+            ctx.stroke();
+            ctx.restore();
+
+            // k值提示：逻辑简化，无样式错乱
+            if (k > 0.01) {
+                kVal.innerHTML = `k=${k} (k>0，第一/三象限)`;
+                kVal.style.background = 'rgba(16, 185, 129, 0.2)';
+                kVal.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            } else if (k < -0.01) {
+                kVal.innerHTML = `k=${k} (k<0，第二/四象限)`;
+                kVal.style.background = 'rgba(239, 68, 68, 0.2)';
+                kVal.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            } else if (Math.abs(k) <= 0.01) {
+                kVal.innerHTML = `k=0.00 (水平直线，与X轴重合)`;
+                kVal.style.background = 'rgba(148, 163, 184, 0.2)';
+                kVal.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+            } else {
+                kVal.innerHTML = `k=∞ (垂直直线，与Y轴重合)`;
+                kVal.style.background = 'rgba(148, 163, 184, 0.2)';
+                kVal.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+            }
+        }
+
+        // 核心渲染：无重复调用，实时更新
+        function renderAll() {
+            const xLen = Number(xAxisLenSlider.value);
+            const yLen = Number(yAxisLenSlider.value);
+            const angle = Number(lineRotateSlider.value);
+            // 更新滑块数值显示
+            xVal.innerText = xLen;
+            yVal.innerText = yLen;
+            rotateVal.innerText = angle + '°';
+            // 绘制坐标系和直线
+            drawAxis(xLen, yLen);
+            drawRotateLine(angle, xLen, yLen);
+        }
+
+        // 事件绑定：无冗余，触发灵敏
+        window.addEventListener('resize', function() {
+            if (document.getElementById('tab2').classList.contains('active')) {
+                initCanvasSize();
+                renderAll();
+            }
+        });
+        // 滑块实时更新
+        xAxisLenSlider.addEventListener('input', renderAll);
+        yAxisLenSlider.addEventListener('input', renderAll);
+        lineRotateSlider.addEventListener('input', renderAll);
+
+        // 页面初始化：先加载画布，无空白
+        window.onload = function() {
+            initCanvasSize();
+            renderAll();
+        };
+    </script>
+</body>
+</html>

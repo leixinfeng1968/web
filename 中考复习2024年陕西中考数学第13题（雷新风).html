@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>初中数学课件-面积问题</title>
+    <style>
+        * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI'}
+        body {display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a237e,#0d47a1);padding:20px;color:#fff;overflow-x:hidden}
+        .header {text-align:center;margin-bottom:20px;width:100%;max-width:700px}
+        h1 {font-size:2rem;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,0.6);background:linear-gradient(to right,#ffd600,#ffab00);-webkit-background-clip:text;color:transparent;letter-spacing:1px}
+        .geom-condition {font-size:1.1rem;font-weight:500;padding:12px 15px;background:rgba(255,255,255,0.1);border-radius:8px;border:2px solid rgba(100,255,218,0.4);box-shadow:0 3px 10px rgba(0,0,0,0.3);color:#64ffda;text-align:left;line-height:1.6;text-indent:2em}
+        .container {width:100%;max-width:700px;display:flex;flex-direction:column;gap:20px}
+        .main {display:flex;gap:15px;flex-wrap:wrap}
+        .canvas-wrapper {flex:1;min-width:300px;background:rgba(255,255,255,0.08);border-radius:12px;padding:10px;backdrop-filter:blur(8px);border:1px solid rgba(100,255,218,0.2)}
+        #myCanvas {width:100%;height:320px;display:block;background:rgba(10,25,47,0.4);border-radius:8px;border:1px solid rgba(100,255,218,0.15);box-shadow:inset 0 0 15px rgba(0,0,0,0.4)}
+        .control-panel {width:100%;max-width:320px;background:rgba(255,255,255,0.08);border-radius:12px;padding:15px;backdrop-filter:blur(8px);border:1px solid rgba(100,255,218,0.2);display:flex;flex-direction:column;gap:12px;margin:0 auto}
+        .control-panel h3 {font-size:1.1rem;color:#ffd600;margin-bottom:5px;text-align:center}
+        .single-slider {display:flex;align-items:center;gap:10px;width:100%}
+        .single-slider span {font-size:0.9rem;color:#fff;white-space:nowrap;display:inline-block;width:180px}
+        .control-slider {flex:1;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;outline:none;-webkit-appearance:none}
+        .control-slider::-webkit-slider-thumb {-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#ffd600;cursor:pointer;border:2px solid #fff}
+        .footer {text-align:center;opacity:0.9;width:100%;padding:15px 0;color:#e3f2fd;margin-top:15px}
+        @media (max-width:768px) {
+            .main {flex-direction:column}
+            .control-panel {max-width:100%}
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>2024年陕西中考数学第13题</h1>
+        <div class="geom-condition">
+            如图，在△ABC中，AB=AC，E是边AB上一点，连接CE，在BC右侧作BF//AC且BF=AE，连接CF。若AC=13，BC=10，则四边形EBFC的面积为 ______
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>调整E/F点位置</span>
+                    <input type="range" min="0" max="100" value="40" class="control-slider" id="efSlider">
+                </div>
+                <div class="single-slider">
+                    <span>绘制C点垂线</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="lineSlider">
+                </div>
+                <div class="single-slider">
+                    <span>绘制A点高线</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="ahSlider">
+                </div>
+                <div class="single-slider">
+                    <span>面积阴影转移</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="areaSlider">
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="80" max="200" value="100" class="control-slider" id="fontSlider">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">制作时间：2026.1.17，作者：雷新风</div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const efSlider = document.getElementById('efSlider'); 
+        const lineSlider = document.getElementById('lineSlider');
+        const ahSlider = document.getElementById('ahSlider');
+        const areaSlider = document.getElementById('areaSlider');
+        const fontSlider = document.getElementById('fontSlider');
+        const geomCondition = document.querySelector('.geom-condition');
+        const pointRadius = 5; 
+        const labelOffset = 12;
+        const translateX = -40;
+        const translateY = 20;
+        let efRatio = 0.4, lineRatio = 0, areaRatio = 0, ahRatio = 0;
+        const shadowColor = 'rgba(255,105,180,0.45)';
+        let canvasW, canvasH;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        function initCanvas() {
+            canvasW = canvas.width = canvas.offsetWidth;
+            canvasH = canvas.height = canvas.offsetHeight;
+            ctx.lineWidth = 3;
+            drawGraph();
+        }
+
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            ctx.save();
+            ctx.translate(panX, panY);
+            const abLen = canvasW * 0.5;
+            const topY = canvasH * 0.5 + translateY;
+            const leftX = canvasW * 0.25 + translateX;
+
+            // 等腰△ABC 顶点坐标（AB=AC）
+            const A = {x: leftX, y: topY};
+            const B = {x: leftX + abLen, y: topY};
+            const C = {x: A.x + abLen * Math.cos(Math.PI/4), y: A.y - abLen * Math.sin(Math.PI/4)};
+            const E = {x: A.x + (B.x - A.x) * efRatio, y: topY};
+
+            // BF=AE 且 BF∥AC 计算F点
+            const AE_len = Math.hypot(E.x - A.x, E.y - A.y);
+            const AC_vecX = C.x - A.x;
+            const AC_vecY = C.y - A.y;
+            const AC_len = Math.hypot(AC_vecX, AC_vecY);
+            const AC_unitX = AC_vecX / AC_len;
+            const AC_unitY = AC_vecY / AC_len;
+            const F = {x: B.x + AE_len * AC_unitX, y: B.y + AE_len * AC_unitY};
+
+            // C点垂线垂足 M(C⊥AB)、N(C⊥BF)
+            const M = {x: C.x, y: topY};
+            const BF_vecX = F.x - B.x;
+            const BF_vecY = F.y - B.y;
+            const t = ((C.x - B.x)*BF_vecX + (C.y - B.y)*BF_vecY) / (BF_vecX**2 + BF_vecY**2);
+            const N = {x: B.x + t * BF_vecX, y: B.y + t * BF_vecY};
+
+            // 正确A到BC的高线 垂足H（H在BC边上，AH⊥BC）
+            const vecBA = {x: A.x - B.x, y: A.y - B.y};
+            const vecBC = {x: C.x - B.x, y: C.y - B.y};
+            const dot = vecBA.x * vecBC.x + vecBA.y * vecBC.y;
+            const lenBC = Math.hypot(vecBC.x, vecBC.y);
+            const ratioBH = dot / (lenBC * lenBC);
+            const H = {
+                x: B.x + ratioBH * vecBC.x,
+                y: B.y + ratioBH * vecBC.y
+            };
+
+            // 1. △CBE 固定阴影
+            ctx.fillStyle = shadowColor;
+            ctx.beginPath();
+            ctx.moveTo(C.x, C.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.lineTo(E.x, E.y);
+            ctx.closePath();
+            ctx.fill();
+
+            // 2. 面积转移阴影
+            const bfcAlpha = 0.45 * (1 - areaRatio);
+            ctx.fillStyle = `rgba(255,105,180,${bfcAlpha})`;
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(F.x,F.y);ctx.lineTo(C.x,C.y);ctx.closePath();ctx.fill();
+            const caeAlpha = 0.45 * areaRatio;
+            ctx.fillStyle = `rgba(255,105,180,${caeAlpha})`;
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(A.x,A.y);ctx.lineTo(E.x,E.y);ctx.closePath();ctx.fill();
+
+            // 绘制所有实线边框
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.closePath();ctx.stroke();
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(E.x,E.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(F.x,F.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(F.x,F.y);ctx.stroke();
+
+            // 四边形CEBF虚线边框
+            ctx.setLineDash([5,3]);
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(E.x,E.y);ctx.lineTo(B.x,B.y);ctx.lineTo(F.x,F.y);ctx.closePath();ctx.stroke();
+
+            // C点垂线（滑块控制延伸）
+            const CM_x = C.x + (M.x - C.x) * lineRatio;
+            const CM_y = C.y + (M.y - C.y) * lineRatio;
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(CM_x,CM_y);ctx.stroke();
+            const CN_x = C.x + (N.x - C.x) * lineRatio;
+            const CN_y = C.y + (N.y - C.y) * lineRatio;
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(CN_x,CN_y);ctx.stroke();
+
+            // A点高线AH（滑块控制延伸，拉满显示）
+            const AH_x = A.x + (H.x - A.x) * ahRatio;
+            const AH_y = A.y + (H.y - A.y) * ahRatio;
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(AH_x,AH_y);ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 绘制顶点
+            drawPoint(A,'#ffff33');drawPoint(B,'#ffff33');drawPoint(C,'#ffff33');
+            drawPoint(E,'#ff4081');drawPoint(F,'#4fc3f7');
+            if(lineRatio >= 1){drawPoint(M,'#40e0d0');drawPoint(N,'#40e0d0');}
+            if(ahRatio >= 1){drawPoint(H,'#40e0d0');}
+
+            // 标签
+            ctx.font='italic 20px Times New Roman';
+            ctx.textShadow='0 0 3px #000';
+            drawLabel('A',A,0,labelOffset,'center','top');
+            drawLabel('B',B,0,labelOffset,'center','top');
+            drawLabel('C',C,0,-labelOffset,'center','bottom');
+            drawLabel('E',E,0,labelOffset,'center','top');
+            drawLabel('F',F,labelOffset,0,'start','middle');
+            if(lineRatio >= 1){drawLabel('M',M,0,labelOffset,'center','top');drawLabel('N',N,labelOffset,labelOffset,'start','top');}
+            if(ahRatio >= 1){drawLabel('H',H,0,labelOffset,'center','top');}
+            ctx.restore();
+        }
+
+        function drawPoint(p,color){
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(p.x,p.y,pointRadius,0,Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.lineWidth = 3;
+        }
+
+        function drawLabel(txt,p,ox,oy,align,base){
+            ctx.save();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = align;
+            ctx.textBaseline = base;
+            ctx.fillText(txt,p.x+ox,p.y+oy);
+            ctx.restore();
+        }
+
+        // 四滑块独立联动
+        efSlider.addEventListener('input',function(){efRatio=this.value/100;drawGraph();});
+        lineSlider.addEventListener('input',function(){lineRatio=this.value/100;drawGraph();});
+        ahSlider.addEventListener('input',function(){ahRatio=this.value/100;drawGraph();});
+        areaSlider.addEventListener('input',function(){areaRatio=this.value/100;drawGraph();});
+
+        fontSlider.addEventListener('input',function(){
+            const fontSize = this.value/100;
+            geomCondition.style.fontSize = `${fontSize}rem`;
+        });
+
+        // 拖动功能 - 鼠标事件
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawGraph();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // 拖动功能 - 触摸事件
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawGraph();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
+
+        window.onload = initCanvas;
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>

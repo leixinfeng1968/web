@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交大附中期末考试第13题</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #1a237e);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            text-indent: 2em;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .auto-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: #ffd600;
+            color: #1a237e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        .auto-btn:hover {
+            background: #ffab00;
+        }
+        .auto-btn.active {
+            background: #ff4081;
+            color: #fff;
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            width: 100%;
+            height: 400px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            cursor: grab;
+            touch-action: none;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        .canvas-wrapper:active {
+            cursor: grabbing;
+        }
+        #myCanvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+            position: relative;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            padding: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+            .canvas-wrapper {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>交大附中期末考试第13题</h1>
+            <div class="geom-condition">
+                如图，在四边形ABCD中，AB∥CD，DA⊥AB，AB＝2CD＝8，AD＝4√3。点M和点N分别是边AD与边BC上的动点，当AM＝CN时，求MN的最小值。<br>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+            <div class="btn-group">
+                <button class="auto-btn" id="drawParaBtn">平移线</button>
+                <button class="auto-btn" id="drawACBtn">AC线</button>
+                <button class="auto-btn" id="moveMNBtn">动MN</button>
+            </div>
+
+            <!-- 恢复完整参数控制面板，删除答案与解析滑块 -->
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="500" value="200" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">200%</span>
+                </div>
+                <div class="single-slider">
+                    <span>AM(CN)长度</span>
+                    <input type="range" min="0" max="8" step="0.1" value="2.4" class="control-slider" id="amLenSlider">
+                    <span class="slider-value" id="amLenValue">2.40</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签字号大小</span>
+                    <input type="range" min="10" max="50" value="20" class="control-slider" id="labelSizeSlider">
+                    <span class="slider-value" id="labelSizeValue">20px</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="12" max="50" value="16" class="control-slider" id="titleSizeSlider">
+                    <span class="slider-value" id="titleSizeValue">16px</span>
+                </div>
+                <div class="single-slider">
+                    <span>画布高度</span>
+                    <input type="range" min="300" max="600" value="400" class="control-slider" id="canvasHeightSlider">
+                    <span class="slider-value" id="canvasHeightValue">400px</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">制作时间：2026.02</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        // 仅保留有效滑块DOM，删除答案滑块相关
+        const scaleSlider = document.getElementById('scaleSlider');
+        const amLenSlider = document.getElementById('amLenSlider');
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const titleSizeSlider = document.getElementById('titleSizeSlider');
+        const canvasHeightSlider = document.getElementById('canvasHeightSlider');
+        const drawParaBtn = document.getElementById('drawParaBtn');
+        const drawACBtn = document.getElementById('drawACBtn');
+        const moveMNBtn = document.getElementById('moveMNBtn');
+
+        const scaleValue = document.getElementById('scaleValue');
+        const amLenValue = document.getElementById('amLenValue');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        const titleSizeValue = document.getElementById('titleSizeValue');
+        const canvasHeightValue = document.getElementById('canvasHeightValue');
+
+        const geomCondition = document.querySelector('.geom-condition');
+        const h1Title = document.querySelector('h1');
+
+        // 基础配置，删除答案比例相关变量
+        const pointRadius = 5;
+        const labelOffset = 12;
+        let scaleRatio = 200;    // 图形缩放比例
+        let amLen = 2.4;         // AM/CN实际长度，始终相等
+        let labelSize = 20;      // 标签字号
+        let titleSize = 16;      // 题目字号
+        let canvasHeight = 400;  // 画布高度
+        let canvasW, canvasH;    // 画布实际宽高
+        let finalScale = 1;      // 全局缩放因子
+        let showAux = false;     // 平移辅助线（AP/CP/NP）显示状态
+        let showAC = false;      // AC虚线显示状态
+        let isMoving = false;    // MN运动状态
+        let moveTimer = null;    // 运动定时器
+        const moveStep = 0.05;   // 每次运动步长
+        let moveDir = 1;         // 运动方向：1=增加，-1=减少
+
+        // 几何常量
+        const AB = 8, CD = 4, AD = 4 * Math.sqrt(3);
+        const BC = Math.sqrt(Math.pow(AB - CD, 2) + Math.pow(AD, 2));
+        let A, B, C, D, M, N, P; // 顶点坐标
+
+        // 画布拖动相关
+        let isDraggingCanvas = false;
+        let offsetX = 0, offsetY = 0;
+        let translateX = 0, translateY = 0;
+
+        // 强制初始化画布尺寸（适配预览模式）
+        function initCanvasSize() {
+            canvasW = canvasWrapper.offsetWidth || 800;
+            canvasH = canvasWrapper.offsetHeight || 400;
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+        }
+
+        // 初始化画布
+        function initCanvas() {
+            initCanvasSize();
+            initPoints();
+            drawGraph();
+        }
+
+        // 初始化点坐标（AM=CN+MN沿MA平移P点）
+        function initPoints() {
+            const baseScale = Math.min(canvasW / 50, canvasH / 40);
+            finalScale = baseScale * scaleRatio / 100;
+            const centerX = canvasW / 2 + translateX;
+            const centerY = canvasH / 2 + translateY;
+
+            // 梯形顶点坐标
+            A = { x: centerX - AB * finalScale / 2, y: centerY + AD * finalScale / 2 };
+            B = { x: centerX + AB * finalScale / 2, y: centerY + AD * finalScale / 2 };
+            D = { x: centerX - AB * finalScale / 2, y: centerY - AD * finalScale / 2 };
+            C = { x: D.x + CD * finalScale, y: D.y };
+
+            // 动点M/N（AM=CN等长约束，限制范围0~AD）
+            const realAmLen = Math.min(Math.max(amLen, 0), AD);
+            M = { x: A.x, y: A.y - realAmLen * finalScale };
+            const cnRatio = realAmLen / BC;
+            N = { x: C.x - (C.x - B.x) * cnRatio, y: C.y - (C.y - B.y) * cnRatio };
+
+            // P点：N沿MA方向平移MA长度
+            const maDirX = A.x - M.x;
+            const maDirY = A.y - M.y;
+            const maLenCanvas = Math.sqrt(maDirX * maDirX + maDirY * maDirY) || 1;
+            const unitX = maDirX / maLenCanvas;
+            const unitY = maDirY / maLenCanvas;
+            P = { x: N.x + unitX * maLenCanvas, y: N.y + unitY * maLenCanvas };
+        }
+
+        // 绘制所有图形，删除答案解析绘制代码
+        function drawGraph() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvasW, canvasH);
+
+            // 1. 绘制直角梯形ABCD（白色实线）
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.lineTo(D.x, D.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // 绘制AC蓝色虚线（独立控制）
+            if (showAC) {
+                ctx.setLineDash([5, 3]);
+                ctx.strokeStyle = '#66ccff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y);
+                ctx.lineTo(C.x, C.y);
+                ctx.stroke();
+                ctx.setLineDash([]); // 恢复实线
+            }
+
+            // 2. 绘制AM/CN逆等线（红色粗线）
+            ctx.strokeStyle = '#ff4081';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(M.x, M.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(C.x, C.y); ctx.lineTo(N.x, N.y); ctx.stroke();
+
+            // 3. 绘制MN核心线段（紫色粗线）
+            ctx.strokeStyle = '#9933cc';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(M.x, M.y);
+            ctx.lineTo(N.x, N.y);
+            ctx.stroke();
+
+            // 4. 平移辅助线（AP/CP/NP蓝色虚线）
+            if (showAux) {
+                ctx.setLineDash([5, 3]);
+                ctx.strokeStyle = '#66ccff';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(P.x, P.y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(C.x, C.y); ctx.lineTo(P.x, P.y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(N.x, N.y); ctx.lineTo(P.x, P.y); ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 绘制P点及标签
+                drawPoint(P, '#66ccff');
+                drawLabel('P', P, labelOffset, 0);
+            }
+
+            // 5. 绘制所有顶点+标签
+            drawPoint(A, '#ffff33'); drawLabel('A', A, -labelOffset, labelOffset);
+            drawPoint(B, '#ffff33'); drawLabel('B', B, labelOffset, labelOffset);
+            drawPoint(C, '#ffff33'); drawLabel('C', C, labelOffset, -labelOffset);
+            drawPoint(D, '#ffff33'); drawLabel('D', D, -labelOffset, -labelOffset);
+            drawPoint(M, '#ff4081'); drawLabel('M', M, -labelOffset, 0);
+            drawPoint(N, '#ff4081'); drawLabel('N', N, labelOffset, 0);
+        }
+
+        // 绘制点（带描边）
+        function drawPoint(p, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, pointRadius + 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        // 绘制标签
+        function drawLabel(txt, p, ox, oy) {
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${labelSize}px Times New Roman`;
+            ctx.textAlign = 'center';
+            ctx.fillText(txt, p.x + ox, p.y + oy);
+        }
+
+        // MN联动运动核心方法
+        function moveMN() {
+            // 更新AM/CN长度
+            amLen += moveStep * moveDir;
+            // 到达边界反转方向
+            if (amLen >= AD) {
+                amLen = AD;
+                moveDir = -1;
+            } else if (amLen <= 0) {
+                amLen = 0;
+                moveDir = 1;
+            }
+            // 同步滑块和显示值
+            amLenSlider.value = amLen;
+            amLenValue.innerText = amLen.toFixed(2);
+            // 重新计算点并绘图
+            initPoints();
+            drawGraph();
+        }
+
+        // 开始/停止MN运动
+        function toggleMNMove() {
+            if (isMoving) {
+                // 停止运动
+                clearInterval(moveTimer);
+                moveTimer = null;
+                isMoving = false;
+                moveMNBtn.innerText = '动MN';
+                moveMNBtn.classList.remove('active');
+            } else {
+                // 开始运动
+                isMoving = true;
+                moveMNBtn.innerText = '停MN';
+                moveMNBtn.classList.add('active');
+                moveTimer = setInterval(moveMN, 30);
+            }
+        }
+
+        // 画布拖动事件
+        function startCanvasDrag(e) {
+            isDraggingCanvas = true;
+            const rect = canvas.getBoundingClientRect();
+            offsetX = (e.touches?.[0] || e).clientX - rect.left - translateX;
+            offsetY = (e.touches?.[0] || e).clientY - rect.top - translateY;
+            canvasWrapper.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+        function dragCanvas(e) {
+            if (!isDraggingCanvas) return;
+            const rect = canvas.getBoundingClientRect();
+            translateX = (e.touches?.[0] || e).clientX - rect.left - offsetX;
+            translateY = (e.touches?.[0] || e).clientY - rect.top - offsetY;
+            initPoints();
+            drawGraph();
+            e.preventDefault();
+        }
+        function endCanvasDrag() {
+            isDraggingCanvas = false;
+            canvasWrapper.style.cursor = 'grab';
+        }
+
+        // 绑定事件
+        // 画布拖动
+        canvasWrapper.addEventListener('mousedown', startCanvasDrag);
+        canvasWrapper.addEventListener('mousemove', dragCanvas);
+        canvasWrapper.addEventListener('mouseup', endCanvasDrag);
+        canvasWrapper.addEventListener('mouseleave', endCanvasDrag);
+        canvasWrapper.addEventListener('touchstart', startCanvasDrag);
+        canvasWrapper.addEventListener('touchmove', dragCanvas);
+        canvasWrapper.addEventListener('touchend', endCanvasDrag);
+
+        // 平移辅助线按钮（三字标签切换）
+        drawParaBtn.addEventListener('click', () => {
+            showAux = !showAux;
+            drawParaBtn.classList.toggle('active', showAux);
+            drawParaBtn.innerText = showAux ? '隐平移' : '平移线';
+            drawGraph();
+        });
+
+        // AC虚线按钮（三字标签切换）
+        drawACBtn.addEventListener('click', () => {
+            showAC = !showAC;
+            drawACBtn.classList.toggle('active', showAC);
+            drawACBtn.innerText = showAC ? '隐AC线' : 'AC线';
+            drawGraph();
+        });
+
+        // MN联动运动按钮（三字标签切换）
+        moveMNBtn.addEventListener('click', toggleMNMove);
+
+        // 滑块事件，删除答案滑块相关
+        scaleSlider.addEventListener('input', () => {
+            scaleRatio = scaleSlider.value;
+            scaleValue.innerText = scaleRatio + '%';
+            initPoints();
+            drawGraph();
+        });
+        amLenSlider.addEventListener('input', () => {
+            amLen = parseFloat(amLenSlider.value);
+            amLenValue.innerText = amLen.toFixed(2);
+            initPoints();
+            drawGraph();
+        });
+        labelSizeSlider.addEventListener('input', () => {
+            labelSize = labelSizeSlider.value;
+            labelSizeValue.innerText = labelSize + 'px';
+            drawGraph();
+        });
+        titleSizeSlider.addEventListener('input', () => {
+            titleSize = titleSizeSlider.value;
+            titleSizeValue.innerText = titleSize + 'px';
+            geomCondition.style.fontSize = titleSize + 'px';
+            h1Title.style.fontSize = `clamp(${titleSize*1.2}px, 4vw, ${titleSize*1.8}px)`;
+        });
+        canvasHeightSlider.addEventListener('input', () => {
+            canvasHeight = canvasHeightSlider.value;
+            canvasHeightValue.innerText = canvasHeight + 'px';
+            canvasWrapper.style.height = canvasHeight + 'px';
+            initCanvas();
+        });
+
+        // 页面卸载时清除定时器，防止内存泄漏
+        window.addEventListener('beforeunload', () => {
+            if (moveTimer) clearInterval(moveTimer);
+        });
+
+        // 页面加载/预览/窗口变化初始化
+        window.addEventListener('load', initCanvas);
+        window.addEventListener('resize', initCanvas);
+        document.addEventListener('DOMContentLoaded', initCanvas);
+    </script>
+</body>
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026年西工大附中一模第14题</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      color: #fff;
+      padding: 15px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .header {
+      text-align: center;
+    }
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin-bottom: 10px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      background: linear-gradient(to right, #ffd600, #ffab00);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .problem-panel {
+      font-size: clamp(1rem, 2.5vw, 1.1rem);
+      padding: 12px 15px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      border: 2px solid rgba(100,255,218,0.4);
+      color: #ffda8b;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      text-align: left;
+      text-indent: 2em; /* 首行缩进2字 */
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px; /* 缩小按钮间距 */
+      justify-content: center;
+      margin: 10px 0; /* 上下间距 */
+      flex-wrap: nowrap; /* 强制不换行，一行显示 */
+    }
+    .control-btn {
+      padding: 6px 12px; /* 缩小内边距 */
+      border-radius: 6px;
+      border: none;
+      background: #ffd600;
+      color: #1a237e;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: clamp(0.75rem, 1.5vw, 0.9rem); /* 缩小按钮字体 */
+      white-space: nowrap; /* 按钮文字不换行 */
+    }
+    .control-btn:hover {
+      background: #ffab00;
+    }
+    .control-btn.active {
+      background: #ff4081;
+      color: #fff;
+    }
+    .main {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .canvas-wrapper {
+      flex: 1;
+      min-width: 300px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 10px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(100,255,218,0.2);
+    }
+    .canvas {
+      width: 100%;
+      height: 60vh;
+      min-height: 300px;
+      background: rgba(10,25,47,0.4);
+      border-radius: 8px;
+      border: 1px solid rgba(100,255,218,0.15);
+      position: relative;
+      overflow: hidden;
+      /* 新增拖动相关样式 */
+      touch-action: none; /* 禁止浏览器默认触摸行为 */
+      user-select: none; /* 禁止选中 */
+    }
+    .graphic-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    .graphic-container:active {
+      cursor: grabbing;
+    }
+    .line {
+      position: absolute;
+      height: 2px;
+      background: #ffffff;
+      transform-origin: left center;
+      z-index: 1;
+    }
+    .line-red-dash {
+      background: #ff4081;
+      stroke-dasharray: 5 5;
+      display: none;
+    }
+    .point {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffff33;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+    .label {
+      position: absolute;
+      font-family: "Times New Roman", serif;
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+    }
+    .label-a { transform: translate(-12px, 20px); }
+    .label-b { transform: translate(12px, 20px); }
+    .label-c { transform: translate(12px, -20px); }
+    .label-d { transform: translate(-12px, -20px); }
+    .label-e { transform: translate(12px, -20px); }
+    .label-m { transform: translate(12px, 0); }
+    .label-o { transform: translate(-50%, 12px); }
+    .point-aux, .label-aux {
+      display: none;
+    }
+    .semicircle {
+      display: none;
+    }
+    .control-panel {
+      width: 100%;
+      max-width: 320px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 15px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(100,255,218,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 0 auto;
+    }
+    .control-panel h3 {
+      font-size: clamp(16px, 3vw, 18px);
+      color: #64ffda;
+      margin-bottom: 5px;
+    }
+    .single-slider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .single-slider span {
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      white-space: nowrap;
+      width: 120px;
+    }
+    .slider-value {
+      width: 40px;
+      text-align: center;
+      color: #ffd600;
+      font-weight: bold;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+    }
+    .control-slider {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .control-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffd600;
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+    @media (max-width: 768px) {
+      .main { flex-direction: column; }
+      .control-panel { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>2026年西工大附中一模第14题</h1>
+    <div class="problem-panel">
+      如图，在四边形ABCD中，AB=6，BC=5，∠ADC=90°，AD=2CD，连接AC、BD，延长BD至点E，使DE=BD，连接AE，则AE的最大值为多少？
+    </div>
+  </div>
+  <div class="main">
+    <div class="canvas-wrapper">
+      <div class="canvas" id="canvas">
+        <!-- 新增图形容器，用于整体拖动 -->
+        <div class="graphic-container" id="graphicContainer">
+          <div class="line" id="lineAB"></div>
+          <div class="line" id="lineBC"></div>
+          <div class="line" id="lineAC"></div>
+          <div class="line" id="lineAD"></div>
+          <div class="line" id="lineCD"></div>
+          <div class="line" id="lineBD"></div>
+          <div class="line" id="lineDE"></div>
+          <div class="line" id="lineAE"></div>
+          <div class="line line-red-dash" id="lineAM"></div>
+          <div class="line line-red-dash" id="lineBM"></div>
+          <div class="line line-red-dash" id="lineOM"></div>
+          <div class="line line-red-dash" id="lineDM"></div>
+          <div class="line line-red-dash" id="lineOD"></div>
+          <div class="semicircle" id="semicircleAC"></div>
+
+          <div class="point" id="pointA"></div>
+          <div class="point" id="pointB"></div>
+          <div class="point" id="pointC"></div>
+          <div class="point" id="pointD"></div>
+          <div class="point" id="pointE"></div>
+          <div class="point point-aux" id="pointM"></div>
+          <div class="point point-aux" id="pointO"></div>
+
+          <div class="label label-a" id="labelA">A</div>
+          <div class="label label-b" id="labelB">B</div>
+          <div class="label label-c" id="labelC">C</div>
+          <div class="label label-d" id="labelD">D</div>
+          <div class="label label-e" id="labelE">E</div>
+          <div class="label label-m label-aux" id="labelM">M</div>
+          <div class="label label-o label-aux" id="labelO">O</div>
+        </div>
+      </div>
+      <!-- 按钮移到画布下方 -->
+      <div class="btn-group">
+        <button id="initBtn" class="control-btn">初始化</button>
+        <button id="animBtn" class="control-btn">动画</button>
+        <button id="auxBtn" class="control-btn">辅助线</button>
+        <button id="maxBtn" class="control-btn">最大值</button>
+      </div>
+    </div>
+    <div class="control-panel">
+      <h3>控制参数</h3>
+      <div class="single-slider">
+        <span>AB 缩放</span>
+        <input type="range" min="0.1" max="3" step="0.05" value="1" class="control-slider" id="scaleSlider">
+        <span class="slider-value" id="scaleValue">1.00</span>
+      </div>
+      <div class="single-slider">
+        <span>∠ABC 夹角</span>
+        <input type="range" min="0" max="180" step="1" value="90" class="control-slider" id="angleSlider">
+        <span class="slider-value" id="angleValue">90°</span>
+      </div>
+      <div class="single-slider">
+        <span>左右位置</span>
+        <input type="range" min="-40" max="60" step="0.5" value="0" class="control-slider" id="moveSlider">
+        <span class="slider-value" id="moveValue">0%</span>
+      </div>
+      <!-- 新增：题目文字大小滑动条 -->
+      <div class="single-slider">
+        <span>题目文字大小</span>
+        <input type="range" min="12" max="24" step="1" value="16" class="control-slider" id="titleSizeSlider">
+        <span class="slider-value" id="titleSizeValue">16px</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const graphicContainer = document.getElementById('graphicContainer'); // 新增图形容器
+  const lineAB = document.getElementById('lineAB');
+  const lineBC = document.getElementById('lineBC');
+  const lineAC = document.getElementById('lineAC');
+  const lineAD = document.getElementById('lineAD');
+  const lineCD = document.getElementById('lineCD');
+  const lineBD = document.getElementById('lineBD');
+  const lineDE = document.getElementById('lineDE');
+  const lineAE = document.getElementById('lineAE');
+  const lineAM = document.getElementById('lineAM');
+  const lineBM = document.getElementById('lineBM');
+  const lineOM = document.getElementById('lineOM');
+  const lineDM = document.getElementById('lineDM');
+  const lineOD = document.getElementById('lineOD');
+
+  const pointA = document.getElementById('pointA');
+  const pointB = document.getElementById('pointB');
+  const pointC = document.getElementById('pointC');
+  const pointD = document.getElementById('pointD');
+  const pointE = document.getElementById('pointE');
+  const pointM = document.getElementById('pointM');
+  const pointO = document.getElementById('pointO');
+
+  const labelA = document.getElementById('labelA');
+  const labelB = document.getElementById('labelB');
+  const labelC = document.getElementById('labelC');
+  const labelD = document.getElementById('labelD');
+  const labelE = document.getElementById('labelE');
+  const labelM = document.getElementById('labelM');
+  const labelO = document.getElementById('labelO');
+
+  const scaleSlider = document.getElementById('scaleSlider');
+  const angleSlider = document.getElementById('angleSlider');
+  const moveSlider = document.getElementById('moveSlider');
+  const titleSizeSlider = document.getElementById('titleSizeSlider');
+  const scaleValue = document.getElementById('scaleValue');
+  const angleValue = document.getElementById('angleValue');
+  const moveValue = document.getElementById('moveValue');
+  const titleSizeValue = document.getElementById('titleSizeValue');
+  const problemPanel = document.querySelector('.problem-panel');
+
+  const initBtn = document.getElementById('initBtn');
+  const animBtn = document.getElementById('animBtn');
+  const auxBtn = document.getElementById('auxBtn');
+  const maxBtn = document.getElementById('maxBtn');
+
+  // 基础参数
+  const aLeftPercent = 10;
+  const baseABPercent = 80;
+  const baseYPercent = 90;
+  const bcScale = 5/6;
+
+  // 动画控制
+  let animId = null;
+  const minAngle = 40;
+  const maxAngle = 180;
+  const angleStep = 0.8;
+  let angleDir = 1;
+
+  // 辅助线显示状态
+  let auxVisible = false;
+
+  // 拖动相关变量
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let currentY = 0;
+
+  // 统一更新图形
+  function updateAll() {
+    const scale = parseFloat(scaleSlider.value);
+    const angleDeg = parseFloat(angleSlider.value);
+    const moveOffset = parseFloat(moveSlider.value);
+    const titleSize = parseInt(titleSizeSlider.value);
+
+    scaleValue.textContent = scale.toFixed(2);
+    angleValue.textContent = `${angleDeg}°`;
+    moveValue.textContent = `${moveOffset}%`;
+    titleSizeValue.textContent = `${titleSize}px`;
+    problemPanel.style.fontSize = `${titleSize}px`;
+
+    // A、B 位置
+    const aLeft = aLeftPercent + moveOffset;
+    const abLengthPercent = baseABPercent * scale;
+    const bLeft = aLeft + abLengthPercent;
+    const y = baseYPercent;
+
+    pointA.style.left = `${aLeft}%`;
+    pointA.style.top = `${y}%`;
+    labelA.style.left = `${aLeft}%`;
+    labelA.style.top = `${y}%`;
+
+    pointB.style.left = `${bLeft}%`;
+    pointB.style.top = `${y}%`;
+    labelB.style.left = `${bLeft}%`;
+    labelB.style.top = `${y}%`;
+
+    lineAB.style.left = `${aLeft}%`;
+    lineAB.style.top = `${y}%`;
+    lineAB.style.width = `${abLengthPercent}%`;
+    lineAB.style.transform = '';
+
+    // 像素坐标
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
+
+    const ax = aLeft * W / 100;
+    const ay = y * H / 100;
+    const bx = bLeft * W / 100;
+    const by = y * H / 100;
+
+    const abLen = Math.hypot(bx - ax, by - ay);
+    const bcLen = abLen * bcScale;
+    const angleRad = angleDeg * Math.PI / 180;
+
+    // BA 单位向量
+    const bax = ax - bx;
+    const bay = ay - by;
+    const baLen = Math.hypot(bax, bay);
+    const uBAx = bax / baLen;
+    const uBAy = bay / baLen;
+
+    // BC 方向
+    const dirX = uBAx * Math.cos(angleRad) - uBAy * Math.sin(angleRad);
+    const dirY = uBAx * Math.sin(angleRad) + uBAy * Math.cos(angleRad);
+
+    // C 点
+    const cx = bx + dirX * bcLen;
+    const cy = by + dirY * bcLen;
+    const cLeft = (cx / W) * 100;
+    const cTop = (cy / H) * 100;
+
+    pointC.style.left = `${cLeft}%`;
+    pointC.style.top = `${cTop}%`;
+    labelC.style.left = `${cLeft}%`;
+    labelC.style.top = `${cTop}%`;
+
+    // BC 线
+    const bcAngle = Math.atan2(cy - by, cx - bx) * 180 / Math.PI;
+    lineBC.style.left = `${bLeft}%`;
+    lineBC.style.top = `${y}%`;
+    lineBC.style.width = `${bcLen}px`;
+    lineBC.style.transform = `rotate(${bcAngle}deg)`;
+    lineBC.style.transformOrigin = 'left center';
+
+    // AC 线
+    const acLen = Math.hypot(cx - ax, cy - ay);
+    const acAngle = Math.atan2(cy - ay, cx - ax) * 180 / Math.PI;
+    lineAC.style.left = `${aLeft}%`;
+    lineAC.style.top = `${y}%`;
+    lineAC.style.width = `${acLen}px`;
+    lineAC.style.transform = `rotate(${acAngle}deg)`;
+    lineAC.style.transformOrigin = 'left center';
+
+    // D 点
+    const theta = Math.acos(3/5);
+    const acDirX = (cx - ax) / acLen;
+    const acDirY = (cy - ay) / acLen;
+    const odDirX = acDirX * Math.cos(-theta) - acDirY * Math.sin(-theta);
+    const odDirY = acDirX * Math.sin(-theta) + acDirY * Math.cos(-theta);
+
+    const dx = (ax + cx) / 2 + odDirX * (acLen / 2);
+    const dy = (ay + cy) / 2 + odDirY * (acLen / 2);
+    const dLeft = (dx / W) * 100;
+    const dTop = (dy / H) * 100;
+
+    pointD.style.left = `${dLeft}%`;
+    pointD.style.top = `${dTop}%`;
+    labelD.style.left = `${dLeft}%`;
+    labelD.style.top = `${dTop}%`;
+
+    // AD 线
+    const adLen = Math.hypot(dx - ax, dy - ay);
+    const adAngle = Math.atan2(dy - ay, dx - ax) * 180 / Math.PI;
+    lineAD.style.left = `${aLeft}%`;
+    lineAD.style.top = `${y}%`;
+    lineAD.style.width = `${adLen}px`;
+    lineAD.style.transform = `rotate(${adAngle}deg)`;
+    lineAD.style.transformOrigin = 'left center';
+
+    // CD 线
+    const cdLen = Math.hypot(dx - cx, dy - cy);
+    const cdAngle = Math.atan2(dy - cy, dx - cx) * 180 / Math.PI;
+    lineCD.style.left = `${cLeft}%`;
+    lineCD.style.top = `${cTop}%`;
+    lineCD.style.width = `${cdLen}px`;
+    lineCD.style.transform = `rotate(${cdAngle}deg)`;
+    lineCD.style.transformOrigin = 'left center';
+
+    // BD 线
+    const bdLen = Math.hypot(dx - bx, dy - by);
+    const bdAngle = Math.atan2(dy - by, dx - bx) * 180 / Math.PI;
+    lineBD.style.left = `${bLeft}%`;
+    lineBD.style.top = `${y}%`;
+    lineBD.style.width = `${bdLen}px`;
+    lineBD.style.transform = `rotate(${bdAngle}deg)`;
+    lineBD.style.transformOrigin = 'left center';
+
+    // E 点
+    const ex = 2 * dx - bx;
+    const ey = 2 * dy - by;
+    const eLeft = (ex / W) * 100;
+    const eTop = (ey / H) * 100;
+
+    pointE.style.left = `${eLeft}%`;
+    pointE.style.top = `${eTop}%`;
+    labelE.style.left = `${eLeft}%`;
+    labelE.style.top = `${eTop}%`;
+
+    // DE 线
+    lineDE.style.left = `${dLeft}%`;
+    lineDE.style.top = `${dTop}%`;
+    lineDE.style.width = `${bdLen}px`;
+    lineDE.style.transform = `rotate(${bdAngle}deg)`;
+    lineDE.style.transformOrigin = 'left center';
+
+    // AE 线
+    const aeLen = Math.hypot(ex - ax, ey - ay);
+    const aeAngle = Math.atan2(ey - ay, ex - ax) * 180 / Math.PI;
+    lineAE.style.left = `${aLeft}%`;
+    lineAE.style.top = `${y}%`;
+    lineAE.style.width = `${aeLen}px`;
+    lineAE.style.transform = `rotate(${aeAngle}deg)`;
+    lineAE.style.transformOrigin = 'left center';
+
+    // O 点：AB 中点
+    const ox = (ax + bx) / 2;
+    const oy = (ay + by) / 2;
+    const oLeft = (ox / W) * 100;
+    const oTop = (oy / H) * 100;
+    pointO.style.left = `${oLeft}%`;
+    pointO.style.top = `${oTop}%`;
+    labelO.style.left = `${oLeft}%`;
+    labelO.style.top = `${oTop}%`;
+
+    // M 点：AB 下方，AM⊥BM，AM=2BM
+    const abX = bx - ax;
+    const abY = by - ay;
+    const perpX = abY / abLen;
+    const perpY = -abX / abLen;
+    const mx = (ax + 4 * bx) / 5;
+    const my = (ay + 4 * by) / 5 + (2 * abLen / 5) * perpY;
+    const mLeft = (mx / W) * 100;
+    const mTop = (my / H) * 100;
+    pointM.style.left = `${mLeft}%`;
+    pointM.style.top = `${mTop}%`;
+    labelM.style.left = `${mLeft}%`;
+    labelM.style.top = `${mTop}%`;
+
+    // AM 红色虚线
+    const amLen = Math.hypot(mx - ax, my - ay);
+    const amAngle = Math.atan2(my - ay, mx - ax) * 180 / Math.PI;
+    lineAM.style.left = `${aLeft}%`;
+    lineAM.style.top = `${y}%`;
+    lineAM.style.width = `${amLen}px`;
+    lineAM.style.transform = `rotate(${amAngle}deg)`;
+    lineAM.style.transformOrigin = 'left center';
+
+    // BM 红色虚线
+    const bmLen = Math.hypot(mx - bx, my - by);
+    const bmAngle = Math.atan2(my - by, mx - bx) * 180 / Math.PI;
+    lineBM.style.left = `${bLeft}%`;
+    lineBM.style.top = `${y}%`;
+    lineBM.style.width = `${bmLen}px`;
+    lineBM.style.transform = `rotate(${bmAngle}deg)`;
+    lineBM.style.transformOrigin = 'left center';
+
+    // OM 红色虚线
+    const omLen = Math.hypot(mx - ox, my - oy);
+    const omAngle = Math.atan2(my - oy, mx - ox) * 180 / Math.PI;
+    lineOM.style.left = `${oLeft}%`;
+    lineOM.style.top = `${oTop}%`;
+    lineOM.style.width = `${omLen}px`;
+    lineOM.style.transform = `rotate(${omAngle}deg)`;
+    lineOM.style.transformOrigin = 'left center';
+
+    // DM 红色虚线
+    const dmLen = Math.hypot(mx - dx, my - dy);
+    const dmAngle = Math.atan2(my - dy, mx - dx) * 180 / Math.PI;
+    lineDM.style.left = `${dLeft}%`;
+    lineDM.style.top = `${dTop}%`;
+    lineDM.style.width = `${dmLen}px`;
+    lineDM.style.transform = `rotate(${dmAngle}deg)`;
+    lineDM.style.transformOrigin = 'left center';
+
+    // OD 红色虚线
+    const odLen = Math.hypot(ox - dx, oy - dy);
+    const odAngle = Math.atan2(oy - dy, ox - dx) * 180 / Math.PI;
+    lineOD.style.left = `${dLeft}%`;
+    lineOD.style.top = `${dTop}%`;
+    lineOD.style.width = `${odLen}px`;
+    lineOD.style.transform = `rotate(${odAngle}deg)`;
+    lineOD.style.transformOrigin = 'left center';
+
+    // 控制辅助线显示/隐藏
+    const display = auxVisible ? 'block' : 'none';
+    lineAM.style.display = display;
+    lineBM.style.display = display;
+    lineOM.style.display = display;
+    lineDM.style.display = display;
+    lineOD.style.display = display;
+    pointM.style.display = display;
+    pointO.style.display = display;
+    labelM.style.display = display;
+    labelO.style.display = display;
+  }
+
+  // 角度动画
+  function angleAnimation() {
+    let current = parseFloat(angleSlider.value);
+    current += angleDir * angleStep;
+
+    if (current >= maxAngle) {
+      current = maxAngle;
+      angleDir = -1;
+    } else if (current <= minAngle) {
+      current = minAngle;
+      angleDir = 1;
+    }
+
+    angleSlider.value = current;
+    updateAll();
+    animId = requestAnimationFrame(angleAnimation);
+  }
+
+  // 初始化按钮
+  initBtn.addEventListener('click', () => {
+    if (animId) {
+      cancelAnimationFrame(animId);
+      animId = null;
+      animBtn.textContent = '动画';
+      animBtn.classList.remove('active');
+    }
+    scaleSlider.value = 0.5;
+    angleSlider.value = 90;
+    moveSlider.value = 30;
+    titleSizeSlider.value = 16;
+    // 重置拖动位置
+    currentX = 0;
+    currentY = 0;
+    graphicContainer.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    auxVisible = false;
+    auxBtn.textContent = '辅助线';
+    auxBtn.classList.remove('active');
+    updateAll();
+  });
+
+  // 动画按钮
+  animBtn.addEventListener('click', () => {
+    if (animId) {
+      cancelAnimationFrame(animId);
+      animId = null;
+      animBtn.textContent = '动画';
+      animBtn.classList.remove('active');
+    } else {
+      animBtn.textContent = '暂停';
+      animBtn.classList.add('active');
+      angleAnimation();
+    }
+  });
+
+  // 辅助线按钮
+  auxBtn.addEventListener('click', () => {
+    auxVisible = !auxVisible;
+    auxBtn.textContent = auxVisible ? '隐藏辅助线' : '辅助线';
+    auxBtn.classList.toggle('active', auxVisible);
+    updateAll();
+  });
+
+  // 最大值按钮
+  maxBtn.addEventListener('click', () => {
+    if (animId) {
+      cancelAnimationFrame(animId);
+      animId = null;
+      animBtn.textContent = '动画';
+      animBtn.classList.remove('active');
+    }
+    angleSlider.value = 153;
+    updateAll();
+  });
+
+  // 滑块监听
+  scaleSlider.addEventListener('input', updateAll);
+  angleSlider.addEventListener('input', () => {
+    if (animId) {
+      cancelAnimationFrame(animId);
+      animId = null;
+      animBtn.textContent = '动画';
+      animBtn.classList.remove('active');
+    }
+    updateAll();
+  });
+  moveSlider.addEventListener('input', updateAll);
+  titleSizeSlider.addEventListener('input', updateAll);
+
+  // ==================== 新增：整体图形拖动功能 ====================
+  // 鼠标/触摸开始
+  function startDrag(e) {
+    isDragging = true;
+    // 获取起始坐标（兼容鼠标和触摸）
+    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+    
+    startX = clientX - currentX;
+    startY = clientY - currentY;
+    
+    graphicContainer.style.cursor = 'grabbing';
+    e.preventDefault(); // 阻止默认行为
+  }
+
+  // 鼠标/触摸移动
+  function moveDrag(e) {
+    if (!isDragging) return;
+    
+    // 获取当前坐标
+    const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    
+    // 计算偏移量
+    currentX = clientX - startX;
+    currentY = clientY - startY;
+    
+    // 应用位移
+    graphicContainer.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    e.preventDefault(); // 阻止默认行为
+  }
+
+  // 鼠标/触摸结束
+  function endDrag() {
+    isDragging = false;
+    graphicContainer.style.cursor = 'grab';
+  }
+
+  // 绑定事件（兼容鼠标和触摸）
+  graphicContainer.addEventListener('mousedown', startDrag);
+  graphicContainer.addEventListener('touchstart', startDrag, { passive: false });
+  
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('touchmove', moveDrag, { passive: false });
+  
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+  document.addEventListener('mouseleave', endDrag);
+
+  // 初始渲染
+  updateAll();
+</script>
+</body>
+</html>

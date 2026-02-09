@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025~2026秦汉中学九年级上期末第14题</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #1e40af);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            color: #ffd600; /* 还原标题颜色，不再透明看不清 */
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffffff;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            text-indent: 2em;
+            font-weight: 500; /* 加粗题目，保证清晰 */
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .auto-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: #ffd600;
+            color: #1a237e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        .auto-btn:hover {
+            background: #ffab00;
+        }
+        .auto-btn.active {
+            background: #ff4081;
+            color: #fff;
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            width: 100%;
+            height: 400px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            cursor: grab;
+            touch-action: none;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        .canvas-wrapper:active {
+            cursor: grabbing;
+        }
+        #myCanvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(10,47,60,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+            color: #fff;
+            font-weight: 500;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            padding: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            color: #fff;
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+            .canvas-wrapper {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2025~2026秦汉中学九年级上期末第14题</h1>
+            <div class="geom-condition">
+                如图，在△ABC中，∠ACB＝90°，∠A＝30°，BC＝3．D是AB上一动点，以DC为斜边向右侧作等腰Rt△DCE，使∠CED＝90°，连接BE，则线段BE的最小值为 ．
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+            <div class="btn-group">
+                <button class="auto-btn" id="drawAuxBtn">辅助线</button>
+                <button class="auto-btn" id="moveDBtn">动D点</button>
+                <button class="auto-btn" id="minStateBtn">最小状态</button>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="500" value="200" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">200%</span>
+                </div>
+                <div class="single-slider">
+                    <span>AB长度</span>
+                    <input type="range" min="5" max="20" step="0.5" value="10" class="control-slider" id="abLenSlider">
+                    <span class="slider-value" id="abLenValue">10.0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>AD比例</span>
+                    <input type="range" min="0" max="100" step="1" value="57" class="control-slider" id="adRatioSlider">
+                    <span class="slider-value" id="adRatioValue">57%</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签字号大小</span>
+                    <input type="range" min="10" max="50" value="24" class="control-slider" id="labelSizeSlider">
+                    <span class="slider-value" id="labelSizeValue">24px</span>
+                </div>
+                <div class="single-slider">
+                    <span>画布高度</span>
+                    <input type="range" min="300" max="600" value="400" class="control-slider" id="canvasHeightSlider">
+                    <span class="slider-value" id="canvasHeightValue">400px</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">初中数学动态几何课件 · 2026.02</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const abLenSlider = document.getElementById('abLenSlider');
+        const adRatioSlider = document.getElementById('adRatioSlider');
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const canvasHeightSlider = document.getElementById('canvasHeightSlider');
+        const drawAuxBtn = document.getElementById('drawAuxBtn');
+        const moveDBtn = document.getElementById('moveDBtn');
+        const minStateBtn = document.getElementById('minStateBtn');
+
+        const scaleValue = document.getElementById('scaleValue');
+        const abLenValue = document.getElementById('abLenValue');
+        const adRatioValue = document.getElementById('adRatioValue');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        const canvasHeightValue = document.getElementById('canvasHeightValue');
+
+        const pointRadius = 5;
+        const labelOffsetUp = 22;
+        const labelOffsetDown = 22;
+        let scaleRatio = 200;
+        let abLen = 10;
+        let adRatio = 57;
+        let labelSize = 24;
+        let canvasHeight = 400;
+        let canvasW, canvasH;
+        let showAux = false;
+        let isMoving = false;
+        let moveTimer = null;
+        let moveDir = 1;
+
+        let A, B, C, D, E, F;
+
+        let isDraggingCanvas = false;
+        let startX, startY;
+        let translateX = 0, translateY = 0;
+
+        function initCanvasSize() {
+            canvasW = canvasWrapper.offsetWidth;
+            canvasH = canvasWrapper.offsetHeight;
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+        }
+
+        function drawPoint(p, color = '#ffffff') {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, pointRadius + 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function drawLine(p1, p2, color = '#ffffff', width = 3, dash = []) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.setLineDash(dash);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawRightAngle(vertex, p1, p2, size = 10) {
+            const v1 = { x: p1.x - vertex.x, y: p1.y - vertex.y };
+            const len1 = Math.hypot(v1.x, v1.y) || 1;
+            const u1 = { x: v1.x / len1, y: v1.y / len1 };
+            const v2 = { x: p2.x - vertex.x, y: p2.y - vertex.y };
+            const len2 = Math.hypot(v2.x, v2.y) || 1;
+            const u2 = { x: v2.x / len2, y: v2.y / len2 };
+            const a = { x: vertex.x + u1.x * size, y: vertex.y + u1.y * size };
+            const b = { x: a.x + u2.x * size, y: a.y + u2.y * size };
+            const c = { x: vertex.x + u2.x * size, y: vertex.y + u2.y * size };
+            drawLine(a, b, '#ffd600', 2);
+            drawLine(b, c, '#ffd600', 2);
+        }
+
+        function setLabelFont() {
+            ctx.fillStyle = '#ffda8b';
+            ctx.font = `italic ${labelSize}px "Times New Roman"`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+        }
+
+        function calculatePoints() {
+            const baseScale = Math.min(canvasW / 60, canvasH / 50) * (scaleRatio / 100);
+            const centerX = canvasW / 2 + translateX;
+            const centerY = canvasH / 2 + translateY;
+            const downShift = 3;
+
+            A = { x: centerX - (abLen * baseScale) / 2, y: centerY + 50 + downShift };
+            B = { x: centerX + (abLen * baseScale) / 2, y: centerY + 50 + downShift };
+
+            const AC = abLen * Math.cos(Math.PI / 6) * baseScale;
+            C = { x: A.x + AC * Math.cos(Math.PI / 6), y: A.y - AC * Math.sin(Math.PI / 6) };
+
+            const t = adRatio / 100;
+            D = { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t };
+
+            const dirCD = { x: D.x - C.x, y: D.y - C.y };
+            const lenCD = Math.hypot(dirCD.x, dirCD.y) || 1;
+            const px = dirCD.y / lenCD;
+            const py = -dirCD.x / lenCD;
+            E = {
+                x: (C.x + D.x) / 2 + px * lenCD / 2,
+                y: (C.y + D.y) / 2 + py * lenCD / 2
+            };
+
+            const vecBC = { x: C.x - B.x, y: C.y - B.y };
+            const pxBF = vecBC.y;
+            const pyBF = -vecBC.x;
+            F = { x: B.x + pxBF, y: B.y + pyBF };
+        }
+
+        function drawGraph() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvasW, canvasH);
+
+            drawLine(A, B, '#ffffff', 3);
+            drawLine(B, C, '#ffffff', 3);
+            drawLine(C, A, '#ffffff', 3);
+            drawRightAngle(C, A, B, 12);
+
+            drawLine(C, D, '#42a5f5', 3);
+            drawLine(D, E, '#42a5f5', 3);
+            drawLine(C, E, '#42a5f5', 3);
+            drawRightAngle(E, C, D, 10);
+
+            drawLine(B, E, '#ff4081', 3);
+
+            if (showAux) {
+                drawLine(B, F, '#aaddff', 2, [5, 3]);
+                drawLine(C, F, '#aaddff', 2, [5, 3]);
+                drawLine(F, D, '#ffd600', 2);
+                drawPoint(F, '#aaddff');
+            }
+
+            drawPoint(A, '#64ffda');
+            drawPoint(B, '#64ffda');
+            drawPoint(C, '#ffffff');
+            drawPoint(D, '#ffd600');
+            drawPoint(E, '#ff80ab');
+
+            setLabelFont();
+            ctx.fillText('A', A.x, A.y + labelOffsetDown);
+            ctx.fillText('B', B.x, B.y + labelOffsetDown);
+            ctx.fillText('D', D.x, D.y + labelOffsetDown);
+            ctx.fillText('E', E.x, E.y + labelOffsetDown);
+            ctx.fillText('C', C.x, C.y - labelOffsetUp);
+            if (showAux) ctx.fillText('F', F.x, F.y + labelOffsetDown);
+        }
+
+        function update() {
+            calculatePoints();
+            drawGraph();
+        }
+
+        function redraw() {
+            initCanvasSize();
+            update();
+        }
+
+        // 往复运动
+        function startMove() {
+            if (isMoving) return;
+            isMoving = true;
+            moveDBtn.classList.add('active');
+            moveTimer = setInterval(() => {
+                adRatio += moveDir * 0.7;
+                if (adRatio >= 100) moveDir = -1;
+                if (adRatio <= 0) moveDir = 1;
+                adRatioSlider.value = adRatio;
+                adRatioValue.textContent = Math.round(adRatio) + '%';
+                update();
+            }, 20);
+        }
+
+        function stopMove() {
+            clearInterval(moveTimer);
+            isMoving = false;
+            moveDBtn.classList.remove('active');
+        }
+
+        // 最小状态 = 57%
+        function goToMinState() {
+            stopMove();
+            adRatio = 57;
+            adRatioSlider.value = adRatio;
+            adRatioValue.textContent = adRatio + '%';
+            showAux = true;
+            drawAuxBtn.classList.add('active');
+            update();
+        }
+
+        // 滑块
+        scaleSlider.oninput = () => {
+            scaleRatio = +scaleSlider.value;
+            scaleValue.textContent = scaleRatio + '%';
+            update();
+        };
+        abLenSlider.oninput = () => {
+            abLen = +abLenSlider.value;
+            abLenValue.textContent = abLen.toFixed(1);
+            update();
+        };
+        adRatioSlider.oninput = () => {
+            adRatio = +adRatioSlider.value;
+            adRatioValue.textContent = adRatio + '%';
+            update();
+        };
+        labelSizeSlider.oninput = () => {
+            labelSize = +labelSizeSlider.value;
+            labelSizeValue.textContent = labelSize + 'px';
+            update();
+        };
+        canvasHeightSlider.oninput = () => {
+            canvasHeight = +canvasHeightSlider.value;
+            canvasHeightValue.textContent = canvasHeight + 'px';
+            canvasWrapper.style.height = canvasHeight + 'px';
+            redraw();
+        };
+
+        drawAuxBtn.onclick = () => {
+            showAux = !showAux;
+            drawAuxBtn.classList.toggle('active', showAux);
+            update();
+        };
+        moveDBtn.onclick = () => { isMoving ? stopMove() : startMove(); };
+        minStateBtn.onclick = goToMinState;
+
+        // 拖动图形
+        canvasWrapper.addEventListener('mousedown', (e) => {
+            isDraggingCanvas = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDraggingCanvas) return;
+            translateX += e.clientX - startX;
+            translateY += e.clientY - startY;
+            startX = e.clientX;
+            startY = e.clientY;
+            update();
+        });
+        window.addEventListener('mouseup', () => { isDraggingCanvas = false; });
+
+        canvasWrapper.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return;
+            isDraggingCanvas = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            e.preventDefault();
+        });
+        window.addEventListener('touchmove', (e) => {
+            if (!isDraggingCanvas || e.touches.length !== 1) return;
+            translateX += e.touches[0].clientX - startX;
+            translateY += e.touches[0].clientY - startY;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            update();
+            e.preventDefault();
+        });
+        window.addEventListener('touchend', () => { isDraggingCanvas = false; });
+
+        window.onresize = redraw;
+        window.onload = redraw;
+    </script>
+</body>
+</html>

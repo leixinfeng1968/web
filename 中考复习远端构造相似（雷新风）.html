@@ -74,17 +74,30 @@
         
         .content {
             width: 100%;
-            max-width: 1400px;
+            max-width: 900px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 25px;
-            margin-top: 15px;
+            gap: 20px;
+        }
+        
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
         }
         
         .canvas-container {
             width: 100%;
-            max-width: 1200px;
             min-height: 550px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 16px;
@@ -128,6 +141,20 @@
                 max-width: 500px;
             }
         }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .canvas-wrapper {
+                max-width: 100%;
+            }
+            .canvas-container {
+                padding: 15px;
+            }
+            .slider-section {
+                padding: 12px;
+            }
+        }
         
         .canvas-note {
             font-size: 0.9rem;
@@ -164,21 +191,18 @@
         }
         
         .slider-section {
-            padding: 18px;
+            width: 100%;
             background: rgba(25, 118, 210, 0.2);
             border-radius: 10px;
             border: 1px solid rgba(100, 255, 218, 0.25);
+            padding: 15px;
         }
         
         .slider-header {
-            font-size: 1.2rem;
-            margin-bottom: 18px;
-            color: #4fc3f7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(100, 255, 218, 0.3);
+            font-size: 1.1rem;
+            color: #ffd600;
+            margin-bottom: 15px;
+            text-align: center;
         }
         
         .slider {
@@ -359,56 +383,60 @@
 </head>
 <body>
     <div class="header">
-
-        <p class="subtitle">远端构造相似三角形</p>
+        <h1>远端构造相似</h1>
+        <div class="geom-condition">题目：矩形<span>ABCD</span>中，<span>AD</span>=2，<span>AC</span>为对角线，<span>∠ACD</span>=30°，<span>E</span>，<span>F</span>分别为对角线<span>AC</span>上的两个动点，且<span>AE</span>=2<span>CF</span>，连接<span>DE</span>，<span>BF</span>，求<span>DE</span>+2<span>BF</span>的最小值</div>
     </div>
     
     <div class="content">
-        <div class="geom-condition">题目：矩形<span>ABCD</span>中，<span>AD</span>=2，<span>AC</span>为对角线，<span>∠ACD</span>=30°，<span>E</span>，<span>F</span>分别为对角线<span>AC</span>上的两个动点，且<span>AE</span>=2<span>CF</span>，连接<span>DE</span>，<span>BF</span>，求<span>DE</span>+2<span>BF</span>的最小值</div>
-        
-        <div class="canvas-container">
-            <canvas id="myCanvas"></canvas>
-
-            
-            <div class="slider-section">
-                <div class="slider-header">
-                    <span>点位置控制</span>
-                </div>
-                <div class="slider-control-group">
-                    <div class="point-info">
-                        <span class="point-label">点<span>E</span>位置</span>
-                        <span class="slider-value" id="ePosition">50%</span>
+        <div class="main">
+            <div class="canvas-wrapper">
+                <div class="canvas-container">
+                    <canvas id="myCanvas"></canvas>
+                    <div class="slider-section">
+                        <div class="slider-header">点位置控制</div>
+                        <div class="slider-control-group">
+                            <div class="point-info">
+                                <span class="point-label">点<span>E</span>位置</span>
+                                <span class="slider-value" id="ePosition">50%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="50" class="slider" id="eSlider">
+                        </div>
+                        <div class="slider-control-group">
+                            <div class="point-info">
+                                <span class="point-label">点<span>M</span>位置</span>
+                                <span class="slider-value" id="mState">0%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="0" class="slider" id="mSlider">
+                        </div>
+                        <div class="slider-control-group">
+                            <div class="point-info">
+                                <span class="point-label"><span>MN</span>垂线显示</span>
+                                <span class="slider-value" id="nState">0%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="0" class="slider" id="nSlider">
+                        </div>
+                        <div class="slider-control-group">
+                            <div class="point-info">
+                            <span class="point-label">角MAE度数</span>
+                            <span class="slider-value" id="maeAngleValue">300°</span>
+                        </div>
+                        <input type="range" min="0" max="360" value="300" class="slider" id="maeAngleSlider">
+                        </div>
+                        <div class="slider-control-group">
+                            <div class="point-info">
+                            <span class="point-label">标签字号</span>
+                            <span class="slider-value" id="labelSizeValue">36px</span>
+                        </div>
+                        <input type="range" min="12" max="72" value="36" class="slider" id="labelSizeSlider">
+                        </div>
+                        <div class="slider-control-group">
+                            <div class="point-info">
+                                <span class="point-label">题目文字大小</span>
+                                <span class="slider-value" id="fontValue">100%</span>
+                            </div>
+                            <input type="range" min="80" max="200" value="100" class="slider" id="fontSlider">
+                        </div>
                     </div>
-                    <input type="range" min="0" max="100" value="50" class="slider" id="eSlider">
-                </div>
-                <div class="slider-control-group">
-                    <div class="point-info">
-                        <span class="point-label">点<span>M</span>位置</span>
-                        <span class="slider-value" id="mState">0%</span>
-                    </div>
-                    <input type="range" min="0" max="100" value="0" class="slider" id="mSlider">
-                </div>
-                <div class="slider-control-group">
-                    <div class="point-info">
-                        <span class="point-label"><span>MN</span>垂线显示</span>
-                        <span class="slider-value" id="nState">0%</span>
-                    </div>
-                    <input type="range" min="0" max="100" value="0" class="slider" id="nSlider">
-                </div>
-                <div class="slider-control-group">
-                    <div class="point-info">
-                    <span class="point-label">角MAE度数</span>
-                    <span class="slider-value" id="maeAngleValue">300°</span>
-                </div>
-                <input type="range" min="0" max="360" value="300" class="slider" id="maeAngleSlider">
-                </div>
-                
-                <div class="slider-control-group">
-                    <div class="point-info">
-                    <span class="point-label">标签字号</span>
-                    <span class="slider-value" id="labelSizeValue">36px</span>
-                </div>
-                <input type="range" min="12" max="72" value="36" class="slider" id="labelSizeSlider">
                 </div>
             </div>
         </div>
@@ -458,6 +486,11 @@
         const labelSizeValue = document.getElementById('labelSizeValue');
         let currentLabelSize = 36; // 默认36px
         
+        // 题目文字大小控制
+        const fontSlider = document.getElementById('fontSlider');
+        const fontValue = document.getElementById('fontValue');
+        const geomCondition = document.querySelector('.geom-condition');
+        
         let MAE_ANGLE = 300 * Math.PI / 180; // 300度角，确保角MAE等于角BCF
         const targetM = { x: 0, y: 0 };
         const originM = { x: 0, y: 0 };
@@ -487,6 +520,13 @@
             'M': {x: labelOffset, y: -labelOffset}, 
             'N': {x: -labelOffset, y: -labelOffset}
         };
+
+        // 画布拖动功能
+        let isDraggingCanvas = false;
+        let canvasDragStartX = 0;
+        let canvasDragStartY = 0;
+        let canvasTranslateX = 0;
+        let canvasTranslateY = 0;
         
         const AD = 2;
         const CD = AD * Math.sqrt(3);    
@@ -536,6 +576,8 @@
             const w = canvasDimensions.width;
             const h = canvasDimensions.height;
             ctx.clearRect(0, 0, w, h);
+            ctx.save();
+            ctx.translate(canvasTranslateX, canvasTranslateY);
             
             const ePercentage = parseInt(eSlider.value) / 100;
             pointE = {x: A.x + ePercentage * (C.x - A.x),y: A.y + ePercentage * (C.y - A.y)};
@@ -671,6 +713,7 @@
             drawLabel('D', D, -labelOffset, labelOffset, 'end', 'top');
             drawLabel('E', pointE, labelOffset, labelOffset, 'start', 'top');
             drawLabel('F', pointF, -labelOffset, -labelOffset, 'end', 'bottom');
+            ctx.restore();
         }
         
         function drawLabel(text, point, offsetX, offsetY, align, baseline) {
@@ -690,6 +733,13 @@
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
+            
+            // 开始画布拖动
+            isDraggingCanvas = true;
+            canvasDragStartX = e.clientX - canvasTranslateX;
+            canvasDragStartY = e.clientY - canvasTranslateY;
+            canvas.style.cursor = 'grabbing';
+            return;
             
             // 确保rectPoints已初始化
             if (!rectPoints) {
@@ -748,6 +798,13 @@
         }
         
         function handleMouseMove(e) {
+            if (isDraggingCanvas) {
+                canvasTranslateX = e.clientX - canvasDragStartX;
+                canvasTranslateY = e.clientY - canvasDragStartY;
+                drawGeometry();
+                return;
+            }
+            
             if (!isDragging || !draggedLabel) return;
             
             const rect = canvas.getBoundingClientRect();
@@ -779,8 +836,10 @@
         
         function handleMouseUp() {
             isDragging = false;
+            isDraggingCanvas = false;
             draggedLabel = null;
             dragOffset = {x: 0, y: 0};
+            canvas.style.cursor = 'grab';
         }
         
         function drawPoint(point, color) {
@@ -834,6 +893,31 @@
         canvas.addEventListener('mouseup', handleMouseUp);
         canvas.addEventListener('mouseleave', handleMouseUp);
         
+        // 添加触摸事件监听
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDraggingCanvas = true;
+                canvasDragStartX = e.touches[0].clientX - canvasTranslateX;
+                canvasDragStartY = e.touches[0].clientY - canvasTranslateY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDraggingCanvas && e.touches.length === 1) {
+                canvasTranslateX = e.touches[0].clientX - canvasDragStartX;
+                canvasTranslateY = e.touches[0].clientY - canvasDragStartY;
+                drawGeometry();
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', function() {
+            isDraggingCanvas = false;
+        });
+        
+        canvas.style.cursor = 'grab';
+        
         // 角MAE滑块事件监听器
         maeAngleSlider.addEventListener('input', function() {
             const degrees = parseInt(this.value);
@@ -855,6 +939,13 @@
             currentLabelSize = parseInt(this.value);
             labelSizeValue.textContent = `${currentLabelSize}px`;
             drawGeometry(); // 重新绘制几何图形
+        });
+        
+        // 题目文字大小滑块事件监听器
+        fontSlider.addEventListener('input', function() {
+            const fontSize = fontSlider.value / 100;
+            fontValue.textContent = `${fontSlider.value}%`;
+            geomCondition.style.fontSize = `${fontSize}rem`;
         });
     </script>
 </body>

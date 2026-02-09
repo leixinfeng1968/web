@@ -5,57 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>矩形双动点+面积函数图像演示（初中数学）</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "微软雅黑", sans-serif;
-        }
+        * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI'}
         body {
-            padding: 20px;
-            background-color: #f8f9fa;
-            min-height: 100vh;
-        }
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 25px;
-            font-size: 24px;
-        }
-        /* 题目板块样式 */
-        .question-box {
-            background-color: #f5fafe;
-            border: 1px solid #d1e7fd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-            line-height: 1.8;
-            color: #2c3e50;
-            font-size: 16px;
-        }
-        .demo-wrap {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 25px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            padding: 20px;
+            color: #fff;
+            gap: 15px;
         }
-        .canvas-group {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 30px;
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
             width: 100%;
+            max-width: 900px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        .geom-condition {
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            color: #64ffda;
+            text-align: left;
+            line-height: 1.6;
+            text-indent: 2em;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
         }
         .canvas-box {
             width: 100%;
@@ -66,92 +79,75 @@
         canvas {
             width: 100%;
             height: 100%;
-            border: 1px solid #dee2e6;
+            border: 1px solid rgba(100,255,218,0.15);
             border-radius: 8px;
             display: block;
-            background-color: #fdfefe;
+            background: rgba(10,25,47,0.4);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
         }
-        #funcCanvas {
-            background-color: #fafafa;
-        }
-        .slider-wrap {
+        .control-panel {
             width: 100%;
-            max-width: 830px;
-            padding: 20px;
-            background: #f1f5f9;
-            border-radius: 8px;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             margin: 0 auto;
         }
-        .control-box {
-            width: 100%;
-            max-width: 300px;
-            padding: 25px;
-            background: #f1f5f9;
-            border-radius: 8px;
-        }
-        .control-title {
-            font-size: 18px;
-            color: #2980b9;
-            margin-bottom: 20px;
-            font-weight: bold;
+        .control-panel h3 {
+            font-size: 1.1rem;
+            color: #ffd600;
+            margin-bottom: 5px;
             text-align: center;
         }
         .input-item {
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
         label {
             display: block;
-            font-size: 16px;
-            color: #2c3e50;
-            margin-bottom: 8px;
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 5px;
             font-weight: 500;
         }
         input[type="number"] {
             width: 100%;
             padding: 8px 12px;
-            border: 1px solid #d1d5db;
+            border: 1px solid rgba(100,255,218,0.3);
             border-radius: 5px;
             outline: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
         }
         input[type="number"]:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
-        }
-        .move-slider {
-            margin: 0;
-            padding: 0;
-        }
-        .slider-title {
-            font-size: 16px;
-            color: #e74c3c;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: center;
+            border-color: #ffd600;
+            box-shadow: 0 0 0 2px rgba(255,214,0,0.2);
         }
         input[type="range"] {
             width: 100%;
             height: 6px;
-            background: #d1d5db;
+            background: rgba(255,255,255,0.2);
             border-radius: 3px;
             outline: none;
             -webkit-appearance: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #e74c3c;
+            width: 18px;
+            height: 18px;
+            background: #ffd600;
             border-radius: 50%;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: #c0392b;
+            border: 2px solid #fff;
         }
         .draw-btn {
             width: 100%;
             padding: 10px 0;
-            background-color: #3498db;
+            background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -162,60 +158,71 @@
             margin-top: 10px;
         }
         .draw-btn:hover {
-            background-color: #2980b9;
+            background-color: #0056b3;
         }
         .formula-box {
-            margin-top: 20px;
-            padding: 18px;
-            background: #fffbeb;
-            border-left: 4px solid #f39c12;
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid #ffd600;
             border-radius: 5px;
         }
         .formula-title {
-            font-size: 17px;
-            color: #d35400;
-            margin-bottom: 12px;
+            font-size: 15px;
+            color: #ffd600;
+            margin-bottom: 8px;
             font-weight: bold;
         }
         .formula-text {
-            font-size: 15px;
-            color: #2c3e50;
-            line-height: 2;
+            font-size: 13px;
+            color: #fff;
+            line-height: 1.8;
         }
         .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f4fd;
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(100,255,218,0.1);
             border-radius: 5px;
             text-align: center;
         }
         .result-text {
-            font-size: 16px;
-            color: #2980b9;
+            font-size: 14px;
+            color: #64ffda;
             line-height: 1.8;
         }
         .path-tip {
-            margin-top: 15px;
+            margin-top: 10px;
             padding: 10px;
-            background: #fef5e7;
+            background: rgba(255,214,0,0.1);
             border-radius: 4px;
-            font-size: 14px;
-            color: #e67e22;
+            font-size: 13px;
+            color: #ffd600;
             text-align: center;
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+            .canvas-wrapper {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>矩形双动点+面积函数图像演示（图形根据刘晓东老师网络画板题目重新用HTML绘制）</h1>
-        
-        <!-- 题目单独板块 -->
-        <div class="question-box">
-            如图，矩形ABCD中，AB=120，BC=180，点E是AD上一点，BE=BC，点P在BC上运动，同时，点Q在折线B→E→D→C上运动，P，Q同时开始沿着各自路线运动，以相同的速度运动，探究三角形BPQ的面积与运动时间的函数关系，请你给坐标轴画上合适的刻度值。
+    <div class="header">
+        <h1>矩形双动点面积问题</h1>
+        <div class="geom-condition">
+            矩形ABCD中，AB=120，BC=180，点E是AD上一点，BE=BC，点P在BC上运动，同时，点Q在折线B→E→D→C上运动，P，Q同时开始沿着各自路线运动，以相同的速度运动，探究三角形BPQ的面积与运动时间的函数关系。
         </div>
+    </div>
 
-        <div class="demo-wrap">
-            <div class="canvas-group">
+    <div class="container">
+        <div class="main">
+            <div class="canvas-wrapper">
                 <div class="canvas-box">
                     <canvas id="rectCanvas"></canvas>
                 </div>
@@ -223,14 +230,9 @@
                     <canvas id="funcCanvas"></canvas>
                 </div>
             </div>
-            <div class="slider-wrap">
-                <div class="move-slider">
-                    <div class="slider-title">双动点运动进度（0%~100%）</div>
-                    <input type="range" id="moveRange" min="0" max="100" value="0">
-                </div>
-            </div>
-            <div class="control-box">
-                <div class="control-title">矩形参数设置</div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
                 <div class="input-item">
                     <label>矩形长度（50~300）</label>
                     <input type="number" id="rectLength" min="50" max="300" value="180" placeholder="50-300">
@@ -240,7 +242,10 @@
                     <input type="number" id="rectWidth" min="30" max="200" value="120" placeholder="30-200">
                 </div>
                 <button class="draw-btn" id="drawRectBtn">绘制图形</button>
-    
+                <div class="input-item">
+                    <label>双动点运动进度（0%~100%）</label>
+                    <input type="range" id="moveRange" min="0" max="100" value="0">
+                </div>
                 <div class="formula-box">
                     <div class="formula-title">✅ 正确面积规律（教学标准）</div>
                     <div class="formula-text">1.BE段：平滑抛物线（先增后减，无竖线）
@@ -255,6 +260,11 @@
                     <div class="result-text">△BPQ面积=<span id="bpqArea">0</span></div>
                 </div>
                 <div class="path-tip" id="pathTip">Q:BE段(浅红)→ED段(浅蓝)→DC段(浅绿)</div>
+                <div class="input-item">
+                    <label>题目文字大小</label>
+                    <input type="range" id="fontSlider" min="80" max="200" value="100">
+                    <span id="fontValue">100%</span>
+                </div>
             </div>
         </div>
     </div>
@@ -273,6 +283,9 @@
         const bpqArea = document.getElementById('bpqArea');
         const moveRange = document.getElementById('moveRange');
         const pathTip = document.getElementById('pathTip');
+        const fontSlider = document.getElementById('fontSlider');
+        const fontValue = document.getElementById('fontValue');
+        const geomCondition = document.querySelector('.geom-condition');
         
         let rectCanvasSize = 0, funcCanvasSize = 0;
         let A, B, C, D, E;
@@ -280,6 +293,11 @@
         let totalPPath = 0;
         let qPathStatus = "";
         let areaData = [];
+
+        // 拖动相关变量
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
         const pathColors = {
             BE: 'rgba(255, 192, 203, 0.3)',
             ED: 'rgba(173, 216, 230, 0.3)',
@@ -288,6 +306,18 @@
             ED_line: '#3498db',
             DC_line: '#27ae60'
         };
+
+        // 初始化画布
+        function initCanvas() {
+            rectCanvasSize = rectCanvas.offsetWidth;
+            rectCanvas.width = rectCanvasSize;
+            rectCanvas.height = rectCanvasSize;
+            funcCanvasSize = funcCanvas.offsetWidth;
+            funcCanvas.width = funcCanvasSize;
+            funcCanvas.height = funcCanvasSize;
+            drawFuncAxis();
+            drawAll();
+        }
 
         function resizeCanvas() {
             rectCanvasSize = rectCanvas.offsetWidth;
@@ -300,7 +330,6 @@
             drawAll();
         }
 
-        // 隐藏坐标轴刻度，只留坐标轴和箭头+文字
         function drawFuncAxis() {
             funcCtx.clearRect(0, 0, funcCanvasSize, funcCanvasSize);
             const padding = 30;
@@ -411,6 +440,8 @@
 
         function drawRectGraph(P, Q) {
             rectCtx.clearRect(0, 0, rectCanvasSize, rectCanvasSize);
+            rectCtx.save();
+            rectCtx.translate(panX, panY);
             const {len, wid} = updateRectData();
 
             rectCtx.beginPath();
@@ -480,6 +511,7 @@
             rectCtx.fillText('E', E.x-15, E.y-15);
             rectCtx.fillText('P', P.x+12, P.y+12);
             rectCtx.fillText('Q', Q.x+12, Q.y+12);
+            rectCtx.restore();
         }
 
         // 平滑抛物线轨迹，无竖线无断点
@@ -559,6 +591,70 @@
         drawRectBtn.addEventListener('click', ()=>{resetData();});
         moveRange.addEventListener('input', drawAll);
         window.addEventListener('resize', ()=>{resetData();resizeCanvas();});
+        fontSlider.addEventListener('input', function() {
+            const fontSize = fontSlider.value / 100;
+            fontValue.textContent = `${fontSlider.value}%`;
+            geomCondition.style.fontSize = `${fontSize}rem`;
+        });
+        // 拖动功能 - 鼠标事件
+        rectCanvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            rectCanvas.style.cursor = 'grabbing';
+        });
+
+        rectCanvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawAll();
+            }
+        });
+
+        rectCanvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            rectCanvas.style.cursor = 'grab';
+        });
+
+        rectCanvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            rectCanvas.style.cursor = 'grab';
+        });
+
+        // 拖动功能 - 触摸事件
+        rectCanvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        rectCanvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawAll();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        rectCanvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        rectCanvas.style.cursor = 'grab';
+
         window.onload = () => {
             resizeCanvas();
             updateRectData();

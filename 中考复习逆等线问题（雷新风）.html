@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中考复习逆等线问题（基因005）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #1a237e);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            text-indent: 2em;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .auto-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: #ffd600;
+            color: #1a237e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        .auto-btn:hover {
+            background: #ffab00;
+        }
+        .auto-btn.active {
+            background: #ff4081;
+            color: #fff;
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        /* 画布容器：限制角度标签拖动范围 */
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            cursor: grab;
+            touch-action: none;
+            position: relative;
+            /* 关键：禁止角度标签溢出画布 */
+            overflow: hidden;
+        }
+        .canvas-wrapper:active {
+            cursor: grabbing;
+        }
+        #myCanvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        /* 可拖动角度标签：数字+右上角小圆圈 */
+        .angle-label {
+            position: absolute;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: move;
+            user-select: none;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+            z-index: 10;
+            line-height: 1;
+            /* 关键：只在canvas-wrapper内拖动 */
+            pointer-events: auto;
+        }
+        .angle-label .deg {
+            font-size: 10px; /* 圆圈更小 */
+            vertical-align: super; /* 右上角 */
+            margin-left: 1px;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            padding: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>中考复习逆等线问题（基因005）</h1>
+            <div class="geom-condition">
+                如图，等边△ABC，边长为4。在AC上取点M，在BC上取点N，使得AM=CN，连接MN，求MN的最小值。<br>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="myCanvas"></canvas>
+                <!-- 角度标签：数字+右上角小圆圈 -->
+                <div class="angle-label" id="angle30">30<span class="deg">○</span></div>
+                <div class="angle-label" id="angle60a">60<span class="deg">○</span></div>
+                <div class="angle-label" id="angle60b">60<span class="deg">○</span></div>
+            </div>
+            <div class="btn-group">
+                <button class="auto-btn" id="drawParaBtn">绘制平行四边形 CNMP</button>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="500" value="200" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">200%</span>
+                </div>
+                <div class="single-slider">
+                    <span>顶角∠A大小</span>
+                    <input type="range" min="10" max="170" value="60" class="control-slider" id="angleASlider">
+                    <span class="slider-value" id="angleAValue">60°</span>
+                </div>
+                <div class="single-slider">
+                    <span>AM长度比例</span>
+                    <input type="range" min="0" max="100" value="30" class="control-slider" id="amRatioSlider">
+                    <span class="slider-value" id="amRatioValue">30%</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示答案与解析</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="ansSlider">
+                    <span class="slider-value" id="ansValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签字号大小</span>
+                    <input type="range" min="10" max="50" value="20" class="control-slider" id="labelSizeSlider">
+                    <span class="slider-value" id="labelSizeValue">20px</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="12" max="50" value="16" class="control-slider" id="titleSizeSlider">
+                    <span class="slider-value" id="titleSizeValue">16px</span>
+                </div>
+                <div class="single-slider">
+                    <span>画布高度</span>
+                    <input type="range" min="300" max="600" value="400" class="control-slider" id="canvasHeightSlider">
+                    <span class="slider-value" id="canvasHeightValue">400px</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">制作时间：2026.1.24  作者：雷新风</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const angleASlider = document.getElementById('angleASlider');
+        const amRatioSlider = document.getElementById('amRatioSlider');
+        const ansSlider = document.getElementById('ansSlider');
+        const labelSizeSlider = document.getElementById('labelSizeSlider');
+        const titleSizeSlider = document.getElementById('titleSizeSlider');
+        const canvasHeightSlider = document.getElementById('canvasHeightSlider');
+        const drawParaBtn = document.getElementById('drawParaBtn');
+
+        // 角度标签元素
+        const angle30 = document.getElementById('angle30');
+        const angle60a = document.getElementById('angle60a');
+        const angle60b = document.getElementById('angle60b');
+
+        const scaleValue = document.getElementById('scaleValue');
+        const angleAValue = document.getElementById('angleAValue');
+        const amRatioValue = document.getElementById('amRatioValue');
+        const ansValue = document.getElementById('ansValue');
+        const labelSizeValue = document.getElementById('labelSizeValue');
+        const titleSizeValue = document.getElementById('titleSizeValue');
+        const canvasHeightValue = document.getElementById('canvasHeightValue');
+
+        const geomCondition = document.querySelector('.geom-condition');
+        const h1Title = document.querySelector('h1');
+
+        const pointRadius = 5;
+        const labelOffset = 12;
+        let scaleRatio = 200; // 初始值与滑动条一致
+        let angleA = 60;      // 初始值与滑动条一致
+        let amRatio = 0.3;    // 初始值与滑动条一致
+        let ansRatio = 0;
+        let labelSize = 20;
+        let titleSize = 16;
+        let canvasHeight = 400;
+        let canvasW, canvasH;
+
+        let A, B, C, M, N, P;
+        const BASE_LEN = 6;
+        let showPara = false;
+
+        // 画布拖动相关变量（仅用于拖动整个图形）
+        let isDraggingCanvas = false;
+        let offsetX = 0, offsetY = 0;
+        let translateX = 0, translateY = 0;
+
+        // 角度标签拖动变量（拖动角度时图形不动）
+        let isDraggingAngle = false;
+        let currentAngleEl = null;
+        let angleOffsetX = 0, angleOffsetY = 0;
+
+        function initCanvas() {
+            canvasW = canvas.offsetWidth;
+            canvasH = canvasHeight;
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+            initPoints();
+            initAngleLabelsPosition(); // 初始化角度标签位置（画布内）
+            drawGraph();
+        }
+
+        // 初始化角度标签位置：精准落在画布内，紧贴三角形
+        function initAngleLabelsPosition() {
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+            // 计算画布在wrapper内的相对位置
+            const canvasLeftInWrapper = canvasRect.left - wrapperRect.left;
+            const canvasTopInWrapper = canvasRect.top - wrapperRect.top;
+
+            // 30° 放在 A 点右上方（画布内）
+            angle30.style.left = `${canvasLeftInWrapper + A.x + 15}px`;
+            angle30.style.top = `${canvasTopInWrapper + A.y - 15}px`;
+            // 60°a 放在 B 点右上方（画布内）
+            angle60a.style.left = `${canvasLeftInWrapper + B.x + 15}px`;
+            angle60a.style.top = `${canvasTopInWrapper + B.y - 15}px`;
+            // 60°b 放在 C 点左上方（画布内）
+            angle60b.style.left = `${canvasLeftInWrapper + C.x - 30}px`;
+            angle60b.style.top = `${canvasTopInWrapper + C.y - 15}px`;
+        }
+
+        function initPoints() {
+            const baseScale = Math.min(canvasW / 40, canvasH / 40);
+            const finalScale = baseScale * scaleRatio / 100; // 按百分比缩放
+            const centerX = canvasW / 2 + translateX;
+            const centerY = canvasH / 2 + translateY;
+
+            const bc = BASE_LEN * finalScale;
+            const radA = angleA * Math.PI / 180;
+            const h = (bc / 2) / Math.tan(radA / 2);
+            const ac = (bc / 2) / Math.sin(radA / 2);
+
+            A = { x: centerX, y: centerY - h / 2 };
+            B = { x: centerX - bc / 2, y: centerY + h / 2 };
+            C = { x: centerX + bc / 2, y: centerY + h / 2 };
+
+            const amLen = amRatio * ac;
+            M = {
+                x: A.x + (C.x - A.x) * (amLen / ac),
+                y: A.y + (C.y - A.y) * (amLen / ac)
+            };
+
+            const cnLen = amLen;
+            N = {
+                x: C.x - (C.x - B.x) * (cnLen / bc),
+                y: C.y
+            };
+
+            // 平行四边形 CNMP：P = M + 向量NC
+            const vNCx = C.x - N.x;
+            const vNCy = C.y - N.y;
+            P = {
+                x: M.x + vNCx,
+                y: M.y + vNCy
+            };
+        }
+
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+
+            // 三角形ABC
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // AM 红线
+            ctx.strokeStyle = '#ff4081';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(M.x, M.y);
+            ctx.stroke();
+
+            // CN 红线
+            ctx.beginPath();
+            ctx.moveTo(C.x, C.y);
+            ctx.lineTo(N.x, N.y);
+            ctx.stroke();
+
+            // MN 紫线
+            ctx.strokeStyle = '#9933cc';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(M.x, M.y);
+            ctx.lineTo(N.x, N.y);
+            ctx.stroke();
+
+            // 平行四边形 CNMP（MP、CP、AP 虚线）
+            if (showPara) {
+                ctx.strokeStyle = '#66ccff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 3]);
+                
+                // MP 虚线
+                ctx.beginPath();
+                ctx.moveTo(P.x, P.y);
+                ctx.lineTo(M.x, M.y);
+                ctx.stroke();
+                
+                // CP 虚线
+                ctx.beginPath();
+                ctx.moveTo(C.x, C.y);
+                ctx.lineTo(P.x, P.y);
+                ctx.stroke();
+                
+                // AP 虚线
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y);
+                ctx.lineTo(P.x, P.y);
+                ctx.stroke();
+                
+                ctx.setLineDash([]);
+
+                drawPoint(P, '#66ccff');
+                drawLabel('P', P, -labelOffset, -labelOffset);
+            }
+
+            // 绘制所有点
+            drawPoint(A, '#ffff33'); drawLabel('A', A, 0, -labelOffset * 1.5);
+            drawPoint(B, '#ffff33'); drawLabel('B', B, -labelOffset, labelOffset);
+            drawPoint(C, '#ffff33'); drawLabel('C', C, labelOffset, labelOffset);
+            drawPoint(M, '#ff4081'); drawLabel('M', M, labelOffset, 0);
+            drawPoint(N, '#ff4081'); drawLabel('N', N, 0, labelOffset * 1.5);
+
+            // 解析文字
+            if (ansRatio > 0) {
+                ctx.save();
+                ctx.globalAlpha = ansRatio;
+                ctx.fillStyle = '#a5d6a7';
+                ctx.font = 'bold 16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`顶角∠A = ${angleA}°`, canvasW/2, 30);
+                ctx.fillText(`AM = CN = ${(amRatio*100).toFixed(0)}% AC`, canvasW/2, 60);
+                ctx.restore();
+            }
+        }
+
+        function drawPoint(p, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, pointRadius + 2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function drawLabel(txt, p, ox, oy) {
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${labelSize}px Times New Roman`;
+            ctx.textAlign = 'center';
+            ctx.fillText(txt, p.x + ox, p.y + oy);
+        }
+
+        // --------------------------
+        // 整个图形拖动（仅拖动空白区域时生效）
+        // --------------------------
+        function startCanvasDrag(e) {
+            // 只有点击画布空白处才拖动整个图形，点击角度标签不触发
+            if (e.target.closest('.angle-label')) return;
+            isDraggingCanvas = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const rect = canvas.getBoundingClientRect();
+            offsetX = clientX - rect.left - translateX;
+            offsetY = clientY - rect.top - translateY;
+            canvasWrapper.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+
+        function dragCanvas(e) {
+            if (!isDraggingCanvas) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const rect = canvas.getBoundingClientRect();
+            translateX = clientX - rect.left - offsetX;
+            translateY = clientY - rect.top - offsetY;
+            initPoints();
+            drawGraph();
+            e.preventDefault();
+        }
+
+        function endCanvasDrag() {
+            isDraggingCanvas = false;
+            canvasWrapper.style.cursor = 'grab';
+        }
+
+        // --------------------------
+        // 角度标签拖动（拖动时图形完全不动）
+        // --------------------------
+        function startAngleDrag(e) {
+            const target = e.target.closest('.angle-label');
+            if (!target) return;
+            isDraggingAngle = true;
+            currentAngleEl = target;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const rect = currentAngleEl.getBoundingClientRect();
+            angleOffsetX = clientX - rect.left;
+            angleOffsetY = clientY - rect.top;
+            currentAngleEl.style.cursor = 'grabbing';
+            e.preventDefault();
+            e.stopPropagation(); // 阻止触发画布整体拖动
+        }
+
+        function dragAngle(e) {
+            if (!isDraggingAngle || !currentAngleEl) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
+            // 计算在wrapper内的相对位置，限制在画布区域内
+            let x = clientX - wrapperRect.left - angleOffsetX;
+            let y = clientY - wrapperRect.top - angleOffsetY;
+            
+            // 边界限制：只在canvas-wrapper内拖动
+            const maxX = canvasWrapper.clientWidth - currentAngleEl.offsetWidth;
+            const maxY = canvasWrapper.clientHeight - currentAngleEl.offsetHeight;
+            x = Math.max(0, Math.min(x, maxX));
+            y = Math.max(0, Math.min(y, maxY));
+            
+            currentAngleEl.style.left = `${x}px`;
+            currentAngleEl.style.top = `${y}px`;
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function endAngleDrag() {
+            isDraggingAngle = false;
+            if (currentAngleEl) {
+                currentAngleEl.style.cursor = 'move';
+                currentAngleEl = null;
+            }
+        }
+
+        // 绑定事件
+        // 1. 整个图形拖动（点击画布空白处）
+        canvasWrapper.addEventListener('mousedown', startCanvasDrag);
+        canvasWrapper.addEventListener('mousemove', dragCanvas);
+        canvasWrapper.addEventListener('mouseup', endCanvasDrag);
+        canvasWrapper.addEventListener('mouseleave', endCanvasDrag);
+        canvasWrapper.addEventListener('touchstart', startCanvasDrag);
+        canvasWrapper.addEventListener('touchmove', dragCanvas);
+        canvasWrapper.addEventListener('touchend', endCanvasDrag);
+
+        // 2. 角度标签拖动（点击角度标签）
+        canvasWrapper.addEventListener('mousedown', startAngleDrag);
+        canvasWrapper.addEventListener('touchstart', startAngleDrag);
+        document.addEventListener('mousemove', dragAngle);
+        document.addEventListener('touchmove', dragAngle);
+        document.addEventListener('mouseup', endAngleDrag);
+        document.addEventListener('touchend', endAngleDrag);
+
+        // 按钮事件
+        drawParaBtn.addEventListener('click', () => {
+            showPara = !showPara;
+            drawParaBtn.classList.toggle('active', showPara);
+            drawParaBtn.innerText = showPara ? '隐藏辅助线' : '辅助线';
+            drawGraph();
+        });
+
+        // 滑块事件
+        scaleSlider.addEventListener('input', () => {
+            scaleRatio = scaleSlider.value;
+            scaleValue.innerText = scaleRatio + '%';
+            initPoints();
+            drawGraph();
+        });
+        angleASlider.addEventListener('input', () => {
+            angleA = angleASlider.value;
+            angleAValue.innerText = angleA + '°';
+            initPoints();
+            drawGraph();
+        });
+        amRatioSlider.addEventListener('input', () => {
+            amRatio = amRatioSlider.value / 100;
+            amRatioValue.innerText = amRatioSlider.value + '%';
+            initPoints();
+            drawGraph();
+        });
+        ansSlider.addEventListener('input', () => {
+            ansRatio = ansSlider.value / 100;
+            ansValue.innerText = ansSlider.value + '%';
+            drawGraph();
+        });
+        labelSizeSlider.addEventListener('input', () => {
+            labelSize = labelSizeSlider.value;
+            labelSizeValue.innerText = labelSize + 'px';
+            drawGraph();
+        });
+        titleSizeSlider.addEventListener('input', () => {
+            titleSize = titleSizeSlider.value;
+            titleSizeValue.innerText = titleSize + 'px';
+            geomCondition.style.fontSize = titleSize + 'px';
+            h1Title.style.fontSize = `clamp(${titleSize*1.2}px, 4vw, ${titleSize*1.8}px)`;
+        });
+        canvasHeightSlider.addEventListener('input', () => {
+            canvasHeight = canvasHeightSlider.value;
+            canvasHeightValue.innerText = canvasHeight + 'px';
+            initCanvas();
+        });
+
+        window.addEventListener('load', initCanvas);
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>

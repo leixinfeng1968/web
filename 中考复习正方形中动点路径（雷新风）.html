@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>初中数学课件 - 正方形动点路径问题</title>
+    <style>
+        * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI'}
+        body {display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1a237e,#0d47a1);padding:20px;color:#fff;overflow-x:hidden}
+        .header {text-align:center;margin-bottom:20px;width:100%;max-width:700px}
+        h1 {font-size:2rem;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,0.6);background:linear-gradient(to right,#ffd600,#ffab00);-webkit-background-clip:text;color:transparent;letter-spacing:1px}
+        .geom-condition {font-size:1.1rem;font-weight:500;padding:12px 15px;background:rgba(255,255,255,0.1);border-radius:8px;border:2px solid rgba(100,255,218,0.4);box-shadow:0 3px 10px rgba(0,0,0,0.3);color:#ffda8b;text-align:left;line-height:1.6;text-indent:2em}
+        .container {width:100%;max-width:700px;display:flex;flex-direction:column;gap:20px}
+        .main {display:flex;gap:15px;flex-wrap:wrap}
+        .canvas-wrapper {flex:1;min-width:300px;background:rgba(255,255,255,0.08);border-radius:12px;padding:10px;backdrop-filter:blur(8px);border:1px solid rgba(100,255,218,0.2)}
+        #myCanvas {width:100%;height:450px;display:block;background:rgba(10,25,47,0.4);border-radius:8px;border:1px solid rgba(100,255,218,0.15);box-shadow:inset 0 0 15px rgba(0,0,0,0.4)}
+        .control-panel {width:100%;max-width:320px;background:rgba(255,255,255,0.08);border-radius:12px;padding:15px;backdrop-filter:blur(8px);border:1px solid rgba(100,255,218,0.2);display:flex;flex-direction:column;gap:12px;margin:0 auto}
+        .control-panel h3 {font-size:1.1rem;color:#ffd600;margin-bottom:5px;text-align:center}
+        .single-slider {display:flex;align-items:center;gap:10px;width:100%}
+        .single-slider span {font-size:0.9rem;color:#fff;white-space:nowrap;display:inline-block;width:180px}
+        .slider-value {width:40px;text-align:center;color:#ffd600;font-weight:bold}
+        .control-slider {flex:1;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;outline:none;-webkit-appearance:none}
+        .control-slider::-webkit-slider-thumb {-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#ffd600;cursor:pointer;border:2px solid #fff}
+        .footer {text-align:center;opacity:0.9;width:100%;padding:15px 0;color:#e3f2fd;margin-top:15px}
+        .blank-line{display:inline-block;width:60px;height:2px;background:#ffda8b;vertical-align:bottom;margin:0 5px;}
+        .draw-btn {padding:10px 20px;border:none;border-radius:6px;background:linear-gradient(to right,#ffd600,#ffab00);color:#1a237e;font-weight:bold;font-size:0.95rem;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.3);margin-top:5px}
+        .draw-btn:hover {opacity:0.9}
+        @media (max-width:768px) {
+            .main {flex-direction:column}
+            .control-panel {max-width:100%}
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>正方形动点路径问题演示</h1>
+        <div class="geom-condition">
+            正方形ABCD中，AB上有动点M，BC上有动点N，MN长度始终等于正方形边长4。求MN中点P的运动轨迹长度。
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>动点移动进度</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="moveSlider">
+                    <span class="slider-value" id="moveValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="100" max="700" value="400" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">400%</span>
+                </div>
+                <div class="single-slider">
+                    <span>轨迹显示透明度</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="pathSlider">
+                    <span class="slider-value" id="pathValue">0%</span>
+                </div>
+                <button class="draw-btn" onclick="showPath()">绘制完整轨迹 + 答案解析</button>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="80" max="200" value="100" class="control-slider" id="fontSlider">
+                    <span class="slider-value" id="fontValue">100%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">制作时间：2026.1.19  作者：雷新风</div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const moveSlider = document.getElementById('moveSlider');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const pathSlider = document.getElementById('pathSlider');
+        const fontSlider = document.getElementById('fontSlider');
+        const moveValue = document.getElementById('moveValue');
+        const scaleValue = document.getElementById('scaleValue');
+        const pathValue = document.getElementById('pathValue');
+        const fontValue = document.getElementById('fontValue');
+        const geomCondition = document.querySelector('.geom-condition');
+        
+        let canvasW, canvasH;
+        let squareSize = 6;
+        let moveProgress = 0;
+        let scaleRatio = 4.0;
+        let pathOpacity = 0;
+        let pathPoints = [];
+        let animationId = null;
+        let centerO = null;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        // 初始化画布
+        function initCanvas() {
+            canvasW = canvas.width = canvas.offsetWidth;
+            canvasH = canvas.height = canvas.offsetHeight;
+            drawGraph();
+        }
+
+        // 计算各点坐标（核心调整：提高图形占比）
+        function calculatePoints() {
+            // 缩放因子调整，让图形占满画布85%空间
+            const baseScale = Math.min(canvasW/25, canvasH/25) * scaleRatio / 1.5;
+            const centerX = canvasW / 2;
+            const centerY = canvasH / 2;
+            const halfSize = squareSize * baseScale / 2;
+
+            // 正方形顶点
+            const A = {x: centerX - halfSize, y: centerY - halfSize};
+            const B = {x: centerX - halfSize, y: centerY + halfSize};
+            const C = {x: centerX + halfSize, y: centerY + halfSize};
+            const D = {x: centerX + halfSize, y: centerY - halfSize};
+
+            // 圆心（BD中点）
+            centerO = {
+                x: (B.x + D.x) / 2,
+                y: (B.y + D.y) / 2
+            };
+
+            // 动点M（从B向A移动）
+            const MB_ratio = moveProgress / 100;
+            const M = {
+                x: B.x,
+                y: B.y - MB_ratio * 2 * halfSize
+            };
+
+            // 动点N（从B向C移动）
+            const BN_ratio = Math.sqrt(1 - MB_ratio * MB_ratio);
+            const N = {
+                x: B.x + BN_ratio * 2 * halfSize,
+                y: B.y
+            };
+
+            // 中点P
+            const P = {
+                x: (M.x + N.x) / 2,
+                y: (M.y + N.y) / 2
+            };
+
+            // 记录轨迹点
+            if (pathPoints.length === 0 || moveProgress % 1 === 0) { // 每1%记录一个点，轨迹更平滑
+                pathPoints.push({...P});
+            }
+
+            return {A, B, C, D, M, N, P};
+        }
+
+        // 绘制图形（增大元素尺寸）
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            ctx.save();
+            ctx.translate(panX, panY);
+            const points = calculatePoints();
+            const {A, B, C, D, M, N, P} = points;
+
+            // 绘制正方形（加粗线条）
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.lineTo(C.x, C.y);
+            ctx.lineTo(D.x, D.y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // 绘制对角线BD
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(B.x, B.y);
+            ctx.lineTo(D.x, D.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 绘制动点连线MN
+            ctx.strokeStyle = '#ff4081';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(M.x, M.y);
+            ctx.lineTo(N.x, N.y);
+            ctx.stroke();
+
+            // 绘制中点P（进一步增大点尺寸）
+            drawPoint(P, '#64ffda', 'P', 8);
+
+            // 绘制顶点和动点
+            drawPoint(A, '#ffff33', 'A', 8);
+            drawPoint(B, '#ffff33', 'B', 8);
+            drawPoint(C, '#ffff33', 'C', 8);
+            drawPoint(D, '#ffff33', 'D', 8);
+            drawPoint(M, '#ff4081', 'M', 8);
+            drawPoint(N, '#ff4081', 'N', 8);
+
+            // 绘制圆弧轨迹
+            if (pathOpacity > 0 && pathPoints.length > 1) {
+                ctx.strokeStyle = `rgba(100, 255, 218, ${pathOpacity / 100})`;
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
+                const displayCount = Math.floor(pathPoints.length * (moveProgress / 100));
+                for (let i = 1; i <= displayCount; i++) {
+                    ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // 绘制点和标签（更大的点和字体）
+        function drawPoint(p, color, label, radius = 7) {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 放大标签字体
+            ctx.fillStyle = '#fff';
+            ctx.font = 'italic 20px Times New Roman';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, p.x + 20, p.y - 20);
+        }
+
+        // 显示完整轨迹动画
+        function showPath() {
+            cancelAnimationFrame(animationId);
+            pathPoints = [];
+            let progress = 0;
+            
+            function animate() {
+                if (progress <= 100) {
+                    moveSlider.value = progress;
+                    moveValue.innerText = progress + '%';
+                    moveProgress = progress;
+                    
+                    pathSlider.value = progress;
+                    pathValue.innerText = progress + '%';
+                    pathOpacity = progress;
+                    
+                    drawGraph();
+                    progress += 0.8; // 稍慢的动画速度，便于观察
+                    animationId = requestAnimationFrame(animate);
+                } else {
+                    // 显示答案
+                    const arcLength = (Math.PI * squareSize) / 2;
+                    ctx.fillStyle = 'rgba(165, 214, 167, 0.8)';
+                    ctx.font = '20px Segoe UI';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`轨迹为四分之一圆弧，长度=π×${squareSize/2}≈${arcLength.toFixed(2)}`, canvasW/2, 60);
+                    ctx.fillText(`圆心为BD中点，半径=正方形边长/2`, canvasW/2, 90);
+                }
+            }
+            animate();
+        }
+
+        // 事件监听
+        moveSlider.addEventListener('input', function() {
+            moveProgress = parseInt(this.value);
+            moveValue.innerText = this.value + '%';
+            drawGraph();
+        });
+
+        scaleSlider.addEventListener('input', function() {
+            scaleRatio = parseInt(this.value) / 100;
+            scaleValue.innerText = this.value + '%';
+            pathPoints = [];
+            drawGraph();
+        });
+
+        pathSlider.addEventListener('input', function() {
+            pathOpacity = parseInt(this.value);
+            pathValue.innerText = this.value + '%';
+            drawGraph();
+        });
+
+        fontSlider.addEventListener('input', function() {
+            const fontSize = this.value / 100;
+            fontValue.innerText = this.value + '%';
+            geomCondition.style.fontSize = `${fontSize}rem`;
+        });
+
+        // 拖动功能 - 鼠标事件
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawGraph();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // 拖动功能 - 触摸事件
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawGraph();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
+
+        // 初始化
+        window.onload = initCanvas;
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>

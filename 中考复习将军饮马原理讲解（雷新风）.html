@@ -12,50 +12,106 @@
         }
         body {
             padding: 20px;
-            background-color: #f5f5f5;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            min-height: 100vh;
+            color: #fff;
         }
-        /* 标题样式 */
-        .title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 10px;
+        .header {
             text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2.3rem);
+            margin-bottom: 15px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        .geom-condition {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 12px 25px;
+            background: rgba(25, 118, 210, 0.3);
+            border-radius: 10px;
+            display: inline-block;
+            border: 2px solid rgba(100, 255, 218, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: #64ffda;
+            text-align: left;
+            text-indent: 2em;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: 1.2rem;
+            color: #ffd600;
+            text-align: center;
+            margin-bottom: 10px;
         }
         .canvas-container {
             width: 100%;
-            max-width: 1000px;
             height: 50vh;
             min-height: 300px;
-            border: 3px solid #333;
-            background-color: white;
-            position: relative;
+            background-color: rgba(10, 25, 47, 0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100, 255, 218, 0.15);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
         }
         #canvas {
             width: 100%;
             height: 100%;
             display: block;
         }
-        .control-wrap {
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
         .slider-wrap {
             display: flex;
             flex-direction: column;
             gap: 12px;
             padding: 10px;
-            background-color: #fff;
+            background-color: rgba(25, 118, 210, 0.2);
             border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid rgba(100, 255, 218, 0.25);
         }
         .slider-group {
             width: 100%;
@@ -66,22 +122,21 @@
         .slider-group label {
             min-width: 80px;
             font-size: 14px;
-            color: #333;
+            color: #e3f2fd;
             font-weight: bold;
         }
         .slider-group input {
             flex: 1;
             height: 8px;
             cursor: pointer;
-            accent-color: #2563eb;
+            accent-color: #ffd600;
         }
         .slider-group span {
             min-width: 60px;
             text-align: center;
             font-size: 14px;
-            color: #666;
+            color: #64ffda;
         }
-        /* 按钮容器，让两个按钮并排 */
         .btn-group {
             display: flex;
             gap: 10px;
@@ -113,50 +168,76 @@
             background-color: #4b5563;
             transform: translateY(-1px);
         }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+            .canvas-container {
+                min-height: 250px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1 class="title">将军饮马原理讲解</h1>
-
-    <div class="canvas-container">
-        <canvas id="canvas"></canvas>
+    <div class="header">
+        <h1>将军饮马原理讲解</h1>
+        <div class="geom-condition">在直线AB的同侧有两点C、D，在直线AB上找一点P，使得PC+PD的值最小。通过作点C关于直线AB的对称点C'，连接C'D与直线AB的交点即为点P的位置。</div>
     </div>
 
-    <div class="control-wrap">
-        <div class="slider-wrap">
-            <div class="slider-group">
-                <label>P点位置：</label>
-                <input type="range" id="pSlider" min="0" max="100" value="50">
-                <span id="pValue">50%</span>
+    <div class="container">
+        <div class="main">
+            <div class="canvas-wrapper">
+                <div class="canvas-container">
+                    <canvas id="canvas"></canvas>
+                </div>
             </div>
 
-            <div class="slider-group">
-                <label>C点X轴：</label>
-                <input type="range" id="cXSlider" min="5" max="95" value="30">
-                <span id="cXValue">30%</span>
-            </div>
-            <div class="slider-group">
-                <label>C点Y轴：</label>
-                <input type="range" id="cYSlider" min="5" max="50" value="20">
-                <span id="cYValue">20%</span>
-            </div>
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="slider-wrap">
+                    <div class="slider-group">
+                        <label>P点位置：</label>
+                        <input type="range" id="pSlider" min="0" max="100" value="50">
+                        <span id="pValue">50%</span>
+                    </div>
 
-            <div class="slider-group">
-                <label>D点X轴：</label>
-                <input type="range" id="dXSlider" min="5" max="95" value="70">
-                <span id="dXValue">70%</span>
-            </div>
-            <div class="slider-group">
-                <label>D点Y轴：</label>
-                <input type="range" id="dYSlider" min="5" max="50" value="20">
-                <span id="dYValue">20%</span>
-            </div>
-        </div>
+                    <div class="slider-group">
+                        <label>C点X轴：</label>
+                        <input type="range" id="cXSlider" min="5" max="95" value="30">
+                        <span id="cXValue">30%</span>
+                    </div>
+                    <div class="slider-group">
+                        <label>C点Y轴：</label>
+                        <input type="range" id="cYSlider" min="5" max="50" value="20">
+                        <span id="cYValue">20%</span>
+                    </div>
 
-        <!-- 按钮容器，包含辅助线和初始化按钮 -->
-        <div class="btn-group">
-            <button id="createCSymBtn">辅助线</button>
-            <button id="resetBtn">初始化</button>
+                    <div class="slider-group">
+                        <label>D点X轴：</label>
+                        <input type="range" id="dXSlider" min="5" max="95" value="70">
+                        <span id="dXValue">70%</span>
+                    </div>
+                    <div class="slider-group">
+                        <label>D点Y轴：</label>
+                        <input type="range" id="dYSlider" min="5" max="50" value="20">
+                        <span id="dYValue">20%</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label>题目文字大小：</label>
+                        <input type="range" id="fontSlider" min="80" max="200" value="100">
+                        <span id="fontValue">100%</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="createCSymBtn">辅助线</button>
+                    <button id="resetBtn">初始化</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -176,6 +257,9 @@
         const dXValue = document.getElementById('dXValue');
         const dYSlider = document.getElementById('dYSlider');
         const dYValue = document.getElementById('dYValue');
+        const fontSlider = document.getElementById('fontSlider');
+        const fontValue = document.getElementById('fontValue');
+        const geomCondition = document.querySelector('.geom-condition');
 
         let canvasW, canvasH;
         let hasCSym = false;
@@ -183,6 +267,11 @@
         let animateProgress = 0;
         let animationId = null;
         let isAnimationComplete = false;
+
+        // 拖动相关变量
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
         const geo = {
             A: { x: 0.05, y: 0.6 },
             B: { x: 0.95, y: 0.6 },
@@ -342,6 +431,8 @@
         // 绘制所有图形
         function drawAll() {
             ctx.clearRect(0, 0, canvasW, canvasH);
+            ctx.save();
+            ctx.translate(panX, panY);
             const A = rel2abs(geo.A);
             const B = rel2abs(geo.B);
             const P = rel2abs(geo.P);
@@ -444,6 +535,7 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
+            ctx.restore();
         }
 
         // 绑定事件
@@ -455,7 +547,71 @@
             cYSlider.addEventListener('input', (e) => updateC(cXSlider.value, e.target.value));
             dXSlider.addEventListener('input', (e) => updateD(e.target.value, dYSlider.value));
             dYSlider.addEventListener('input', (e) => updateD(dXSlider.value, e.target.value));
+            fontSlider.addEventListener('input', function() {
+                const fontSize = fontSlider.value / 100;
+                fontValue.textContent = `${fontSlider.value}%`;
+                geomCondition.style.fontSize = `${fontSize}rem`;
+            });
             window.addEventListener('resize', initCanvas);
+
+            // 拖动功能 - 鼠标事件
+            canvas.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            });
+
+            canvas.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    const deltaX = e.clientX - lastMouseX;
+                    const deltaY = e.clientY - lastMouseY;
+                    panX += deltaX;
+                    panY += deltaY;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    drawAll();
+                }
+            });
+
+            canvas.addEventListener('mouseup', function() {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            });
+
+            canvas.addEventListener('mouseleave', function() {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            });
+
+            // 拖动功能 - 触摸事件
+            canvas.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastMouseX = e.touches[0].clientX;
+                    lastMouseY = e.touches[0].clientY;
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', function(e) {
+                if (isDragging && e.touches.length === 1) {
+                    const deltaX = e.touches[0].clientX - lastMouseX;
+                    const deltaY = e.touches[0].clientY - lastMouseY;
+                    panX += deltaX;
+                    panY += deltaY;
+                    lastMouseX = e.touches[0].clientX;
+                    lastMouseY = e.touches[0].clientY;
+                    drawAll();
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', function() {
+                isDragging = false;
+            });
+
+            canvas.style.cursor = 'grab';
         }
 
         // 页面加载完成后启动

@@ -6,39 +6,123 @@
     <title>全等三角形旋转演示+DE连线切换</title>
     <title>中考复习旋转法求最值（雷新风）.html</title>
     <style>
+        * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI'}
         body {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            padding: 20px;
+            color: #fff;
             gap: 15px;
         }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 700px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        .geom-condition {
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            color: #64ffda;
+            text-align: left;
+            line-height: 1.6;
+            text-indent: 2em;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
         #canvas {
-            background-color: #fff;
-            border: 1px solid #ccc;
+            width: 100%;
+            height: 400px;
+            display: block;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: 1.1rem;
+            color: #ffd600;
+            margin-bottom: 5px;
+            text-align: center;
         }
         .slider-group {
             display: flex;
-            gap: 20px;
+            gap: 10px;
             align-items: center;
         }
         label {
             font-size: 14px;
-            color: #333;
+            color: #fff;
+            white-space: nowrap;
+            display: inline-block;
+            width: 100px;
         }
         input[type="range"] {
-            width: 200px;
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
         }
-        #coordDisplay {
-            font-size: 14px;
-            color: #333;
-            padding: 8px 16px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
         }
         .control-btn {
             padding: 8px 20px;
@@ -46,129 +130,81 @@
             cursor: pointer;
             border: none;
             border-radius: 4px;
-            background-color: #0066ff;
+            background-color: #007bff;
             color: #fff;
             transition: background-color 0.2s;
             margin: 0 5px;
         }
         .control-btn:hover {
-            background-color: #0052cc;
+            background-color: #0056b3;
         }
         .btn-group {
             display: flex;
             flex-wrap: nowrap;
             gap: 10px;
         }
-        .btn {
-            padding: 8px 20px;
+        #coordDisplay {
             font-size: 14px;
-            cursor: pointer;
-            border: none;
+            color: #ffd600;
+            padding: 8px 16px;
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(100,255,218,0.3);
             border-radius: 4px;
-            background-color: #0066ff;
-            color: #fff;
-            transition: background-color 0.2s;
-            margin: 0 5px;
-        }
-        .btn:hover {
-            background-color: #0052cc;
-        }
-        /* 题目板块样式 */
-        .problem-container {
-            width: 90%;
-            max-width: 800px;
-            background-color: #ffffff;
-            border: 2px solid #42A5F5;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px auto;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .problem-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #D32F2F;
             text-align: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #D32F2F;
-            padding-bottom: 10px;
         }
-        .problem-content {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #333;
-            margin-bottom: 15px;
-        }
-        .problem-content h3 {
-            color: #1976D2;
-            font-size: 18px;
-            margin: 15px 0 10px 0;
-        }
-        .problem-content p {
-            margin: 10px 0;
-            text-indent: 2em;
-        }
-        .operation-tips {
-            background-color: #E3F2FD;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        .operation-tips h4 {
-            color: #1565C0;
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }
-        .operation-tips ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        .operation-tips li {
-            margin: 5px 0;
-            color: #333;
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 题目板块 -->
-    <div class="problem-container">
-        <h2 class="problem-title">中考复习：旋转法求最值</h2>
-        <div class="problem-content">
-            <h3>题目描述</h3>
-            <p>如图所示，已知直线L₁：y=√3x+b交y轴于A，交x轴于B，和L₂：y=-√3x+b交x轴于C。点D为平面内一点，且BD=3√7，DC=6。线段DE的最小长度是多少？</p>
-            <p>请通过拖动滑块和观察图形变化，探索线段DE的最小长度。</p>
-            
-            <div class="operation-tips">
-                <h4>🎮 操作说明</h4>
-                <ul>
-                    <li>拖动"纵向平移"滑块调整D点的位置</li>
-                    <li>拖动"旋转角度"滑块观察图形旋转变化</li>
-                    <li>点击"连接DE"按钮查看DE连线动画</li>
-                    <li>观察坐标显示区域中D点的坐标变化</li>
-                </ul>
-            </div>
+    <div class="header">
+        <h1>旋转法求最值</h1>
+        <div class="geom-condition">
+            已知直线L₁：y=√3x+b交y轴于A，交x轴于B，和L₂：y=-√3x+b交x轴于C。点D为平面内一点，且BD=3√7，DC=6。线段DE的最小长度是多少？
         </div>
     </div>
 
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <div id="coordDisplay">交点D坐标：无交点</div>
-    <div class="slider-group">
-        <label>平移: <span id="yValue">100</span></label>
-        <input type="range" id="ySlider" min="-100" max="100" value="100" step="1">
-    </div>
-    <div class="slider-group">
-            <label>旋转角度: <span id="rotateValue">0°</span></label>
-            <input type="range" id="rotateSlider" min="0" max="60" value="0" step="0.1">
+    <div class="container">
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="canvas" width="800" height="600"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div id="coordDisplay">交点D坐标：无交点</div>
+                <div class="slider-group">
+                    <label>平移</label>
+                    <input type="range" id="ySlider" min="-100" max="100" value="100" step="1">
+                    <span id="yValue">100</span>
+                </div>
+                <div class="slider-group">
+                    <label>旋转角度</label>
+                    <input type="range" id="rotateSlider" min="0" max="60" value="0" step="0.1">
+                    <span id="rotateValue">0°</span>
+                </div>
+                <div class="slider-group">
+                    <label>图形缩放</label>
+                    <input type="range" id="scaleSlider" min="0.5" max="3" value="2.5" step="0.1">
+                    <span id="scaleValue">2.5</span>
+                </div>
+                <div class="btn-group">
+                    <button id="connectDE" class="control-btn">连接DE</button>
+                    <button id="minValue" class="control-btn">共线最小</button>
+                </div>
+                <div class="slider-group">
+                    <label>题目文字大小</label>
+                    <input type="range" id="fontSlider" min="80" max="200" value="100" step="1">
+                    <span id="fontValue">100%</span>
+                </div>
+            </div>
         </div>
-        <div class="slider-group">
-            <label>图形缩放: <span id="scaleValue">2.5</span>x</label>
-            <input type="range" id="scaleSlider" min="0.5" max="3" value="2.5" step="0.1">
-        </div>
-    <!-- 按钮容器 -->
-    <div class="btn-group">
-        <button id="connectDE" class="btn">连接DE</button>
-        <button id="minValue" class="btn">共线最小</button>
     </div>
 
     <script>
@@ -180,7 +216,10 @@
         const rotateValue = document.getElementById('rotateValue');
         const scaleSlider = document.getElementById('scaleSlider');
         const scaleValue = document.getElementById('scaleValue');
+        const fontSlider = document.getElementById('fontSlider');
+        const fontValueSpan = document.getElementById('fontValue');
         const coordDisplay = document.getElementById('coordDisplay');
+        const geomCondition = document.querySelector('.geom-condition');
 
         // 直线参数
         const k1 = Math.sqrt(3);
@@ -197,6 +236,11 @@
         // 圆半径
         const rB = 3 * Math.sqrt(7) * 10;
         const rC = 6 * 10;
+
+        // 拖动相关变量
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
         // DE连线控制
         let showDE = false;
         let deDrawProgress = 0; 
@@ -208,6 +252,16 @@
         // 平移参数
         const GRID_SIZE = 30;
         const TRANS_Y = 1 * GRID_SIZE;
+
+        // 初始化画布
+        function initCanvas() {
+            const canvasWrapper = document.querySelector('.canvas-wrapper');
+            canvas.width = canvasWrapper.clientWidth - 20;
+            canvas.height = 400;
+            CANVAS_CENTER.x = canvas.width / 2;
+            CANVAS_CENTER.y = canvas.height / 2;
+            draw();
+        }
 
         // 坐标系转换
         function toMathY(canvasY) {
@@ -271,6 +325,8 @@
         // 完整的图形绘制函数
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(panX, panY);
 
             // 绘制网格
             ctx.strokeStyle = '#ddd';
@@ -508,6 +564,7 @@
                     ctx.stroke();
                 }
             }
+            ctx.restore();
         }
 
         // 滑动条事件
@@ -527,6 +584,12 @@
             SCALE = parseFloat(scaleSlider.value);
             scaleValue.textContent = SCALE.toFixed(1);
             draw();
+        });
+
+        fontSlider.addEventListener('input', () => {
+            const fontSize = fontSlider.value / 100;
+            fontValueSpan.textContent = `${fontSlider.value}%`;
+            geomCondition.style.fontSize = `${fontSize}rem`;
         });
 
         // 连接DE按钮事件
@@ -579,8 +642,68 @@
         //     }
         // });
 
+        // 拖动功能 - 鼠标事件
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // 拖动功能 - 触摸事件
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                draw();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
+
         // 初始化绘制
-        draw();
+        window.onload = initCanvas;
+        window.addEventListener('resize', initCanvas);
     </script>
 </body>
 </html>

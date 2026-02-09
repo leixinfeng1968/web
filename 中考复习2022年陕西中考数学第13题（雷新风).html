@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>初中数学课件 - 菱形动点定值问题</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            text-indent: 2em;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
+        #myCanvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            color: #ffd600;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .draw-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            color: #1a237e;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            margin-top: 5px;
+        }
+        .draw-btn:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            padding: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        .blank-line {
+            display: inline-block;
+            width: 60px;
+            height: 2px;
+            background: #ffda8b;
+            vertical-align: bottom;
+            margin: 0 5px;
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2022年陕西中考数学第13题</h1>
+            <div class="geom-condition">
+                如图，在菱形ABCD中，AB＝4，BD＝7．若M、N分别是边AD、BC上的动点，且AM＝BN，作ME⊥BD，NF⊥BD，垂足分别为E、F，则ME＋NF的值为 　<span class="blank-line"></span>．
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="50" max="500" value="200" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">200%</span>
+                </div>
+                <div class="single-slider">
+                    <span>移动M、N点</span>
+                    <input type="range" min="0" max="100" value="30" class="control-slider" id="mnSlider">
+                    <span class="slider-value" id="mnValue">30%</span>
+                </div>
+                <div class="single-slider">
+                    <span>控制∠ABC大小</span>
+                    <input type="range" min="30" max="90" value="60" class="control-slider" id="angleSlider">
+                    <span class="slider-value" id="angleValue">60°</span>
+                </div>
+                <div class="single-slider">
+                    <span>显示定值答案+推导</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="ansSlider">
+                    <span class="slider-value" id="ansValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目字体大小</span>
+                    <input type="range" min="80" max="200" value="100" class="control-slider" id="fontSlider">
+                    <span class="slider-value" id="fontValue">100%</span>
+                </div>
+                <div class="single-slider">
+                    <span>绘制AC线段和MH垂线</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="acmhSlider">
+                    <span class="slider-value" id="acmhValue">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">制作时间：2026.1.18  作者：雷新风</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const mnSlider = document.getElementById('mnSlider'); 
+        const ansSlider = document.getElementById('ansSlider');
+        const angleSlider = document.getElementById('angleSlider');
+        const fontSlider = document.getElementById('fontSlider');
+        const scaleValue = document.getElementById('scaleValue');
+        const mnValue = document.getElementById('mnValue');
+        const ansValue = document.getElementById('ansValue');
+        const angleValue = document.getElementById('angleValue');
+        const fontValue = document.getElementById('fontValue');
+        const acmhSlider = document.getElementById('acmhSlider');
+        const acmhValue = document.getElementById('acmhValue');
+        const geomCondition = document.querySelector('.geom-condition');
+        
+        const pointRadius = 5; 
+        const labelOffset = 10;
+        let scaleRatio = 2.0, mnRatio = 0.3, ansRatio = 0, angleABC = 60, acmhRatio = 0;
+        let canvasW, canvasH;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+        let A,B,C,D,M,N,E,F,O,H;
+        const AB_LEN = 4, BD_LEN = 7;
+        const ME_ADD_NF = 7*Math.sqrt(15)/8;
+
+        function initCanvas() {
+            canvasW = canvas.width = canvas.offsetWidth;
+            canvasH = canvas.height = canvas.offsetHeight;
+            ctx.lineWidth = 3;
+            initPoints();
+            drawGraph();
+        }
+
+        function initPoints() {
+            const baseScale = Math.min(canvasW/42, canvasH/35);
+            const finalScale = baseScale * scaleRatio;
+            const sideLen = AB_LEN * finalScale;
+            const angleRad = angleABC * Math.PI / 180;
+
+            const centerX = canvasW / 2;
+            const BC_Y = canvasH / 2 + 50;
+            B = {x: centerX - (BD_LEN * finalScale) / 2, y: BC_Y};
+            C = {x: B.x + sideLen, y: BC_Y};
+            A = {x: B.x + sideLen * Math.cos(angleRad), y: B.y - sideLen * Math.sin(angleRad)};
+            D = {x: A.x + (C.x - B.x), y: A.y + (C.y - B.y)};
+            O = {x: (B.x + D.x) / 2, y: (B.y + D.y) / 2};
+
+            updateMN(finalScale);
+            updateEF();
+            calcFootPointH();
+        }
+
+        function calcFootPointH(){
+            const Ax = A.x, Ay = A.y, Cx = C.x, Cy = C.y, Mx = M.x, My = M.y;
+            const ACdx = Cx - Ax, ACdy = Cy - Ay;
+            const AMdx = Mx - Ax, AMdy = My - Ay;
+            const dot = AMdx * ACdx + AMdy * ACdy;
+            const AC_len2 = ACdx*ACdx + ACdy*ACdy;
+            const ratio = dot / AC_len2;
+            H = {x: Ax + ratio*ACdx, y: Ay + ratio*ACdy};
+        }
+
+        function updateMN(finalScale) {
+            const AM = AB_LEN * mnRatio;
+            const AD_vec = {x: D.x - A.x, y: D.y - A.y};
+            const AD_len = Math.sqrt(AD_vec.x**2 + AD_vec.y**2);
+            const ratio = AM / AB_LEN;
+            M = {x: A.x + AD_vec.x * ratio, y: A.y + AD_vec.y * ratio};
+            const BC_vec = {x: C.x - B.x, y: C.y - B.y};
+            N = {x: B.x + BC_vec.x * ratio, y: B.y + BC_vec.y * ratio};
+        }
+
+        function updateEF() {
+            const BD_vec = {x: D.x - B.x, y: D.y - B.y};
+            const BD_len = Math.sqrt(BD_vec.x**2 + BD_vec.y**2);
+            const unitX = BD_vec.x/BD_len;
+            const unitY = BD_vec.y/BD_len;
+
+            const projM = (M.x-B.x)*unitX + (M.y-B.y)*unitY;
+            E = {x: B.x + projM*unitX, y: B.y + projM*unitY};
+            const projN = (N.x-B.x)*unitX + (N.y-B.y)*unitY;
+            F = {x: B.x + projN*unitX, y: B.y + projN*unitY};
+        }
+
+        function drawGraph() {
+            ctx.clearRect(0,0,canvasW,canvasH);
+            ctx.save();
+            ctx.translate(panX, panY);
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.lineTo(D.x,D.y);ctx.closePath();ctx.stroke();
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(D.x,D.y);ctx.stroke();
+
+            if(acmhRatio > 0){
+                ctx.setLineDash([6,4]);
+                ctx.strokeStyle = '#64ffda';
+                ctx.lineWidth = 2.5;
+                // 动态绘制AC线段
+                const acProgress = Math.min(acmhRatio, 0.5) * 2;
+                const currCX = A.x + acProgress * (C.x - A.x);
+                const currCY = A.y + acProgress * (C.y - A.y);
+                ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(currCX,currCY);ctx.stroke();
+                
+                // 动态绘制MH垂线
+                if(acmhRatio > 0.5){
+                    const mhProgress = (acmhRatio - 0.5) * 2;
+                    ctx.strokeStyle = '#ff9e80';
+                    const currHX = M.x + mhProgress * (H.x - M.x);
+                    const currHY = M.y + mhProgress * (H.y - M.y);
+                    ctx.beginPath();ctx.moveTo(M.x,M.y);ctx.lineTo(currHX,currHY);ctx.stroke();
+                }
+                ctx.setLineDash([]);
+                ctx.lineWidth = 3;
+            }
+
+            drawPoint(A,'#ffff33');drawLabel('A',A,-labelOffset,-labelOffset);
+            drawPoint(B,'#ffff33');drawLabel('B',B,-labelOffset,labelOffset);
+            drawPoint(C,'#ffff33');drawLabel('C',C,labelOffset,labelOffset);
+            drawPoint(D,'#ffff33');drawLabel('D',D,labelOffset,-labelOffset);
+            drawPoint(M,'#ff4081');drawLabel('M',M,0,-labelOffset);
+            drawPoint(N,'#ff4081');drawLabel('N',N,0,labelOffset);
+            drawPoint(E,'#4dd0e1');drawLabel('E',E,-labelOffset,0);
+            drawPoint(F,'#4dd0e1');drawLabel('F',F,labelOffset,0);
+            
+            if(acmhRatio > 0.5){
+                drawPoint(O,'#00ff9d');drawLabel('O',O,labelOffset,labelOffset);
+                drawPoint(H,'#00e5ff');drawLabel('H',H,labelOffset,labelOffset);
+                if(acmhRatio === 1){
+                    drawRightAngle(M,H,A);
+                }
+            }
+
+            ctx.strokeStyle = '#ff4081';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(M.x,M.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(N.x,N.y);ctx.stroke();
+
+            ctx.strokeStyle = '#4dd0e1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();ctx.moveTo(M.x,M.y);ctx.lineTo(E.x,E.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(N.x,N.y);ctx.lineTo(F.x,F.y);ctx.stroke();
+            drawRightAngle(M,E,D);drawRightAngle(N,F,D);
+            ctx.lineWidth = 3;
+
+            if(ansRatio > 0) {
+                ctx.globalAlpha = ansRatio;
+                ctx.fillStyle = '#a5d6a7';
+                ctx.font = '18px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`ME+NF=定值 7√15/8 ≈2.65`,canvasW/2,40);
+                ctx.fillText(`推导：菱形高=7√15/8，ME+NF=菱形高`,canvasW/2,70);
+                ctx.globalAlpha = 1;
+            }
+            ctx.restore();
+        }
+
+        function drawPoint(p,color){
+            ctx.beginPath();ctx.fillStyle=color;ctx.arc(p.x,p.y,pointRadius,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.stroke();ctx.lineWidth=3;
+        }
+
+        function drawLabel(txt,p,ox,oy){
+            ctx.save();ctx.fillStyle='#fff';ctx.font='italic 20px Times New Roman';
+            ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,p.x+ox,p.y+oy);ctx.restore();
+        }
+
+        function drawRightAngle(p1,p2,p3){
+            const dx1 = p1.x-p2.x, dy1 = p1.y-p2.y;
+            const dx2 = p3.x-p2.x, dy2 = p3.y-p2.y;
+            const len1 = Math.sqrt(dx1**2+dy1**2), len2 = Math.sqrt(dx2**2+dy2**2);
+            const ux1=dx1/len1,uy1=dy1/len1,ux2=dx2/len2,uy2=dy2/len2;
+            const size=6;
+            ctx.beginPath();ctx.moveTo(p2.x+ux1*size,p2.y+uy1*size);ctx.lineTo(p2.x,p2.y);ctx.lineTo(p2.x+ux2*size,p2.y+uy2*size);ctx.stroke();
+        }
+
+        scaleSlider.addEventListener('input',function(){
+            scaleRatio=this.value/100;scaleValue.innerText=this.value+'%';initPoints();drawGraph();
+        });
+        mnSlider.addEventListener('input',function(){
+            mnRatio=this.value/100;mnValue.innerText=this.value+'%';initPoints();drawGraph();
+        });
+        angleSlider.addEventListener('input',function(){
+            angleABC=this.value;angleValue.innerText=this.value+'°';initPoints();drawGraph();
+        });
+        ansSlider.addEventListener('input',function(){
+            ansRatio=this.value/100;ansValue.innerText=this.value+'%';drawGraph();
+        });
+
+        fontSlider.addEventListener('input',function(){
+            const fontSize = this.value/100;
+            fontValue.innerText=this.value+'%';
+            geomCondition.style.fontSize = `${fontSize}rem`;
+        });
+
+        acmhSlider.addEventListener('input',function(){
+            acmhRatio=this.value/100;acmhValue.innerText=this.value+'%';
+            calcFootPointH();
+drawGraph();
+        });
+
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawGraph();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawGraph();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
+
+        window.onload=initCanvas;window.addEventListener('resize',initCanvas);
+    </script>
+</body>
+</html>

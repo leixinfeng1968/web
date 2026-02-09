@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>欢迎来到雷老师微课堂 ～</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: #fff;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header {
+            text-align: center;
+        }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(to right, #ffd600, #ffab00);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .geom-condition {
+            font-size: clamp(1rem, 2.5vw, 1.1rem);
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(100,255,218,0.4);
+            color: #ffda8b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: left;
+            text-indent: 2em;
+        }
+        .main {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+        }
+        #myCanvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(10,25,47,0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(100,255,218,0.15);
+            display: block;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 320px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(100,255,218,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 auto;
+        }
+        .control-panel h3 {
+            font-size: clamp(16px, 3vw, 18px);
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .single-slider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .single-slider span {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 120px;
+            text-align: left;
+        }
+        .control-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin-left: auto;
+        }
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffd600;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .slider-value {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            white-space: nowrap;
+            width: 50px;
+            text-align: right;
+        }
+        .footer {
+            text-align: center;
+            opacity: 0.9;
+            padding: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+        }
+        @media (max-width: 768px) {
+            .main {
+                flex-direction: column;
+            }
+            .control-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2023年陕西中考数学第13题</h1>
+            <div class="geom-condition">
+                如图，在矩形ABCD中，AB＝3，BC＝4．点E在边AD上，且ED＝3，M、N分别是边AB、BC上的动点，且BM＝BN，P是线段CE上的动点，连接PM，PN．若PM＋PN＝4．则线段PC的长为
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="canvas-wrapper">
+                <canvas id="myCanvas"></canvas>
+            </div>
+
+            <div class="control-panel">
+                <h3>控制参数</h3>
+                <div class="single-slider">
+                    <span>控制M、N运动</span>
+                    <input type="range" min="0" max="100" value="30" class="control-slider" id="mnSlider">
+                    <span class="slider-value" id="mnValue">30%</span>
+                </div>
+                <div class="single-slider">
+                    <span>控制P点运动</span>
+                    <input type="range" min="0" max="100" value="70" class="control-slider" id="pSlider">
+                    <span class="slider-value" id="pValue">70%</span>
+                </div>
+                <div class="single-slider">
+                    <span>控制∠ABC平分线延伸</span>
+                    <input type="range" min="0" max="100" value="0" class="control-slider" id="bhSlider">
+                    <span class="slider-value" id="bhValue">0%</span>
+                </div>
+                <div class="single-slider">
+                    <span>图形缩放比例</span>
+                    <input type="range" min="10" max="50" value="35" class="control-slider" id="scaleSlider">
+                    <span class="slider-value" id="scaleValue">35%</span>
+                </div>
+                <div class="single-slider">
+                    <span>题目文字大小</span>
+                    <input type="range" min="80" max="200" value="100" class="control-slider" id="fontSlider">
+                    <span class="slider-value" id="fontValue">100%</span>
+                </div>
+                <div class="single-slider">
+                    <span>标签大小</span>
+                    <input type="range" min="50" max="200" value="100" class="control-slider" id="labelSlider">
+                    <span class="slider-value" id="labelValue">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>2026.1.17制作，作者：雷新风</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const mnSlider = document.getElementById('mnSlider');
+        const pSlider = document.getElementById('pSlider');
+        const bhSlider = document.getElementById('bhSlider');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const fontSlider = document.getElementById('fontSlider');
+        const labelSlider = document.getElementById('labelSlider');
+        const geomCondition = document.querySelector('.geom-condition');
+        const pointRadius = 6; 
+        const labelOffset = 12;
+        let canvasW,canvasH,mnRatio=0.3,pRatio=0.7,bhRatio=0,scaleRatio=0.7,labelSize=16;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        function initCanvas(){
+            canvasW = canvas.clientWidth;
+            canvasH = canvas.clientHeight;
+            canvas.width = canvasW;
+            canvas.height = canvasH;
+            ctx.lineWidth = 3;
+            drawGraph();
+        }
+
+        function drawGraph(){
+            ctx.clearRect(0,0,canvasW,canvasH);
+            ctx.save();
+            ctx.translate(panX, panY);
+            const rectW = canvasW * scaleRatio;
+            const rectH = rectW * 3 / 4; 
+            const x0 = (canvasW - rectW)/2; 
+            const y0 = 45; 
+            const A = {x:x0, y:y0};
+            const D = {x:x0+rectW, y:y0};
+            const C = {x:x0+rectW, y:y0+rectH};
+            const B = {x:x0, y:y0+rectH};
+            const E = {x:x0 + rectW * 1/4, y:y0}; 
+
+            const moveLen = Math.min(rectH, rectW) * mnRatio;
+            const M = {x: B.x, y: B.y - moveLen};
+            const N = {x: B.x + moveLen, y: B.y};
+            const P = {x: E.x + (C.x - E.x) * pRatio,y: E.y + (C.y - E.y) * pRatio};
+
+            const kCE = (E.y - C.y)/(E.x - C.x);
+            const bCE = C.y - kCE * C.x;
+            const kBHB = -1;
+            const bBHB = B.y - kBHB * B.x;
+            const H_real = {
+                x: (bCE - bBHB)/(kBHB - kCE),
+                y: kBHB * (bCE - bBHB)/(kBHB - kCE) + bBHB
+            };
+            const H_extend = {
+                x: B.x + (H_real.x - B.x) * bhRatio,
+                y: B.y + (H_real.y - B.y) * bhRatio
+            };
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(D.x,D.y);ctx.lineTo(C.x,C.y);ctx.lineTo(B.x,B.y);ctx.closePath();ctx.stroke();
+            ctx.beginPath();ctx.moveTo(C.x,C.y);ctx.lineTo(E.x,E.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.lineTo(M.x,M.y);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.lineTo(N.x,N.y);ctx.stroke();
+            ctx.setLineDash([6,4]);
+            ctx.beginPath();ctx.moveTo(B.x,B.y);ctx.lineTo(H_extend.x,H_extend.y);ctx.stroke();
+            ctx.setLineDash([]);
+
+            drawPoint(A,'#ffff33');
+            drawPoint(B,'#ffff33');
+            drawPoint(C,'#ffff33');
+            drawPoint(D,'#ffff33');
+            drawPoint(E,'#64ffda');
+            drawPoint(M,'#ff4081');
+            drawPoint(N,'#ff4081');
+            drawPoint(P,'#4fc3f7');
+            if(bhRatio > 0.1){
+                drawPoint(H_extend,'#00ff9d');
+            }
+
+            ctx.font = `bold italic ${labelSize}px Times New Roman`;
+            ctx.textShadow = '0 0 3px #000';
+            drawLabel('A',A,-labelOffset,-labelOffset,'end','bottom');
+            drawLabel('D',D,labelOffset,-labelOffset,'start','bottom');
+            drawLabel('C',C,labelOffset,labelOffset,'start','top');
+            drawLabel('B',B,-labelOffset,labelOffset,'end','top');
+            drawLabel('E',E,labelOffset,-labelOffset,'start','bottom');
+            drawLabel('M',M,-labelOffset,0,'end','middle');
+            drawLabel('N',N,0,labelOffset,'middle','top');
+            drawLabel('P',P,labelOffset,-labelOffset,'start','bottom');
+            if(bhRatio > 0.1){
+                drawLabel('H',H_extend,labelOffset,-labelOffset,'start','top');
+            }
+            ctx.restore();
+        }
+
+        function drawPoint(p,color){
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(p.x,p.y,pointRadius,0,Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.lineWidth = 3;
+        }
+
+        function drawLabel(txt,p,ox,oy,align,base){
+            ctx.save();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = align;
+            ctx.textBaseline = base;
+            ctx.fillText(txt,p.x+ox,p.y+oy);
+            ctx.restore();
+        }
+
+        mnSlider.addEventListener('input',function(){mnRatio=this.value/100;document.getElementById('mnValue').textContent=this.value+'%';drawGraph();});
+        pSlider.addEventListener('input',function(){pRatio=this.value/100;document.getElementById('pValue').textContent=this.value+'%';drawGraph();});
+        bhSlider.addEventListener('input',function(){bhRatio=this.value/100;document.getElementById('bhValue').textContent=this.value+'%';drawGraph();});
+
+        scaleSlider.addEventListener('input',function(){scaleRatio=this.value/100;document.getElementById('scaleValue').textContent=this.value+'%';drawGraph();});
+
+        fontSlider.addEventListener('input',function(){
+            const fontSize = this.value/100;
+            document.getElementById('fontValue').textContent=this.value+'%';
+            geomCondition.style.fontSize = `${fontSize}rem`;
+        });
+
+        labelSlider.addEventListener('input',function(){
+            labelSize = this.value/100 * 16;
+            document.getElementById('labelValue').textContent=this.value+'%';
+            drawGraph();
+        });
+
+        canvas.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawGraph();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(e) {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - lastMouseX;
+                const deltaY = e.touches[0].clientY - lastMouseY;
+                panX += deltaX;
+                panY += deltaY;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawGraph();
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
+
+        window.onload = initCanvas;
+        window.addEventListener('resize',initCanvas);
+    </script>
+</body>
+</html>
